@@ -35,38 +35,39 @@ TimeSimulation = 4;
 TimeCloseloop  = 60;
 
 %% ===================== GANHOS DO PILOTO AUTOMATICO =====================
-% Retuning 2026-06-09 sobre o modelo linear (coef Ana, Ve=12, he=600),
-% metodologia da dissertacao (cap. 3-4):
-%   - SAS via LGR: Kq p/ zeta_SP=0.70 (estabiliza fugoide de quebra);
-%     Kr p/ zeta_DR=0.707 sobre washout s/(s+1); rolamento ja e' Nivel 1
-%     com folga -> Kp=0.
-%   - Compensadores PI (Kd=0; amortecimento vem dos dampers explicitos),
-%     pidtune com fechamento sequencial inner-first:
-%       C_theta : theta/de   com Kq fechado          (wc=2.0,  PM=65)
-%       C_vel   : VT/dT      com theta fechada       (wc=0.8,  zero em 0.3)
-%       C_alt   : h/thetaref com theta E VT fechadas (wc=0.35, PM=55, GM=26dB)
-%       C_phi   : phi/da     com yaw damper fechado  (wc=2.0,  PM=65)
-%                 (ganhos negativos pq Cl_da<0)
-%   - K_heading = u_e/(g*tau_psi), curva coordenada (Eq. 4.21 dissertacao).
-% Malha fechada linear: long zeta_min=0.57; latero todos os polos no SPE
-% (espiral estabilizada em -0.14).
+% Retuning 2026-08-10 p/ os REQUISITOS da dissertacao (ts<60 s, OS<10%,
+% ess<=5%, GM>10 dB, PM>45 deg), sobre o modelo linear (coef Ana, Ve=12,
+% he=600), mesma metodologia sequencial inner-first — mudancas vs 06-09:
+%   - Kq 0.0524 -> 0.10 (zeta_SP 0.68 -> 0.81, folga p/ fechamento de theta)
+%   - C_theta: pidtune wc=3.5 PM=75 ref-tracking (o OS de 15% em theta vinha
+%     do acoplamento com o throttle do C_vel, nao da malha de theta)
+%   - C_vel: +10% de ganho, zero mantido em 0.3 (corta OS de VT no NL:
+%     degrau VT+2 dava 20.9% com o tuning 06-09)
+%   - C_alt: pidtune wc=0.35 PM=60 ref-tracking (OS de h 20% -> 1.4%)
+%   - C_phi: P forte + I profundo (zero 0.08) — planta phi/da nao e' tipo-1,
+%     P puro deixa ess 10-15%; PI classico dava OS 24-28%
+%   - Kr/Kp/K_heading/tau_psi/tau_ref/clamp: inalterados
+% Verificacao (NL: VT 8.1%, h 1.4%, psi 0% de OS; linear: theta 7.6%,
+% phi 8.5%; GM>=21 dB, PM>=86 deg) — ver HIL_PID\Matlab\retuning_requisitos_PID.m
+% Ganhos 2026-06-09 (pre-requisitos): Kq 0.0524; C_theta (0.4007,0.3918);
+% C_vel (0.2899,0.0870); C_alt (0.02875,0.00259); C_phi (-0.2831,-0.2716).
 
 % SAS dampers
-Kq        = 0.0524;
+Kq        = 0.10;
 Kp        = 0;
 Kr        = 0.1481;
 
 % Pitch Attitude: theta_ref -> delta_e
-C_theta.Kp = 0.4007;  C_theta.Ki = 0.3918;  C_theta.Kd = 0;  C_theta.N = 100;
+C_theta.Kp = 0.917;   C_theta.Ki = 0.857;   C_theta.Kd = 0;  C_theta.N = 100;
 
 % Velocity Hold: VT_ref -> delta_T
-C_vel.Kp = 0.2899;    C_vel.Ki = 0.0870;    C_vel.Kd = 0;    C_vel.N = 100;
+C_vel.Kp = 0.32;      C_vel.Ki = 0.096;     C_vel.Kd = 0;    C_vel.N = 100;
 
 % Altitude Hold: h_ref -> theta_ref
 % (Retune de ganho wc=0.18 REVERTIDO em 2026-06-13: o "teleporte" do profundor/
 %  manete sera removido por SETPOINT WEIGHTING b=0 nos blocos PID, que tira o
 %  chute proporcional sem abrir mao da banda nem das margens.)
-C_alt.Kp = 0.02875;   C_alt.Ki = 0.00259;   C_alt.Kd = 0;    C_alt.N = 100;
+C_alt.Kp = 0.0301;    C_alt.Ki = 0.00018;   C_alt.Kd = 0;    C_alt.N = 100;
 
 % Limite de saida do C_alt (delta theta_ref, rad) — protecao de alpha:
 % com +10 deg o pico de alpha na captura fica ~16 deg (trim 14.4, sem
@@ -102,7 +103,7 @@ eng.tau  = 0.30;           % constante de tempo de spool [s] (banda ~3.3 rad/s)
 % Saturacao de posicao do throttle ([0,1]) ja esta no bloco Sat_Throttle.
 
 % Roll (Bank Angle Hold): phi_ref -> delta_a
-C_phi.Kp = -0.2831;   C_phi.Ki = -0.2716;   C_phi.Kd = 0;    C_phi.N = 100;
+C_phi.Kp = -0.45;     C_phi.Ki = -0.036;    C_phi.Kd = 0;    C_phi.N = 100;
 
 % Pre-filtro de comando (Opcao B, 2026-06-13): suaviza os degraus de referencia
 % com 1/(tau_ref*s+1) ANTES das malhas, removendo o "teleporte" dos atuadores
