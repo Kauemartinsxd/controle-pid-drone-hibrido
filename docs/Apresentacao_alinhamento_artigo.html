@@ -187,8 +187,8 @@ table.eig tr.bad td.d{color:color-mix(in srgb,var(--warn) 75%,var(--txt2))}
     <li>Conclusões</li>
   </ol>
   <div class="nota rv"><span class="who">objetivo desta conversa</span>
-    Validar o escopo de cada seção e as pendências marcadas em
-    <span class="chip warn" style="font-size:.62rem">pendente</span> e
+    Todas as seções têm resultados rodados (SIL, HIL e robustez); validar o escopo de cada uma
+    e os pontos marcados em
     <span class="chip disc" style="font-size:.62rem">para discutir</span> antes de escrever.
   </div>
 </section>
@@ -319,7 +319,7 @@ table.eig tr.bad td.d{color:color-mix(in srgb,var(--warn) 75%,var(--txt2))}
   <h2 class="rv">Projeto de controle — <span style="color:var(--pid)">PID</span> <span class="thin">(malhas em cascata, metodologia do Marcelo)</span></h2>
   <div class="chips rv"><span class="chip ok">malhas prontas</span><span class="chip ok">retuning p/ requisitos</span><span class="chip ok">comandos suaves: 2-DOF b=0</span></div>
   <div class="diag rv">
-    <div class="cap">Longitudinal — malhas internas (θ, q) e externas (h, V_T), realimentadas pela planta</div>
+    <div class="cap">Longitudinal — malhas internas (θ, q) e externas (h, V_T) · C_alt e C_vel em PID 2-DOF (b = 0)</div>
     <svg viewBox="0 0 980 300">
       <defs>
         <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#7d8fa3"/></marker>
@@ -495,7 +495,7 @@ table.eig tr.bad td.d{color:color-mix(in srgb,var(--warn) 75%,var(--txt2))}
     <li><b>Ponto de atenção para o leitor:</b> distinção entre o δ de <b>trimagem</b>
       (comando de equilíbrio, sempre presente) e os <b>deltas comandados</b> nas simulações
       <span class="sub">os comandos apresentados são absolutos: trim + delta</span></li>
-    <li><b style="color:var(--pid)">PID:</b> simulações no modelo não linear, com as respostas do modelo <b>linear</b> sobrepostas nos gráficos</li>
+    <li><b style="color:var(--pid)">PID:</b> simulações no modelo não linear (no artigo, com as respostas do modelo <b>linear</b> sobrepostas como validação)</li>
     <li class="l"><b style="color:var(--lqr)">LQRy:</b> simulações no modelo não linear</li>
   </ul>
   <div class="nota rv"><span class="who">observação · execution order</span>
@@ -525,7 +525,7 @@ table.eig tr.bad td.d{color:color-mix(in srgb,var(--warn) 75%,var(--txt2))}
         <tr><td>ψ [graus]</td><td class="m">1,27</td><td class="m">5,79</td></tr>
         <tr><td>h [m]</td><td class="m">1,65</td><td class="m">6,82</td></tr>
       </table>
-      <div class="cap" style="padding:.35rem 0 0">os máximos ocorrem no instante do degrau de referência</div>
+      <div class="cap" style="padding:.35rem 0 0">os máximos ocorrem nos transitórios dos degraus de referência</div>
     </div>
   </div>
 </section>
@@ -551,7 +551,7 @@ table.eig tr.bad td.d{color:color-mix(in srgb,var(--warn) 75%,var(--txt2))}
         <tr><td>ψ [graus]</td><td class="m">2,92</td><td class="m">10,16</td></tr>
         <tr><td>h [m]</td><td class="m">1,78</td><td class="m">10,00</td></tr>
       </table>
-      <div class="cap" style="padding:.35rem 0 0">os máximos ocorrem no instante do degrau de referência</div>
+      <div class="cap" style="padding:.35rem 0 0">os máximos ocorrem nos transitórios dos degraus de referência</div>
     </div>
   </div>
 </section>
@@ -577,9 +577,9 @@ table.eig tr.bad td.d{color:color-mix(in srgb,var(--warn) 75%,var(--txt2))}
         <tr><td>ψ [graus]</td><td class="m">1,27</td><td class="m">5,79</td><td class="m">2,92</td><td class="m">10,16</td></tr>
         <tr><td>h [m]</td><td class="m">1,65</td><td class="m">6,82</td><td class="m">1,78</td><td class="m">10,00</td></tr>
       </table>
-      <div class="cap" style="padding:.35rem 0 0">os máximos ocorrem no instante do degrau de referência</div>
-      <p class="lead" style="margin-top:.9rem;font-size:.92rem">Três manobras propostas (látero · longitudinal · combinada) e quatro métricas:
-      overshoot, tempo de subida, tempo de acomodação e erro em estado estacionário.</p>
+      <div class="cap" style="padding:.35rem 0 0">os máximos ocorrem nos transitórios dos degraus de referência</div>
+      <p class="lead" style="margin-top:.9rem;font-size:.92rem">Para o artigo: três manobras (látero · longitudinal · combinada) com as quatro
+      métricas da tabela de requisitos — as manobras por eixo serão re-rodadas com a sintonia final antes da redação.</p>
     </div>
   </div>
 </section>
@@ -700,8 +700,8 @@ table.eig tr.bad td.d{color:color-mix(in srgb,var(--warn) 75%,var(--txt2))}
         <tr><td>ψ [graus]</td><td class="m">1,27</td><td class="m">5,79</td><td class="m">2,92</td><td class="m">10,16</td></tr>
         <tr><td>h [m]</td><td class="m">1,63</td><td class="m">6,82</td><td class="m">1,78</td><td class="m">10,00</td></tr>
       </table>
-      <div class="cap" style="padding:.35rem 0 0">os máximos ocorrem no instante do degrau de referência</div>
-      <p class="lead" style="margin-top:.9rem;font-size:.92rem">Métrica adicional que o HIL habilita: <b>fidelidade SIL × HIL</b> de cada controlador — quanto o embarcado reproduz o projetado.</p>
+      <div class="cap" style="padding:.35rem 0 0">os máximos ocorrem nos transitórios dos degraus de referência</div>
+      <p class="lead" style="margin-top:.9rem;font-size:.92rem">Métrica adicional que o HIL habilita: <b>fidelidade SIL × HIL</b> — no PID, RMS de 0,004 m/s (V_T), 0,06° (θ) e 0,20 m (h): o embarcado reproduz o projetado.</p>
     </div>
   </div>
 </section>
@@ -713,7 +713,7 @@ table.eig tr.bad td.d{color:color-mix(in srgb,var(--warn) 75%,var(--txt2))}
   <h2 class="rv">Conclusões <span class="thin">— e o que priorizar</span></h2>
   <div class="chips rv"><span class="chip disc">a construir após este alinhamento</span></div>
   <ul class="pts rv">
-    <li>Síntese da comparação PID × LQRy em SIL e HIL, nas três manobras</li>
+    <li>Síntese da comparação PID × LQRy em SIL e HIL — missão combinada e manobras por eixo</li>
     <li>Contribuições metodológicas da bancada (reprodutibilidade, fidelidade SIL×HIL)</li>
     <li>Trabalhos futuros: feedforward de acoplamento, robustez ampliada</li>
   </ul>
