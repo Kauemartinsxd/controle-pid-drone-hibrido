@@ -728,6 +728,13 @@ table.score th.cl{color:var(--lqr);font-weight:600}
         <tr><td>ψ [graus]</td><td class="m">1,27</td><td class="m">5,79</td><td class="m">2,92</td><td class="m">10,16</td></tr>
         <tr><td>h [m]</td><td class="m">1,63</td><td class="m">6,82</td><td class="m">1,78</td><td class="m">10,00</td></tr>
       </table>
+      <table class="eig score" style="margin-top:.8rem">
+        <tr><th>requisito</th><th class="cp" colspan="3">PID · V_T | ψ | h</th><th class="cl" colspan="3">LQRy · V_T | ψ | h</th></tr>
+        <tr><td>Overshoot &lt; 10%</td><td class="m g">0</td><td class="m g">0</td><td class="m g">0</td><td class="m r">14,6</td><td class="m g">3,4</td><td class="m g">0</td></tr>
+        <tr><td>Acomodação &lt; 60 s</td><td class="m g">18</td><td class="m g">38</td><td class="m g">45</td><td class="m g">34</td><td class="m y">≈50</td><td class="m g">41</td></tr>
+        <tr><td>Erro regime ≤ 5%</td><td class="m g">0</td><td class="m g">1,1</td><td class="m g">0,1</td><td class="m g">0,1</td><td class="m g">3,1</td><td class="m g">0,1</td></tr>
+      </table>
+      <div class="cap" style="padding:.35rem 0 0">mesmo semáforo do SIL — no hardware o veredicto se mantém (fidelidade SIL×HIL do PID: θ 0,06° · h 0,20 m rms)</div>
       <div class="cap" style="padding:.35rem 0 0">os máximos ocorrem nos transitórios dos degraus de referência</div>
       <p class="lead" style="margin-top:.9rem;font-size:.92rem">Métrica adicional que o HIL habilita: <b>fidelidade SIL × HIL</b> — no PID, RMS de 0,004 m/s (V_T), 0,06° (θ) e 0,20 m (h): o embarcado reproduz o projetado.</p>
     </div>
