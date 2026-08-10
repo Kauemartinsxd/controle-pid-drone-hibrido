@@ -2,6 +2,10 @@
 
 Modelo da planta + piloto automático em **PID cascata** para o drone híbrido (DH) voando em modo asa-fixa.
 
+> 📽️ **Apresentação:** [`docs/Apresentacao_alinhamento_artigo.html`](docs/Apresentacao_alinhamento_artigo.html) —
+> alinhamento do artigo (PID × LQRy do SIL ao HIL, com estudo de robustez). Arquivo HTML
+> auto-contido: baixe e abra no navegador (o GitHub não renderiza HTML no repositório).
+
 ---
 
 ## Início rápido
