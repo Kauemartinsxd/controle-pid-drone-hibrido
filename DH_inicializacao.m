@@ -43,7 +43,10 @@ TimeCloseloop  = 60;
 %     do acoplamento com o throttle do C_vel, nao da malha de theta)
 %   - C_vel: +10% de ganho, zero mantido em 0.3 (corta OS de VT no NL:
 %     degrau VT+2 dava 20.9% com o tuning 06-09)
-%   - C_alt: pidtune wc=0.35 PM=60 ref-tracking (OS de h 20% -> 1.4%)
+%   - C_alt: Kp/Ki +74%/+66% vs 06-09, zero mantido em ~0.086 (v2 2026-08-10:
+%     a 1a tentativa ref-tracking tinha Ki~0 e deixava offsets de regime de
+%     1-2 m em h na missao a 15.2 m/s; v2: OS h 5.8%, ess~0, excursao na
+%     aceleracao 2.6 m recuperada em ~37 s)
 %   - C_phi: P forte + I profundo (zero 0.08) — planta phi/da nao e' tipo-1,
 %     P puro deixa ess 10-15%; PI classico dava OS 24-28%
 %   - Kr/Kp/K_heading/tau_psi/tau_ref/clamp: inalterados
@@ -67,7 +70,7 @@ C_vel.Kp = 0.32;      C_vel.Ki = 0.096;     C_vel.Kd = 0;    C_vel.N = 100;
 % (Retune de ganho wc=0.18 REVERTIDO em 2026-06-13: o "teleporte" do profundor/
 %  manete sera removido por SETPOINT WEIGHTING b=0 nos blocos PID, que tira o
 %  chute proporcional sem abrir mao da banda nem das margens.)
-C_alt.Kp = 0.0301;    C_alt.Ki = 0.00018;   C_alt.Kd = 0;    C_alt.N = 100;
+C_alt.Kp = 0.050;     C_alt.Ki = 0.0043;    C_alt.Kd = 0;    C_alt.N = 100;
 
 % Limite de saida do C_alt (delta theta_ref, rad) — protecao de alpha:
 % com +10 deg o pico de alpha na captura fica ~16 deg (trim 14.4, sem
