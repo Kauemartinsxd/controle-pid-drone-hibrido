@@ -9,7 +9,7 @@
 :root{
   --bg:#0b0f15; --bg2:#0e141d; --card:#121a25; --line:#22303f;
   --txt:#e9e5da; --txt2:#9aa7b5;
-  --pid:#59a6ff; --lqr:#ff7350; --ok:#5dd39e; --warn:#f2c14e; --ask:#c792ea; --disc:#7fdbda;
+  --pid:#59a6ff; --lqr:#ff7350; --ok:#5dd39e; --warn:#f2c14e; --bad:#ff6b6b; --ask:#c792ea; --disc:#7fdbda;
   --serif:'Fraunces', Georgia, serif; --sans:'Archivo','Segoe UI',sans-serif; --mono:'IBM Plex Mono',Consolas,monospace;
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -123,6 +123,12 @@ table.eig td.m{font-family:var(--mono);font-size:.8rem;white-space:nowrap}
 table.eig td.d{color:var(--txt2)}
 table.eig tr.bad td{color:var(--warn)}
 table.eig tr.bad td.d{color:color-mix(in srgb,var(--warn) 75%,var(--txt2))}
+/* scorecard de requisitos (semaforo) */
+table.score td.g{color:var(--ok)}
+table.score td.y{color:var(--warn)}
+table.score td.r{color:var(--bad)}
+table.score th.cp{color:var(--pid);font-weight:600}
+table.score th.cl{color:var(--lqr);font-weight:600}
 /* diagramas svg */
 .diag{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:.9rem 1rem;max-width:1100px}
 .diag .cap{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;color:var(--txt2);text-transform:uppercase;margin-bottom:.4rem}
@@ -490,13 +496,13 @@ table.eig tr.bad td.d{color:color-mix(in srgb,var(--warn) 75%,var(--txt2))}
         <div class="cap">trajetória 3D — interativa</div><div class="hint">arraste · role p/ zoom</div>
       </div>
       <div class="legend3d"><span><i style="background:#8a8a8a"></i>referência</span><span><i style="background:#59a6ff"></i>PID</span></div>
-      <table class="eig" style="margin-top:.8rem">
-        <tr><th>erro (SIL, t &gt; 12 s)</th><th>rms</th><th>máx</th></tr>
-        <tr><td>V_T [m/s]</td><td class="m">0,07</td><td class="m">0,80</td></tr>
-        <tr><td>ψ [graus]</td><td class="m">1,27</td><td class="m">5,79</td></tr>
-        <tr><td>h [m]</td><td class="m">1,65</td><td class="m">6,82</td></tr>
+      <table class="eig score" style="margin-top:.8rem">
+        <tr><th>requisito</th><th>V_T</th><th>ψ</th><th>h</th></tr>
+        <tr><td>Overshoot &lt; 10%</td><td class="m g">0%</td><td class="m g">0%</td><td class="m g">0%</td></tr>
+        <tr><td>Acomodação &lt; 60 s</td><td class="m g">18,0 s</td><td class="m g">38,1 s</td><td class="m g">45,1 s</td></tr>
+        <tr><td>Erro em regime ≤ 5%</td><td class="m g">0,1%</td><td class="m g">1,1%</td><td class="m g">0,1%</td></tr>
       </table>
-      <div class="cap" style="padding:.35rem 0 0">os máximos ocorrem nos transitórios dos degraus de referência</div>
+      <div class="cap" style="padding:.35rem 0 0">requisitos medidos nos degraus da missão · <span style="color:var(--ok)">verde: folga &gt; 20%</span> · <span style="color:var(--warn)">amarelo: no limite</span> · <span style="color:var(--bad)">vermelho: viola</span></div>
     </div>
   </div>
 </section>
@@ -516,13 +522,13 @@ table.eig tr.bad td.d{color:color-mix(in srgb,var(--warn) 75%,var(--txt2))}
         <div class="cap">trajetória 3D — interativa</div><div class="hint">arraste · role p/ zoom</div>
       </div>
       <div class="legend3d"><span><i style="background:#8a8a8a"></i>referência</span><span><i style="background:#ff7350"></i>LQRy</span></div>
-      <table class="eig" style="margin-top:.8rem">
-        <tr><th>erro (SIL, t &gt; 12 s)</th><th>rms</th><th>máx</th></tr>
-        <tr><td>V_T [m/s]</td><td class="m">0,38</td><td class="m">2,35</td></tr>
-        <tr><td>ψ [graus]</td><td class="m">2,92</td><td class="m">10,16</td></tr>
-        <tr><td>h [m]</td><td class="m">1,78</td><td class="m">10,00</td></tr>
+      <table class="eig score" style="margin-top:.8rem">
+        <tr><th>requisito</th><th>V_T</th><th>ψ</th><th>h</th></tr>
+        <tr><td>Overshoot &lt; 10%</td><td class="m r">16,5%</td><td class="m g">3,4%</td><td class="m g">0%</td></tr>
+        <tr><td>Acomodação &lt; 60 s</td><td class="m g">34,0 s</td><td class="m y">≈50 s</td><td class="m g">40,6 s</td></tr>
+        <tr><td>Erro em regime ≤ 5%</td><td class="m g">0,1%</td><td class="m g">3,1%</td><td class="m g">0,1%</td></tr>
       </table>
-      <div class="cap" style="padding:.35rem 0 0">os máximos ocorrem nos transitórios dos degraus de referência</div>
+      <div class="cap" style="padding:.35rem 0 0">requisitos medidos nos degraus da missão · o V_T do LQRy ultrapassa o alvo em 16,5% do degrau · ψ acomoda no fim da janela de 50 s</div>
     </div>
   </div>
 </section>
@@ -548,7 +554,12 @@ table.eig tr.bad td.d{color:color-mix(in srgb,var(--warn) 75%,var(--txt2))}
         <tr><td>ψ [graus]</td><td class="m">1,27</td><td class="m">5,79</td><td class="m">2,92</td><td class="m">10,16</td></tr>
         <tr><td>h [m]</td><td class="m">1,65</td><td class="m">6,82</td><td class="m">1,78</td><td class="m">10,00</td></tr>
       </table>
-      <div class="cap" style="padding:.35rem 0 0">os máximos ocorrem nos transitórios dos degraus de referência</div>
+      <table class="eig score" style="margin-top:.8rem">
+        <tr><th>requisito</th><th class="cp" colspan="3">PID · V_T | ψ | h</th><th class="cl" colspan="3">LQRy · V_T | ψ | h</th></tr>
+        <tr><td>Overshoot &lt; 10%</td><td class="m g">0</td><td class="m g">0</td><td class="m g">0</td><td class="m r">16,5</td><td class="m g">3,4</td><td class="m g">0</td></tr>
+        <tr><td>Acomodação &lt; 60 s</td><td class="m g">18</td><td class="m g">38</td><td class="m g">45</td><td class="m g">34</td><td class="m y">≈50</td><td class="m g">41</td></tr>
+        <tr><td>Erro regime ≤ 5%</td><td class="m g">0,1</td><td class="m g">1,1</td><td class="m g">0,1</td><td class="m g">0,1</td><td class="m g">3,1</td><td class="m g">0,1</td></tr>
+      </table>
       <p class="lead" style="margin-top:.9rem;font-size:.92rem">Para o artigo: três manobras (látero · longitudinal · combinada) com as quatro
       métricas da tabela de requisitos — as manobras por eixo serão re-rodadas com a sintonia final antes da redação.</p>
     </div>
@@ -572,10 +583,13 @@ table.eig tr.bad td.d{color:color-mix(in srgb,var(--warn) 75%,var(--txt2))}
         <li><b>PID perde a missão</b>: oscilação violenta no doublet de ψ — a proa dá voltas (erro até ~2100°), θ ±80°, h afunda centenas de metros</li>
         <li class="l"><b>LQRy conclui a missão com erro ≈ nominal</b> — consistente com as margens clássicas do LQR</li>
       </ul>
-      <table class="eig" style="margin-top:.8rem">
-        <tr><th>RMS ÷ nominal (t &gt; 12 s)</th><th>PID</th><th>LQRy</th></tr>
-        <tr class="bad"><td>Sato completo</td><td class="m">instável</td><td class="m">≈ 1,0×</td></tr>
+      <table class="eig score" style="margin-top:.8rem">
+        <tr><th>requisito</th><th class="cp" colspan="3">PID</th><th class="cl" colspan="3">LQRy · V_T | ψ | h</th></tr>
+        <tr><td>Overshoot &lt; 10%</td><td class="m r" colspan="3" rowspan="3" style="vertical-align:middle">instável —<br>perde a missão</td><td class="m r">15,8</td><td class="m g">0</td><td class="m g">0</td></tr>
+        <tr><td>Acomodação &lt; 60 s</td><td class="m g">31</td><td class="m y">≈50</td><td class="m g">40</td></tr>
+        <tr><td>Erro regime ≤ 5%</td><td class="m g">1,1</td><td class="m r">6,5</td><td class="m g">0,1</td></tr>
       </table>
+      <div class="cap" style="padding:.35rem 0 0">até o LQRy sente: overshoot de V_T e erro de regime de ψ saem da banda</div>
     </div>
   </div>
 </section>
@@ -596,11 +610,13 @@ table.eig tr.bad td.d{color:color-mix(in srgb,var(--warn) 75%,var(--txt2))}
         <li>PID mantém ψ e V_T ≈ nominais, mas o <b>AltitudeHold deriva +193 m</b> — o clamp de θ_ref, projetado para o modelo da Ana, fica sem autoridade na planta nova</li>
         <li class="l">LQRy segue ≈ nominal em todos os canais</li>
       </ul>
-      <table class="eig" style="margin-top:.8rem">
-        <tr><th>RMS ÷ nominal (t &gt; 12 s)</th><th>PID</th><th>LQRy</th></tr>
-        <tr><td>V_T · ψ</td><td class="m">≈ 1,0×</td><td class="m">≈ 1,0×</td></tr>
-        <tr class="bad"><td>h</td><td class="m">69× (deriva +193 m)</td><td class="m">≈ 1,0×</td></tr>
+      <table class="eig score" style="margin-top:.8rem">
+        <tr><th>requisito</th><th class="cp" colspan="3">PID · V_T | ψ | h</th><th class="cl" colspan="3">LQRy · V_T | ψ | h</th></tr>
+        <tr><td>Overshoot &lt; 10%</td><td class="m g">0</td><td class="m g">0</td><td class="m r">≫</td><td class="m r">15,8</td><td class="m g">5,1</td><td class="m g">0</td></tr>
+        <tr><td>Acomodação &lt; 60 s</td><td class="m g">19</td><td class="m g">37</td><td class="m r">&gt;80</td><td class="m g">31</td><td class="m y">≈50</td><td class="m g">40</td></tr>
+        <tr><td>Erro regime ≤ 5%</td><td class="m g">0</td><td class="m g">1,0</td><td class="m r">≫</td><td class="m g">1,1</td><td class="m y">4,7</td><td class="m g">0,2</td></tr>
       </table>
+      <div class="cap" style="padding:.35rem 0 0">PID: V_T e ψ verdes, mas h deriva +193 m — fora de qualquer banda (≫)</div>
     </div>
   </div>
 </section>
@@ -621,10 +637,13 @@ table.eig tr.bad td.d{color:color-mix(in srgb,var(--warn) 75%,var(--txt2))}
         <li><b>Os dois controladores ficam ≈ nominais</b> — as respostas são visualmente indistinguíveis do caso sem perturbação</li>
         <li>Leitura: dentro de incertezas realistas de identificação, os dois projetos são robustos; o contraste só aparece em descasamento severo (Sato)</li>
       </ul>
-      <table class="eig" style="margin-top:.8rem">
-        <tr><th>RMS ÷ nominal (t &gt; 12 s)</th><th>PID</th><th>LQRy</th></tr>
-        <tr><td>V_T · ψ · h</td><td class="m">≈ 1,0×</td><td class="m">≈ 1,0×</td></tr>
+      <table class="eig score" style="margin-top:.8rem">
+        <tr><th>requisito</th><th class="cp" colspan="3">PID · V_T | ψ | h</th><th class="cl" colspan="3">LQRy · V_T | ψ | h</th></tr>
+        <tr><td>Overshoot &lt; 10%</td><td class="m g">0</td><td class="m g">0</td><td class="m g">0</td><td class="m r">12,5</td><td class="m g">3,8</td><td class="m g">0</td></tr>
+        <tr><td>Acomodação &lt; 60 s</td><td class="m g">18</td><td class="m g">38</td><td class="m g">45</td><td class="m g">35</td><td class="m y">≈50</td><td class="m g">41</td></tr>
+        <tr><td>Erro regime ≤ 5%</td><td class="m g">0,1</td><td class="m g">1,1</td><td class="m g">0,1</td><td class="m g">0,9</td><td class="m g">3,5</td><td class="m g">0,1</td></tr>
       </table>
+      <div class="cap" style="padding:.35rem 0 0">PID todo verde — idêntico ao nominal; o overshoot de V_T do LQRy é herdado do caso sem perturbação</div>
     </div>
   </div>
 </section>
@@ -645,13 +664,13 @@ table.eig tr.bad td.d{color:color-mix(in srgb,var(--warn) 75%,var(--txt2))}
         <li><b>PID</b> degrada mais em ψ nas rajadas laterais (pico 12,9°); <b>LQRy</b> degrada mais em h (2,9×; pico 11,2 m) e em ψ (pico 18,6°)</li>
         <li class="l">Mesma assinatura da comparação nominal: PID mais firme em V_T/ψ, LQRy sente mais o vento em ψ mas segura h dentro de ~11 m — nenhum dos dois se aproxima de perda de controle</li>
       </ul>
-      <table class="eig" style="margin-top:.8rem">
-        <tr><th>erro (vento, t &gt; 12 s)</th><th>PID rms</th><th>PID máx</th><th>LQRy rms</th><th>LQRy máx</th></tr>
-        <tr><td>V_T [m/s]</td><td class="m">0,10</td><td class="m">0,80</td><td class="m">0,48</td><td class="m">2,35</td></tr>
-        <tr><td>ψ [graus]</td><td class="m">2,24</td><td class="m">12,86</td><td class="m">3,68</td><td class="m">18,62</td></tr>
-        <tr><td>h [m]</td><td class="m">2,55</td><td class="m">11,52</td><td class="m">5,21</td><td class="m">11,24</td></tr>
+      <table class="eig score" style="margin-top:.8rem">
+        <tr><th>requisito</th><th class="cp" colspan="3">PID · V_T | ψ | h</th><th class="cl" colspan="3">LQRy · V_T | ψ | h</th></tr>
+        <tr><td>Overshoot &lt; 10%</td><td class="m y">8,5</td><td class="m r">59,8</td><td class="m g">0</td><td class="m r">42,8</td><td class="m r">72,8</td><td class="m g">0</td></tr>
+        <tr><td>Acomodação &lt; 60 s</td><td class="m g">25</td><td class="m g">38</td><td class="m g">38</td><td class="m y">45</td><td class="m y">≈50</td><td class="m r">&gt;80</td></tr>
+        <tr><td>Erro regime ≤ 5%</td><td class="m g">0</td><td class="m g">0,7</td><td class="m g">0,1</td><td class="m r">15,1</td><td class="m r">15,2</td><td class="m r">≫</td></tr>
       </table>
-      <div class="cap" style="padding:.35rem 0 0">nominal (sem vento): PID 0,07 / 1,27 / 1,65 · LQRy 0,38 / 2,92 / 1,78 (rms V_T / ψ / h)</div>
+      <div class="cap" style="padding:.35rem 0 0">medidos nas janelas dos degraus com as rajadas ativas — no PID só o pico de ψ na rajada sai da banda; o LQRy é deslocado em V_T, ψ e h (fica ~10 m abaixo da ref durante o vento)</div>
     </div>
   </div>
 </section>
