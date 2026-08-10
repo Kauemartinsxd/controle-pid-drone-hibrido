@@ -518,7 +518,6 @@ table.score th.cl{color:var(--lqr);font-weight:600}
         <tr><td>Acomodação &lt; 60 s</td><td class="m g">18,0 s</td><td class="m g">38,1 s</td><td class="m g">45,1 s</td></tr>
         <tr><td>Erro em regime ≤ 5%</td><td class="m g">0,1%</td><td class="m g">1,1%</td><td class="m g">0,1%</td></tr>
       </table>
-      <div class="cap" style="padding:.35rem 0 0">requisitos medidos nos degraus da missão · <span style="color:var(--ok)">verde: folga &gt; 20%</span> · <span style="color:var(--warn)">amarelo: no limite</span> · <span style="color:var(--bad)">vermelho: viola</span></div>
     </div>
   </div>
 </section>
@@ -602,7 +601,6 @@ table.score th.cl{color:var(--lqr);font-weight:600}
         <tr><td>Acomodação &lt; 60 s</td><td class="m g">31</td><td class="m y">≈50</td><td class="m g">40</td></tr>
         <tr><td>Erro regime ≤ 5%</td><td class="m g">1,1</td><td class="m r">6,5</td><td class="m g">0,1</td></tr>
       </table>
-      <div class="cap" style="padding:.35rem 0 0">até o LQRy sente: overshoot de V_T e erro de regime de ψ saem da banda</div>
     </div>
   </div>
 </section>
@@ -629,7 +627,6 @@ table.score th.cl{color:var(--lqr);font-weight:600}
         <tr><td>Acomodação &lt; 60 s</td><td class="m g">19</td><td class="m g">37</td><td class="m r">&gt;80</td><td class="m g">31</td><td class="m y">≈50</td><td class="m g">40</td></tr>
         <tr><td>Erro regime ≤ 5%</td><td class="m g">0</td><td class="m g">1,0</td><td class="m r">≫</td><td class="m g">1,1</td><td class="m y">4,7</td><td class="m g">0,2</td></tr>
       </table>
-      <div class="cap" style="padding:.35rem 0 0">PID: V_T e ψ verdes, mas h deriva +193 m — fora de qualquer banda (≫)</div>
     </div>
   </div>
 </section>
@@ -656,7 +653,6 @@ table.score th.cl{color:var(--lqr);font-weight:600}
         <tr><td>Acomodação &lt; 60 s</td><td class="m g">18</td><td class="m g">38</td><td class="m g">45</td><td class="m g">35</td><td class="m y">≈50</td><td class="m g">41</td></tr>
         <tr><td>Erro regime ≤ 5%</td><td class="m g">0,1</td><td class="m g">1,1</td><td class="m g">0,1</td><td class="m g">0,9</td><td class="m g">3,5</td><td class="m g">0,1</td></tr>
       </table>
-      <div class="cap" style="padding:.35rem 0 0">PID todo verde — idêntico ao nominal; o overshoot de V_T do LQRy é herdado do caso sem perturbação</div>
     </div>
   </div>
 </section>
@@ -683,7 +679,6 @@ table.score th.cl{color:var(--lqr);font-weight:600}
         <tr><td>Acomodação &lt; 60 s</td><td class="m g">25</td><td class="m g">38</td><td class="m g">38</td><td class="m y">45</td><td class="m y">≈50</td><td class="m r">&gt;80</td></tr>
         <tr><td>Erro regime ≤ 5%</td><td class="m g">0</td><td class="m g">0,7</td><td class="m g">0,1</td><td class="m r">15,1</td><td class="m r">15,2</td><td class="m r">≫</td></tr>
       </table>
-      <div class="cap" style="padding:.35rem 0 0">medidos nas janelas dos degraus com as rajadas ativas — no PID só o pico de ψ na rajada sai da banda; o LQRy é deslocado em V_T, ψ e h (fica ~10 m abaixo da ref durante o vento)</div>
     </div>
   </div>
 </section>
@@ -746,7 +741,6 @@ table.score th.cl{color:var(--lqr);font-weight:600}
         <tr><td>Acomodação &lt; 60 s</td><td class="m g">18</td><td class="m g">38</td><td class="m g">45</td><td class="m g">34</td><td class="m y">≈50</td><td class="m g">41</td></tr>
         <tr><td>Erro regime ≤ 5%</td><td class="m g">0</td><td class="m g">1,1</td><td class="m g">0,1</td><td class="m g">0,1</td><td class="m g">3,1</td><td class="m g">0,1</td></tr>
       </table>
-      <div class="cap" style="padding:.35rem 0 0">mesmo semáforo do SIL — no hardware o veredicto se mantém (fidelidade SIL×HIL do PID: θ 0,06° · h 0,20 m rms)</div>
       <div class="cap" style="padding:.35rem 0 0">os máximos ocorrem nos transitórios dos degraus de referência</div>
       <p class="lead" style="margin-top:.9rem;font-size:.92rem">Métrica adicional que o HIL habilita: <b>fidelidade SIL × HIL</b> — no PID, RMS de 0,004 m/s (V_T), 0,06° (θ) e 0,20 m (h): o embarcado reproduz o projetado.</p>
     </div>
