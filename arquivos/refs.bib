@@ -1,0 +1,817 @@
+% ============================================================
+% refs.bib — verificado por fonte primaria (DOI/Crossref, editoras,
+% repositorios institucionais) em 2026-08-16. Nao adicionar entradas
+% sem verificacao. Entradas locais do grupo primeiro.
+% ============================================================
+
+@misc{repo,
+  author = {Martins, Kau\^e},
+  title  = {controle-pid-drone-hibrido: nonlinear model, cascade {PID},
+            and {HIL} toolchain},
+  year   = {2026},
+  howpublished = {\url{https://github.com/Kauemartinsxd/controle-pid-drone-hibrido}}
+}
+
+@mastersthesis{santos2018,
+  author  = {Santos, Marcelo Henrique dos},
+  title   = {Projeto e teste em bancada de um piloto autom\'atico para
+             ve\'iculos a\'ereos n\~ao tripulados},
+  school  = {Instituto Tecnol\'ogico de Aeron\'autica (ITA)},
+  address = {S\~ao Jos\'e dos Campos, Brazil},
+  year    = {2018},
+  type    = {Master's Thesis}
+}
+
+@mastersthesis{sato2021,
+  author  = {Sato, Fernando Cesar Yukio Cursino},
+  title   = {Identifica\c{c}\~ao do modelo longitudinal do aeromodelo
+             {Piper J3} atrav\'es da implementa\c{c}\~ao do m\'etodo {OEM}
+             auxiliado por ferramentas computacionais},
+  school  = {Instituto Tecnol\'ogico de Aeron\'autica (ITA)},
+  address = {S\~ao Jos\'e dos Campos, Brazil},
+  year    = {2021},
+  type    = {Master's Thesis}
+}
+
+% Artigo companion do Mirko (draft Elsevier recebido 2026-08-16).
+% Confirmar status (submetido? a submeter?) antes da submissao.
+@unpublished{mirko2026companion,
+  author = {Montecinos Cortez, Huascar Mirko and de Oliveira, Neusa Maria
+            Franco and Triveno Vargas, Francisco Javier},
+  title  = {Practical robust control law for the cruise flight phase of a
+            hybrid vehicle},
+  year   = {2026},
+  note   = {In preparation (companion article)}
+}
+
+% Campanha de identificacao do DH (Modelo 4 long., Modelo 2 latero),
+% 24/04/2026. Dados bibliograficos definitivos: conferir com a autora
+% antes da submissao (ponto unico de pendencia externa).
+@misc{angelo2026,
+  author = {Angelo, Ana Carolina de Lima},
+  title  = {Flight-test identification of the hybrid drone aerodynamic
+            coefficients},
+  howpublished = {Instituto Tecnol\'ogico de Aeron\'autica (ITA)},
+  year   = {2026},
+  note   = {In preparation}
+}
+
+% ------------------------------------------------------------
+% Introduction — surveys, comparisons, autopilot landscape
+% ------------------------------------------------------------
+
+@article{saeed2018survey,
+  author  = {Saeed, Adnan S. and Younes, Ahmad Bani and Cai, Chenxiao and Cai, Guowei},
+  title   = {A survey of hybrid Unmanned Aerial Vehicles},
+  journal = {Progress in Aerospace Sciences},
+  volume  = {98},
+  pages   = {91--105},
+  year    = {2018},
+  month   = apr,
+  issn    = {0376-0421},
+  doi     = {10.1016/j.paerosci.2018.03.007}
+}
+
+@article{ducard2021review,
+  author  = {Ducard, Guillaume J. J. and Allenspach, Mike},
+  title   = {Review of designs and flight control techniques of hybrid and convertible {VTOL} {UAVs}},
+  journal = {Aerospace Science and Technology},
+  volume  = {118},
+  pages   = {107035},
+  year    = {2021},
+  month   = nov,
+  issn    = {1270-9638},
+  doi     = {10.1016/j.ast.2021.107035}
+}
+
+@article{hu2024hybrid,
+  author  = {Hu, Jiahao and Wei, Jingbo and Liu, Kun and Yu, Xiaobin and Cao, Mingzhi and Qin, Zijie},
+  title   = {Hybrid Mode: Routinization of the Transition Mode as the Third Common Mode for Compound {VTOL} Drones},
+  journal = {Drones},
+  volume  = {8},
+  number  = {3},
+  pages   = {93},
+  year    = {2024},
+  month   = mar,
+  issn    = {2504-446X},
+  doi     = {10.3390/drones8030093}
+}
+
+@article{chao2010autopilots,
+  author    = {Chao, HaiYang and Cao, YongCan and Chen, YangQuan},
+  title     = {Autopilots for small unmanned aerial vehicles: A survey},
+  journal   = {International Journal of Control, Automation and Systems},
+  volume    = {8},
+  number    = {1},
+  pages     = {36--44},
+  month     = feb,
+  year      = {2010},
+  publisher = {Springer},
+  issn      = {2005-4092},
+  doi       = {10.1007/s12555-010-0105-z}
+}
+
+@inproceedings{bouabdallah2004pid,
+  author    = {Bouabdallah, Samir and Noth, Andr{\'e} and Siegwart, Roland},
+  title     = {{PID} vs {LQ} control techniques applied to an indoor micro quadrotor},
+  booktitle = {Proc. 2004 {IEEE/RSJ} International Conference on Intelligent Robots and Systems ({IROS})},
+  address   = {Sendai, Japan},
+  publisher = {IEEE},
+  volume    = {3},
+  pages     = {2451--2456},
+  year      = {2004},
+  doi       = {10.1109/IROS.2004.1389776}
+}
+
+@inproceedings{argentim2013pid,
+  author    = {Argentim, Lucas M. and Rezende, Willian C. and Santos, Paulo E. and Aguiar, Renato A.},
+  title     = {{PID}, {LQR} and {LQR-PID} on a quadcopter platform},
+  booktitle = {Proc. 2013 International Conference on Informatics, Electronics and Vision ({ICIEV})},
+  address   = {Dhaka, Bangladesh},
+  publisher = {IEEE},
+  pages     = {1--6},
+  year      = {2013},
+  month     = may,
+  doi       = {10.1109/ICIEV.2013.6572698}
+}
+
+@article{okasha2022design,
+  author    = {Okasha, Mohamed and Kralev, Jordan and Islam, Maidul},
+  title     = {Design and Experimental Comparison of {PID}, {LQR} and {MPC} Stabilizing Controllers for {Parrot Mambo} Mini-Drone},
+  journal   = {Aerospace},
+  volume    = {9},
+  number    = {6},
+  pages     = {298},
+  year      = {2022},
+  month     = jun,
+  publisher = {MDPI},
+  issn      = {2226-4310},
+  doi       = {10.3390/aerospace9060298}
+}
+
+@article{rinaldi2023comparative,
+  author    = {Rinaldi, Marco and Primatesta, Stefano and Guglieri, Giorgio},
+  title     = {A Comparative Study for Control of Quadrotor {UAVs}},
+  journal   = {Applied Sciences},
+  volume    = {13},
+  number    = {6},
+  pages     = {3464},
+  year      = {2023},
+  month     = mar,
+  publisher = {MDPI},
+  issn      = {2076-3417},
+  doi       = {10.3390/app13063464}
+}
+
+@article{ingabire2019control,
+  author    = {Ingabire, Aline and Sklyarov, Andrey A.},
+  title     = {Control of longitudinal flight dynamics of a fixedwing {UAV} using {LQR}, {LQG} and nonlinear control},
+  journal   = {E3S Web of Conferences},
+  volume    = {104},
+  pages     = {02001},
+  year      = {2019},
+  publisher = {EDP Sciences},
+  issn      = {2267-1242},
+  note      = {EEESTS-2019},
+  doi       = {10.1051/e3sconf/201910402001}
+}
+
+@article{ebeid2018survey,
+  author    = {Ebeid, Emad and Skriver, Martin and Terkildsen, Kristian Husum and Jensen, Kjeld and Schultz, Ulrik Pagh},
+  title     = {A survey of Open-Source {UAV} flight controllers and flight simulators},
+  journal   = {Microprocessors and Microsystems},
+  volume    = {61},
+  pages     = {11--20},
+  year      = {2018},
+  month     = sep,
+  publisher = {Elsevier},
+  issn      = {0141-9331},
+  doi       = {10.1016/j.micpro.2018.05.002}
+}
+
+@inproceedings{meier2015px4,
+  author    = {Meier, Lorenz and Honegger, Dominik and Pollefeys, Marc},
+  title     = {{PX4}: A node-based multithreaded open source robotics framework for deeply embedded platforms},
+  booktitle = {2015 {IEEE} International Conference on Robotics and Automation ({ICRA})},
+  pages     = {6235--6240},
+  year      = {2015},
+  month     = may,
+  publisher = {IEEE},
+  address   = {Seattle, WA, USA},
+  doi       = {10.1109/ICRA.2015.7140074}
+}
+
+
+% ------------------------------------------------------------
+% Flight dynamics, modeling, identification, trim
+% ------------------------------------------------------------
+
+@book{stevens2016aircraft,
+  author    = {Stevens, Brian L. and Lewis, Frank L. and Johnson, Eric N.},
+  title     = {Aircraft Control and Simulation: Dynamics, Controls Design, and Autonomous Systems},
+  edition   = {3rd},
+  publisher = {Wiley},
+  address   = {Hoboken, NJ, USA},
+  year      = {2016},
+  isbn      = {978-1-118-87098-3},
+  doi       = {10.1002/9781119174882}
+}
+
+@book{etkin1996dynamics,
+  author    = {Etkin, Bernard and Reid, Lloyd Duff},
+  title     = {Dynamics of Flight: Stability and Control},
+  edition   = {3rd},
+  publisher = {John Wiley \& Sons},
+  address   = {New York, NY, USA},
+  year      = {1996},
+  isbn      = {978-0-471-03418-6}
+}
+
+@book{cook2007flight,
+  author    = {Cook, Michael V.},
+  title     = {Flight Dynamics Principles: A Linear Systems Approach to Aircraft Stability and Control},
+  edition   = {2nd},
+  publisher = {Butterworth-Heinemann/Elsevier},
+  address   = {Oxford, UK},
+  year      = {2007},
+  isbn      = {9780750669276}
+}
+
+@book{nelson1998flight,
+  author    = {Nelson, Robert C.},
+  title     = {Flight Stability and Automatic Control},
+  edition   = {2nd},
+  publisher = {McGraw-Hill},
+  address   = {New York, NY, USA},
+  year      = {1998},
+  isbn      = {0-07-046273-9}
+}
+
+@book{beard2012small,
+  author    = {Beard, Randal W. and McLain, Timothy W.},
+  title     = {Small Unmanned Aircraft: Theory and Practice},
+  publisher = {Princeton University Press},
+  address   = {Princeton, NJ, USA},
+  year      = {2012},
+  isbn      = {9780691149219}
+}
+
+@book{klein2006aircraft,
+  author    = {Klein, Vladislav and Morelli, Eugene A.},
+  title     = {Aircraft System Identification: Theory and Practice},
+  series    = {AIAA Education Series},
+  publisher = {American Institute of Aeronautics and Astronautics},
+  address   = {Reston, VA, USA},
+  year      = {2006},
+  isbn      = {1-56347-832-3},
+  doi       = {10.2514/4.861505}
+}
+
+@book{jategaonkar2006flight,
+  author    = {Jategaonkar, Ravindra V.},
+  title     = {Flight Vehicle System Identification: A Time Domain Methodology},
+  series    = {Progress in Astronautics and Aeronautics},
+  volume    = {216},
+  publisher = {American Institute of Aeronautics and Astronautics},
+  address   = {Reston, VA, USA},
+  year      = {2006},
+  isbn      = {1-56347-836-6},
+  doi       = {10.2514/4.866852}
+}
+
+@inproceedings{marco2007trim,
+  author    = {De Marco, Agostino and Duke, Eugene and Berndt, Jon},
+  title     = {A General Solution to the Aircraft Trim Problem},
+  booktitle = {Proc. {AIAA} Modeling and Simulation Technologies Conference and Exhibit},
+  publisher = {American Institute of Aeronautics and Astronautics},
+  address   = {Hilton Head, SC, USA},
+  year      = {2007},
+  note      = {{AIAA} Paper 2007-6703},
+  doi       = {10.2514/6.2007-6703}
+}
+
+@inproceedings{ferreira2019modeling,
+  author    = {Sato, Fernando Cesar Yukio Cursino and Franco Oliveira, Neusa Maria and Ferreira, Paulo Rogerio},
+  title     = {Modeling of Fixed Wing {UAV} Platform Using Computational Tools},
+  booktitle = {Proceedings of the 25th International Congress of Mechanical Engineering ({COBEM} 2019)},
+  publisher = {{ABCM}},
+  address   = {Uberl{\^a}ndia, Brazil},
+  year      = {2019},
+  doi       = {10.26678/ABCM.COBEM2019.COB2019-1795}
+}
+
+@inproceedings{sato2020identificacao,
+  author    = {Sato, Fernando C. Y. C. and Sarmento, Andrew G. P. and Oliveira, Neusa M. F.},
+  title     = {Identifica{\c{c}}{\~a}o do aeromodelo {Piper J3} em movimento longitudinal atrav{\'e}s da implementa{\c{c}}{\~a}o de algoritmo {OEM} e simula{\c{c}}{\~o}es computacionais em softwares {X-PLANE} e {MATLAB}/{SIMULINK}},
+  booktitle = {Anais do Congresso Brasileiro de Autom{\'a}tica ({CBA} 2020)},
+  publisher = {Sociedade Brasileira de Autom{\'a}tica},
+  year      = {2020},
+  month     = dec,
+  doi       = {10.48011/asba.v2i1.1630}
+}
+
+@article{dorobantu2012system,
+  author  = {Dorobantu, Andrei and Murch, Austin and Mettler, B{\'e}r{\'e}nice and Balas, Gary},
+  title   = {System Identification for Small, Low-Cost, Fixed-Wing Unmanned Aircraft},
+  journal = {Journal of Aircraft},
+  volume  = {50},
+  number  = {4},
+  pages   = {1117--1130},
+  year    = {2013},
+  month   = jul,
+  doi     = {10.2514/1.C032065}
+}
+
+
+% ------------------------------------------------------------
+% Requirements, standards, washout origin
+% ------------------------------------------------------------
+
+@techreport{milf9490d1975,
+  author      = {{United States Air Force}},
+  title       = {Flight Control Systems---Design, Installation and Test of Piloted Aircraft, General Specification For},
+  type        = {Military Specification},
+  number      = {MIL-F-9490D},
+  institution = {U.S. Department of Defense},
+  address     = {Washington, DC, USA},
+  month       = jun,
+  year        = {1975},
+  url         = {https://everyspec.com/MIL-SPECS/MIL-SPECS-MIL-F/MIL-F-9490D_5297/},
+  note        = {Superseded by MIL-DTL-9490E}
+}
+
+@techreport{sae2007as94900,
+  author      = {{SAE International}},
+  title       = {Aerospace---Flight Control Systems---Design, Installation and Test of Piloted Military Aircraft, General Specification For},
+  type        = {Aerospace Standard},
+  number      = {AS94900},
+  institution = {SAE International},
+  address     = {Warrendale, PA, USA},
+  month       = jul,
+  year        = {2007},
+  url         = {https://saemobilus.sae.org/standards/as94900-aerospace-flight-control-systems-design-installation-test-piloted-military-aircraft-general-specification}
+}
+
+@techreport{milf8785c1980,
+  author      = {{U.S. Department of Defense}},
+  title       = {Flying Qualities of Piloted Airplanes},
+  type        = {Military Specification},
+  number      = {MIL-F-8785C},
+  institution = {U.S. Department of Defense},
+  address     = {Washington, DC, USA},
+  month       = nov,
+  year        = {1980},
+  url         = {https://everyspec.com/MIL-SPECS/MIL-SPECS-MIL-F/MIL-F-8785C_5295/}
+}
+
+@techreport{milstd1797a1990,
+  author      = {{U.S. Department of Defense}},
+  title       = {Flying Qualities of Piloted Aircraft},
+  type        = {Department of Defense Interface Standard},
+  number      = {MIL-STD-1797A},
+  institution = {U.S. Department of Defense},
+  address     = {Washington, DC, USA},
+  month       = jan,
+  year        = {1990},
+  url         = {https://everyspec.com/MIL-STD/MIL-STD-1700-1799/MIL-STD-1797A_NOTICE-3_39377/},
+  note        = {Reinstated by Notice 3, Aug. 2004}
+}
+
+@techreport{moorhouse1982milf8785c,
+  author      = {Moorhouse, David J. and Woodcock, Robert J.},
+  title       = {Background Information and User Guide for {MIL-F-8785C}, Military Specification---Flying Qualities of Piloted Airplanes},
+  institution = {Air Force Wright Aeronautical Laboratories},
+  address     = {Wright-Patterson AFB, OH, USA},
+  number      = {AFWAL-TR-81-3109},
+  month       = jul,
+  year        = {1982},
+  note        = {DTIC accession no. ADA119421},
+  url         = {https://apps.dtic.mil/sti/citations/ADA119421}
+}
+
+@phdthesis{cotting2010evolution,
+  author  = {Cotting, Malcolm Christopher},
+  title   = {Evolution of Flying Qualities Analysis: Problems for a New Generation of Aircraft},
+  school  = {Virginia Polytechnic Institute and State University},
+  address = {Blacksburg, VA, USA},
+  month   = mar,
+  year    = {2010},
+  url     = {https://vtechworks.lib.vt.edu/handle/10919/26781}
+}
+
+@book{franklin2018feedback,
+  author    = {Franklin, Gene F. and Powell, J. David and Emami-Naeini, Abbas},
+  title     = {Feedback Control of Dynamic Systems},
+  edition   = {8},
+  publisher = {Pearson},
+  address   = {New York, NY, USA},
+  year      = {2019},
+  isbn      = {978-0-13-468571-7},
+  url       = {https://www.pearson.com/en-us/subject-catalog/p/feedback-control-of-dynamic-systems/P200000003343}
+}
+
+@book{blakelock1991automatic,
+  author    = {Blakelock, John H.},
+  title     = {Automatic Control of Aircraft and Missiles},
+  edition   = {2},
+  publisher = {John Wiley \& Sons},
+  address   = {New York, NY, USA},
+  year      = {1991},
+  isbn      = {978-0-471-50651-5},
+  url       = {https://www.wiley.com/en-us/Automatic+Control+of+Aircraft+and+Missiles%2C+2nd+Edition-p-9780471506515}
+}
+
+@book{mcruer1973aircraft,
+  author    = {McRuer, Duane T. and Graham, Dunstan and Ashkenas, Irving},
+  title     = {Aircraft Dynamics and Automatic Control},
+  publisher = {Princeton University Press},
+  address   = {Princeton, NJ, USA},
+  year      = {1973},
+  isbn      = {978-0-691-08083-3},
+  url       = {https://press.princeton.edu/books/hardcover/9780691630328/aircraft-dynamics-and-automatic-control}
+}
+
+@article{mcruer1981eighty,
+  author    = {McRuer, Duane and Graham, Dunstan},
+  title     = {Eighty years of flight control: Triumphs and pitfalls of the systems approach},
+  journal   = {Journal of Guidance and Control},
+  volume    = {4},
+  number    = {4},
+  pages     = {353--362},
+  month     = jul,
+  year      = {1981},
+  publisher = {American Institute of Aeronautics and Astronautics},
+  issn      = {0162-3192},
+  doi       = {10.2514/3.19743}
+}
+
+
+% ------------------------------------------------------------
+% LQR and static output feedback
+% ------------------------------------------------------------
+
+@article{levine1970output,
+  author  = {Levine, William S. and Athans, Michael},
+  title   = {On the determination of the optimal constant output feedback gains for linear multivariable systems},
+  journal = {{IEEE} Transactions on Automatic Control},
+  volume  = {15},
+  number  = {1},
+  pages   = {44--48},
+  month   = feb,
+  year    = {1970},
+  issn    = {0018-9286},
+  doi     = {10.1109/TAC.1970.1099363}
+}
+
+@article{syrmos1997static,
+  author    = {Syrmos, Vassilis L. and Abdallah, Chaouki T. and Dorato, Peter and Grigoriadis, Karolos},
+  title     = {Static output feedback---{A} survey},
+  journal   = {Automatica},
+  volume    = {33},
+  number    = {2},
+  pages     = {125--137},
+  month     = feb,
+  year      = {1997},
+  publisher = {Elsevier},
+  issn      = {0005-1098},
+  doi       = {10.1016/S0005-1098(96)00141-0}
+}
+
+@article{moerder1985convergence,
+  author  = {Moerder, Daniel D. and Calise, Anthony J.},
+  title   = {Convergence of a numerical algorithm for calculating optimal output feedback gains},
+  journal = {{IEEE} Transactions on Automatic Control},
+  volume  = {30},
+  number  = {9},
+  pages   = {900--903},
+  month   = sep,
+  year    = {1985},
+  issn    = {0018-9286},
+  doi     = {10.1109/TAC.1985.1104073}
+}
+
+@article{safonov1977gain,
+  author  = {Safonov, Michael G. and Athans, Michael},
+  title   = {Gain and phase margin for multiloop {LQG} regulators},
+  journal = {{IEEE} Transactions on Automatic Control},
+  volume  = {22},
+  number  = {2},
+  pages   = {173--179},
+  month   = apr,
+  year    = {1977},
+  issn    = {0018-9286},
+  doi     = {10.1109/TAC.1977.1101470}
+}
+
+@article{doyle1978guaranteed,
+  author  = {Doyle, John C.},
+  title   = {Guaranteed margins for {LQG} regulators},
+  journal = {{IEEE} Transactions on Automatic Control},
+  volume  = {23},
+  number  = {4},
+  pages   = {756--757},
+  month   = aug,
+  year    = {1978},
+  issn    = {0018-9286},
+  doi     = {10.1109/TAC.1978.1101812}
+}
+
+@book{kwakernaak1972linear,
+  author    = {Kwakernaak, Huibert and Sivan, Raphael},
+  title     = {Linear Optimal Control Systems},
+  publisher = {Wiley-Interscience},
+  address   = {New York, NY, USA},
+  year      = {1972},
+  isbn      = {0-471-51110-2}
+}
+
+@book{anderson1990optimal,
+  author    = {Anderson, Brian D. O. and Moore, John B.},
+  title     = {Optimal Control: Linear Quadratic Methods},
+  publisher = {Prentice-Hall},
+  address   = {Englewood Cliffs, NJ, USA},
+  year      = {1990},
+  isbn      = {0-13-638560-5},
+  note      = {Reprinted by Dover Publications, Mineola, NY, 2007, ISBN 978-0-486-45766-6}
+}
+
+@book{bryson1975applied,
+  author    = {Bryson, Jr., Arthur E. and Ho, Yu-Chi},
+  title     = {Applied Optimal Control: Optimization, Estimation, and Control},
+  edition   = {Revised printing},
+  publisher = {Hemisphere Publishing},
+  address   = {Washington, DC, USA},
+  year      = {1975},
+  isbn      = {0-89116-228-3},
+  note      = {Revised printing of the 1969 original; distributed by Halsted Press ({ISBN} 0-470-11481-9) and later reissued by Taylor \& Francis}
+}
+
+
+% ------------------------------------------------------------
+% Evaluation maneuvers and command shaping
+% ------------------------------------------------------------
+
+@article{morelli1999flight,
+  author  = {Morelli, Eugene A.},
+  title   = {Flight test of optimal inputs and comparison with conventional inputs},
+  journal = {Journal of Aircraft},
+  volume  = {36},
+  number  = {2},
+  pages   = {389--397},
+  month   = mar,
+  year    = {1999},
+  doi     = {10.2514/2.2469}
+}
+
+@inproceedings{greene2014toward,
+  author    = {Greene, Kara M. and Kunz, Donald L. and Cotting, M. Christopher},
+  title     = {Toward a flying qualities standard for unmanned aircraft},
+  booktitle = {{AIAA} Atmospheric Flight Mechanics Conference},
+  publisher = {American Institute of Aeronautics and Astronautics},
+  address   = {Atlanta, GA, USA},
+  month     = jun,
+  year      = {2014},
+  note      = {AIAA Paper 2014-2194},
+  doi       = {10.2514/6.2014-2194}
+}
+
+@article{singer1990preshaping,
+  author  = {Singer, Neil C. and Seering, Warren P.},
+  title   = {Preshaping command inputs to reduce system vibration},
+  journal = {Journal of Dynamic Systems, Measurement, and Control},
+  volume  = {112},
+  number  = {1},
+  pages   = {76--82},
+  month   = mar,
+  year    = {1990},
+  doi     = {10.1115/1.2894142}
+}
+
+@article{shen2025model,
+  author  = {Shen, Ting-Ju and Chen, Chieh-Li},
+  title   = {Model-in-the-loop design and flight test validation of flight control laws for a small fixed-wing {UAV}},
+  journal = {Drones},
+  volume  = {9},
+  number  = {9},
+  pages   = {624},
+  month   = sep,
+  year    = {2025},
+  issn    = {2504-446X},
+  doi     = {10.3390/drones9090624},
+  note    = {Art. no. 624}
+}
+
+
+% ------------------------------------------------------------
+% Robustness, wind and turbulence
+% ------------------------------------------------------------
+
+@techreport{milhdbk1797,
+  author      = {{U.S. Department of Defense}},
+  title       = {Flying Qualities of Piloted Aircraft},
+  type        = {Department of Defense Handbook},
+  number      = {MIL-HDBK-1797},
+  institution = {U.S. Department of Defense},
+  month       = dec,
+  year        = {1997},
+  url         = {https://everyspec.com/MIL-HDBK/MIL-HDBK-1500-1799/MIL-HDBK-1797_NOTICE-1_39380/}
+}
+
+@book{hoblit1988gust,
+  author    = {Hoblit, Frederic M.},
+  title     = {Gust Loads on Aircraft: Concepts and Applications},
+  series    = {{AIAA} Education Series},
+  publisher = {American Institute of Aeronautics and Astronautics},
+  address   = {Washington, DC, USA},
+  year      = {1988},
+  isbn      = {9781600861888},
+  doi       = {10.2514/4.861888}
+}
+
+@misc{far25341,
+  author       = {{Federal Aviation Administration}},
+  title        = {Gust and turbulence loads, 14 {CFR} {\S} 25.341},
+  howpublished = {Code of Federal Regulations, Title 14, Part 25, Subpart C, Office of the Federal Register, Washington, DC, USA},
+  year         = {2026},
+  note         = {Current eCFR ed., accessed Aug. 16, 2026},
+  url          = {https://www.ecfr.gov/current/title-14/chapter-I/subchapter-C/part-25/subpart-C/subject-group-ECFR3e855ea22ea15d0/section-25.341}
+}
+
+@article{mohamed2014fixedwing,
+  author    = {Mohamed, Abdulghani and Clothier, Reece and Watkins, Simon and Sabatini, Roberto and Abdulrahim, Mujahid},
+  title     = {Fixed-wing {MAV} attitude stability in atmospheric turbulence, part 1: Suitability of conventional sensors},
+  journal   = {Progress in Aerospace Sciences},
+  volume    = {70},
+  pages     = {69--82},
+  month     = oct,
+  year      = {2014},
+  publisher = {Elsevier},
+  issn      = {0376-0421},
+  doi       = {10.1016/j.paerosci.2014.06.001}
+}
+
+@article{safwat2019design,
+  author    = {Safwat, Ehab and Zhang, Weiguo and Mohsen, Ahmed and Kassem, Mohamed},
+  title     = {Design and Analysis of a Robust {UAV} Flight Guidance and Control System Based on a Modified Nonlinear Dynamic Inversion},
+  journal   = {Applied Sciences},
+  volume    = {9},
+  number    = {17},
+  pages     = {3600},
+  month     = sep,
+  year      = {2019},
+  publisher = {MDPI},
+  issn      = {2076-3417},
+  doi       = {10.3390/app9173600},
+  note      = {Art. no. 3600}
+}
+
+@mastersthesis{abdulhamid2016robusto,
+  author  = {Abdulhamid, Rauhe},
+  title   = {Desenvolvimento de algoritmo de controle robusto para ve{\'i}culos a{\'e}reos n{\~a}o tripulados de asa fixa de pequeno porte},
+  school  = {Instituto Tecnol{\'o}gico de Aeron{\'a}utica},
+  address = {S{\~a}o Jos{\'e} dos Campos, Brazil},
+  year    = {2016},
+  type    = {Master's thesis},
+  note    = {Programa de Engenharia Eletr{\^o}nica e Computa{\c c}{\~a}o. Advisor: Neusa Maria Franco de Oliveira},
+  url     = {http://www.bdita.bibl.ita.br/tesesdigitais/lista_resumo.php?num_tese=71937}
+}
+
+
+% ------------------------------------------------------------
+% HIL, code generation, SIL
+% ------------------------------------------------------------
+
+@inproceedings{jung2007hil,
+  author    = {Jung, Dongwon and Tsiotras, Panagiotis},
+  title     = {Modeling and Hardware-in-the-Loop Simulation for a Small Unmanned Aerial Vehicle},
+  booktitle = {AIAA Infotech@Aerospace 2007 Conference and Exhibit},
+  publisher = {American Institute of Aeronautics and Astronautics},
+  address   = {Rohnert Park, CA, USA},
+  year      = {2007},
+  month     = may,
+  doi       = {10.2514/6.2007-2768},
+  note      = {AIAA Paper 2007-2768}
+}
+
+@article{cai2009design,
+  author    = {Cai, Guowei and Chen, Ben M. and Lee, Tong H. and Dong, Miaobo},
+  title     = {Design and implementation of a hardware-in-the-loop simulation system for small-scale {UAV} helicopters},
+  journal   = {Mechatronics},
+  volume    = {19},
+  number    = {7},
+  pages     = {1057--1066},
+  month     = oct,
+  year      = {2009},
+  publisher = {Elsevier},
+  issn      = {0957-4158},
+  doi       = {10.1016/j.mechatronics.2009.06.001}
+}
+
+@mastersthesis{bittar2012pegasus,
+  author  = {Bittar, Adriano},
+  title   = {Arquitetura da unidade central de processamento do {Pegasus AutoPilot}: da concep{\c c}{\~a}o {\`a} implementa{\c c}{\~a}o de um sistema de tempo real em {Hardware-In-the-Loop}},
+  school  = {Instituto Tecnol{\'o}gico de Aeron{\'a}utica},
+  address = {S{\~a}o Jos{\'e} dos Campos, Brazil},
+  year    = {2012},
+  type    = {Master's thesis},
+  note    = {Programa de Engenharia Eletr{\^o}nica e Computa{\c c}{\~a}o. Advisor: Neusa Maria Franco de Oliveira},
+  url     = {http://www.bdita.bibl.ita.br/tesesdigitais/lista_resumo.php?num_tese=63945}
+}
+
+@article{bittar2014hil,
+  author  = {Bittar, Adriano and de Oliveira, Neusa Maria Franco and de Figueiredo, Helosman Valente},
+  title   = {Hardware-In-the-Loop Simulation with {X-Plane} of Attitude Control of a {SUAV} Exploring Atmospheric Conditions},
+  journal = {Journal of Intelligent \& Robotic Systems},
+  volume  = {73},
+  number  = {1--4},
+  pages   = {271--287},
+  year    = {2014},
+  issn    = {1573-0409},
+  doi     = {10.1007/s10846-013-9905-8}
+}
+
+@inproceedings{santos2017hilloops,
+  author    = {dos Santos, Marcelo Henrique and Oliveira, Neusa Maria Franco and Maciel, Benedito Carlos de Oliveira},
+  title     = {{UAV} Control Loops Design Tested in an {HIL} Plataform},
+  booktitle = {Proc. 24th {ABCM} Int. Congr. Mechanical Engineering ({COBEM} 2017)},
+  address   = {Curitiba, PR, Brazil},
+  year      = {2017},
+  note      = {Paper COBEM-2017-1764},
+  url       = {http://www.sistema.abcm.org.br/articleFiles/download/11189}
+}
+
+@inproceedings{coopmans2015software,
+  author    = {Coopmans, Calvin and Podhradsky, Michal and Hoffer, Nathan V.},
+  title     = {Software- and hardware-in-the-loop verification of flight dynamics model and flight control simulation of a fixed-wing unmanned aerial vehicle},
+  booktitle = {2015 Workshop on Research, Education and Development of Unmanned Aerial Systems (RED-UAS)},
+  pages     = {115--122},
+  month     = nov,
+  year      = {2015},
+  publisher = {IEEE},
+  doi       = {10.1109/RED-UAS.2015.7440998}
+}
+
+@article{paw2011integrated,
+  author    = {Paw, Yew Chai and Balas, Gary J.},
+  title     = {Development and application of an integrated framework for small {UAV} flight control development},
+  journal   = {Mechatronics},
+  volume    = {21},
+  number    = {5},
+  pages     = {789--802},
+  month     = aug,
+  year      = {2011},
+  publisher = {Elsevier},
+  issn      = {0957-4158},
+  doi       = {10.1016/j.mechatronics.2010.09.009}
+}
+
+@inproceedings{laabousse2025advanced,
+  author    = {Laabousse, Ismail and El Bouzekri El Idrissi, Younes and Haidoury, Mohamed},
+  title     = {Advanced {UAVs} Hardware-In-The-Loop Simulation Platform for {STM32}-Based Flight Controllers},
+  booktitle = {2025 IEEE 8th Congress on Information Science and Technology (CiSt)},
+  publisher = {IEEE},
+  year      = {2025},
+  month     = oct,
+  pages     = {166--170},
+  doi       = {10.1109/CiSt65886.2025.11224143}
+}
+
+@inproceedings{erkkinen2006automatic,
+  author    = {Erkkinen, Tom and Hote, Chris},
+  title     = {Automatic Flight Code Generation with Integrated Static Run-Time Error Checking and Code Analysis},
+  booktitle = {AIAA Modeling and Simulation Technologies Conference and Exhibit},
+  publisher = {American Institute of Aeronautics and Astronautics},
+  year      = {2006},
+  note      = {AIAA Paper 2006-6257},
+  doi       = {10.2514/6.2006-6257}
+}
+
+@inproceedings{erkkinen2009model,
+  author    = {Erkkinen, Thomas and Potter, Bill},
+  title     = {Model-Based Design for {DO-178B} with Qualified Tools},
+  booktitle = {AIAA Modeling and Simulation Technologies Conference},
+  publisher = {American Institute of Aeronautics and Astronautics},
+  year      = {2009},
+  note      = {AIAA Paper 2009-6233},
+  doi       = {10.2514/6.2009-6233}
+}
+
+@misc{px4lockstep,
+  author       = {{PX4 Development Team}},
+  title        = {Lockstep Simulation},
+  howpublished = {PX4 Autopilot User Guide (v1.15), section ``Simulation''},
+  url          = {https://docs.px4.io/v1.15/en/simulation/index#lockstep-simulation},
+  note         = {Accessed: Aug. 16, 2026}
+}
+
+@inproceedings{silva2019control,
+  author    = {Silva, Natassya B. F. and Fontes, Joao V. C. and Branco, Kalinka R. L. J. C.},
+  title     = {Control validation with software-in-the-loop for a fixed-wing vertical takeoff and landing unmanned aerial vehicle with multiple flight stages},
+  booktitle = {2019 IEEE Symposium on Computers and Communications (ISCC)},
+  pages     = {1222--1227},
+  month     = jun,
+  year      = {2019},
+  publisher = {IEEE},
+  doi       = {10.1109/ISCC47284.2019.8969571}
+}
+

@@ -1,0 +1,63 @@
+\section{Conclusion}
+\label{sec:conclusion}
+This article covered the full path from controller design to embedded
+validation for the fixed-wing flight mode of a hybrid VTOL aircraft. A
+cascade PID and an output-feedback LQR were designed on the linearized
+model, verified on the nonlinear model, stressed under model mismatch
+and wind, and deployed to an STM32 microcontroller through automatic
+code generation, so that the artifact exercised on the bench is the
+production code itself.
+
+Four results stand out. First, on the nominal plant the gain-scheduled
+LQRy is the faster law --- guidance captures in 6--13\,s and RMS
+tracking errors roughly $2\times$ smaller --- but violates the
+heading-overshoot requirement ($24.5\%$), while the
+requirements-retuned PID meets every requirement row at lower
+bandwidth. Second, the robustness study shows that a severe,
+sign-changing lateral--directional model mismatch defeats
+\emph{both} compared laws --- the aggressive gain-scheduled LQRy
+diverging outright, while the earlier, softer fixed-gain iteration of
+the very same structure completes the mission with near-nominal error
+--- which exposes robustness to severe mismatch as a property
+of the tuning rather than of the LQ structure; the remaining scenarios
+still reveal \emph{complementary} weaknesses: under the
+longitudinal-only mismatch the LQRy stays nominal while the PID's
+clamped altitude loop drifts, under wind and gusts the LQRy concedes
+altitude (5.1\,m RMS) where the PID stays firm, and both tolerate a
+plausible $+10\%$ identification uncertainty. Which weakness matters
+more depends on whether the dominant threat is model error or
+atmospheric disturbance. Third, the lockstep HIL architecture
+is practically transparent when the campaign is scripted from a single
+source of references and the controller start-up is synchronized: for
+the synchronized PID deployment, the SIL--HIL residual reaches the
+quantization floor of the communication
+bus ($0.011^\circ$ in pitch attitude in the worst flight case), and the
+loop is bit-deterministic --- the same generated code executed on two
+different microcontroller models reproduces full 300-second flight
+cases bit for bit --- which makes the bench a measuring instrument and allows a
+campaign to be reproduced exactly on different hardware. Fourth,
+exploiting that property, a sensitivity study ranked the implementation
+choices that actually matter for SIL--HIL agreement: reference
+consistency between campaigns dominates by two orders of magnitude,
+start-up desynchronization leaves a persistent residual that link
+quality cannot remove, low-rate frame loss is benign, and controller
+discretization --- the usual first suspect --- is negligible at a
+10\,ms sample rate.
+
+Future work follows directly from the limitations identified here: a
+feedforward decoupling term for the roll-to-pitch coupling quantified
+in Section~\ref{sec:coupling}, evaluated on both control laws; an
+extended robustness campaign with stochastic Dryden/von K\'arm\'an
+turbulence~\cite{milf8785c1980,milhdbk1797} in addition to the
+discrete gusts used here, and with robust syntheses designed for this
+trade-off~\cite{abdulhamid2016robusto} as a third contender;
+equalization of the two design harnesses (actuator models, reference
+shaping, and protection logic) so that future comparisons are free of
+these asymmetries; a requirements set rederived specifically for
+unmanned aircraft in the sense of the scaled flying-qualities
+literature~\cite{cotting2010evolution,greene2014toward};
+re-deployment of the gain-scheduled LQRy on the bench, so that the
+embedded comparison covers the same build as the SIL comparison; and flight
+testing of the embedded controllers validated on the bench, closing
+the simulation-to-flight loop that the HIL stage
+approximates~\cite{shen2025model}.

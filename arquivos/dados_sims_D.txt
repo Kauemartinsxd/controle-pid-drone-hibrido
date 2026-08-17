@@ -1,0 +1,8 @@
+===== 3 curvas: PID como esta / PID equiparado / LQRy =====
+Metricas medidas contra a MESMA referencia (degrau cru).
+
+vel     VT     | PID: OS=  0.0% tr= 6.54 ts= 11.54 ess= +0.000 | EQ: OS=  0.4% tr= 3.71 ts=  5.16 ess= +0.000 | LQRy: OS=  2.6% tr=27.88 ts= 55.00 ess= +0.029
+latero  phi    | PID: OS= 28.7% tr= 0.46 ts=  3.75 ess= +0.004 | EQ: OS= 27.1% tr= 0.52 ts=  3.86 ess= +0.004 | LQRy: OS=  0.0% tr=17.65 ts= 31.62 ess= -0.028
+long    theta  | PID: OS= 14.7% tr= 0.94 ts=  9.56 ess= -0.004 | EQ: OS= 12.8% tr= 0.92 ts= 10.12 ess= -0.004 | LQRy: OS= 16.4% tr=19.46 ts= 50.00 ess= +0.801
+comb    phi    | PID: OS= 28.7% tr= 0.46 ts=  3.75 ess= +0.004 | EQ: OS= 27.1% tr= 0.52 ts=  3.86 ess= +0.004 | LQRy: OS=  0.0% tr=17.65 ts= 31.62 ess= -0.028
+comb    theta  | PID: OS= 15.4% tr= 0.88 ts=  9.54 ess= -0.004 | EQ: OS= 12.5% tr= 0.87 ts= 10.12 ess= -0.004 | LQRy: OS= 16.4% tr=19.61 ts= 50.00 ess= +0.801

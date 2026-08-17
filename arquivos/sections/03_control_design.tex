@@ -1,0 +1,358 @@
+\section{Controller Design}
+\label{sec:control}
+
+\subsection{Closed-Loop Requirements}
+\label{sec:requirements}
+Both control laws are judged against the closed-loop requirements of
+Table~\ref{tab:requirements}, adopted from the design practice of our
+research group~\cite{mirko2026companion} and anchored, row by row, in
+the flight-control literature. The stability-margin rows descend from the military
+flight-control-system specification MIL-F-9490D, which requires a gain
+margin of at least 6\,dB and a phase margin of at least $45^\circ$ for
+the augmented airplane~\cite{milf9490d1975} --- limits carried into
+present-day industry practice by its successor SAE
+AS94900~\cite{sae2007as94900}; the 10\,dB adopted here is deliberately
+conservative. The damping row is stricter than the flying-qualities
+levels of MIL-F-8785C and MIL-STD-1797A, whose Level-1 bands admit
+short-period and Dutch-roll damping well below
+0.75~\cite{milf8785c1980,moorhouse1982milf8785c,milstd1797a1990}; the
+$\zeta>0.75$ target reflects the classical well-damped second-order
+response ($\zeta\approx0.7$ yields ${\approx}5\%$
+overshoot~\cite{franklin2018feedback}). The time-domain rows
+(settling time, overshoot, steady-state error) are outer-loop
+performance targets in the sense of classical autopilot design
+texts~\cite{blakelock1991automatic,nelson1998flight}, sized for this
+platform's mission profile. Since these criteria were written for
+piloted aircraft, their transfer to a small UAV is itself a design
+decision, supported by the literature on scaled flying-qualities
+requirements for unmanned aircraft~\cite{cotting2010evolution}.
+
+\begin{table}[!t]
+\caption{Closed-loop design requirements and their scope.}
+\label{tab:requirements}
+\centering
+\begin{tabular}{lll}
+\toprule
+Requirement & Value & Scope \\
+\midrule
+Settling time & $<60$\,s & guidance channels ($\VT$, $\psi$, $h$) \\
+Overshoot & $<10\%$ & guidance channels ($\VT$, $\psi$, $h$) \\
+Steady-state error & $2$--$5\%$ & guidance channels ($\VT$, $\psi$, $h$) \\
+Damping ratio & $\zeta>0.75$ & augmented inner modes \\
+Gain margin & $>10$\,dB & each loop, at design \\
+Phase margin & $>45^\circ$ & each loop, at design \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Each row carries an explicit scope. The time-domain rows apply to the
+\emph{guidance-level} channels ($\VT$, $\psi$, $h$) on shaped
+(prefiltered) mission references --- they are verified against both
+controllers in Section~\ref{sec:sil-comparison}. The damping row
+applies to the augmented inner modes at design time; the margin rows
+are enforced per loop during loop shaping (the phase-margin targets of
+Table~\ref{tab:gains}, $55$--$65^\circ$, exceed the requirement). One
+honest caveat closes the picture: the augmented Dutch-roll damping
+achieved by the PID design ($0.707$, Section~\ref{sec:pid}) satisfies
+the MIL-F-8785C Level-1 band with wide margin but sits marginally
+below the stricter internal target of $0.75$ --- reported as designed
+rather than adjusted to fit. On the short-period side, the pitch-rate
+damper gain of the tuning of record ($K_q=0.10$,
+Section~\ref{sec:pid}) was raised precisely to lift the short-period
+damping.
+
+\subsection{Cascade PID Architecture}
+\label{sec:pid}
+The PID controller follows a classical cascade architecture ---
+successive loop closure in the sense of~\cite{beard2012small} ---
+designed loop by loop on the linearized models of
+Section~\ref{sec:model} and then verified on the full nonlinear model.
+The design methodology --- loop ordering, damper-first stability
+augmentation, and the coordinated-turn heading law ---
+follows~\cite{santos2018}, developed there for a conventional
+general-aviation aircraft and applied here to the hybrid VTOL platform
+in its fixed-wing flight mode.
+
+\subsubsection{Stability Augmentation}
+Rate dampers are closed first, tuned by root locus on the linear
+subsystems. The pitch-rate damper $K_q\,q$ raises the short-period
+damping ($K_q=0.10$ in the tuning of record, a deliberately raised
+damping target); the yaw damper feeds $r$ through a washout
+$s/(s+1)$ to the rudder, raising Dutch-roll damping to
+$\zeta_{DR}\approx0.707$ without opposing steady turns. The washout
+yaw damper is one of the oldest devices of automatic flight control:
+introduced with the first swept-wing jets --- which could not be flown
+unaugmented because of their Dutch roll --- in the late
+1940s~\cite{mcruer1981eighty}, it received its definitive analytical
+treatment in the classical stability-augmentation
+literature~\cite{mcruer1973aircraft,blakelock1991automatic}, which the
+present implementation follows. The roll
+subsidence mode already meets Level~1 handling qualities with margin
+($\lambda=-11.3$\,s$^{-1}$, Table~\ref{tab:poles}), so no roll-rate damper
+is used ($K_p=0$).
+
+\subsubsection{Longitudinal Loops}
+\begin{itemize}
+  \item \emph{Pitch-attitude inner loop} ($C_{\theta}$): PI on
+        $\theta^{ref}-\theta$ to the elevator, closed over the $K_q$ damper;
+  \item \emph{Airspeed hold} ($C_{vel}$): PI on $\VT^{ref}-\VT$ to the
+        throttle;
+  \item \emph{Altitude outer loop} ($C_{alt}$): PI on $h^{ref}-h$ to the
+        pitch-attitude reference, with the command clamped to
+        $\pm10^\circ$ and clamping-type anti-windup. The clamp is an
+        angle-of-attack protection: with $\theta^{ref}$ limited to
+        $+10^\circ$ about the trim, the peak $\alpha$ during an altitude
+        capture stays near $16^\circ$ (the plant model has no stall
+        representation, so the limit is imposed by design).
+\end{itemize}
+Depending on the flight mode, the pilot-level selector engages either the
+altitude cascade (\emph{AltitudeHold}) or direct pitch tracking
+(\emph{ThetaHold}), in which case the altitude loop is open.
+
+\subsubsection{Lateral--Directional Loops}
+\begin{itemize}
+  \item \emph{Bank inner loop} ($C_{\phi}$): PI on $\phi^{ref}-\phi$ to
+        the aileron (negative gains, since $C_{l_{\delta_a}}<0$);
+  \item \emph{Heading hold} ($K_{heading}$): proportional law
+        $\phi^{ref}=K_{heading}(\psi^{ref}-\psi)$ with
+        $K_{heading}=u^e/(g\,\tau_\psi)$ and $\tau_\psi=6$\,s, the
+        coordinated-turn relation~\cite{santos2018}. As with the
+        longitudinal channel, the mode selector engages either heading
+        hold (\emph{PsiHold}) or direct bank commands (\emph{PhiHold}).
+\end{itemize}
+
+\subsubsection{Tuning and Resulting Gains}
+The compensators are PI ($K_d=0$): damping is provided by the explicit
+dampers rather than by derivative action, which also avoids differentiating
+noisy rate measurements on the embedded target. Each loop was tuned by
+loop shaping (\texttt{pidtune}) with \emph{sequential inner-first} closure
+--- every outer loop is designed against the already-closed inner
+dynamics --- targeting the crossover frequencies and margins listed in
+Table~\ref{tab:gains}, with a bandwidth separation of 5--7$\times$ between
+consecutive loops.
+
+\begin{table}[!t]
+\caption{PID loops: design targets and resulting gains (tuning of
+record).}
+\label{tab:gains}
+\centering
+\begin{tabular}{llccl}
+\toprule
+Loop & Map & $K_P$ & $K_I$ & Original target \\
+\midrule
+$C_\theta$ & $\theta^{ref}\!\to\!\delta_e$ & 0.917 & 0.857 & $\omega_c$=2.0, PM=65$^\circ$ \\
+$C_{vel}$ & $\VT^{ref}\!\to\!\delta_t$ & 0.32 & 0.096 & $\omega_c$=0.8 \\
+$C_{alt}$ & $h^{ref}\!\to\!\theta^{ref}$ & 0.050 & 0.0043 & $\omega_c$=0.35, PM=55$^\circ$ \\
+$C_\phi$ & $\phi^{ref}\!\to\!\delta_a$ & $-0.45$ & $-0.036$ & $\omega_c$=2.0, PM=65$^\circ$ \\
+$K_{heading}$ & $\psi^{ref}\!\to\!\phi^{ref}$ & 0.1975 & --- & $\tau_\psi$=6\,s \\
+$K_q$ & $q\!\to\!\delta_e$ & 0.10 & --- & $\zeta_{SP}$ raised \\
+$K_r$ & $r\!\to\!\delta_r$ (washout) & 0.1481 & --- & $\zeta_{DR}$=0.707 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The outer altitude and airspeed loops use two-degree-of-freedom
+setpoint weighting with $b=0$ --- the proportional term acts on the
+measured output only, with the reference entering through the integral
+path --- and this tuning of record, retuned against the requirements
+of Table~\ref{tab:requirements}, is the configuration used in every
+campaign of this article, matching the public repository HEAD.
+
+A command prefilter $1/(\tau_{ref}s+1)$ with $\tau_{ref}=3$\,s is applied
+to the \emph{increment} of each reference before the loops, giving a
+two-degree-of-freedom structure in the tradition of reference command
+shaping~\cite{singer1990preshaping}: the command response is smoothed
+--- the raw step would otherwise demand an unrealizable actuator jump
+--- without altering the feedback design, its margins, or the clamp. This detail
+matters for the embedded deployment: in the HIL architecture of
+Section~\ref{sec:hil} the references travel through the link
+\emph{already filtered}, so the prefilter stays on the host and only the
+feedback path is embedded.
+
+With all loops closed, the linear closed-loop system is stable with every
+pole in the left half-plane: the slowest mode is at $-0.127$\,s$^{-1}$ and
+the minimum damping ratio among the oscillatory modes is $\zeta=0.55$.
+Notably, the open-loop unstable spiral mode ($+0.233$\,s$^{-1}$,
+Table~\ref{tab:poles}) is stabilized at $-0.143$\,s$^{-1}$.
+
+\subsection{Output-Feedback LQR (LQRy)}
+\label{sec:lqry}
+The second control law is a linear--quadratic design with \emph{output}
+weighting (LQRy): for each loop, the quadratic cost
+\begin{equation}
+J=\int_0^\infty\!\big(y^{\!\top}Q\,y+u^{\!\top}R\,u\big)\,dt,\qquad y=C_{syn}x,
+\end{equation}
+is minimized over the linearized models of Section~\ref{sec:model},
+yielding constant gains on the measured states plus integral action on
+the tracked error. This is the classical linear--quadratic regulator
+of Kwakernaak and Sivan~\cite{kwakernaak1972linear} in the
+constant-gain \emph{output-feedback} setting introduced by Levine and
+Athans~\cite{levine1970output} --- a problem whose difficulty and
+solution landscape are surveyed in~\cite{syrmos1997static}, and whose
+standard numerical solution is the flight-control-motivated iterative
+algorithm of Moerder and Calise~\cite{moerder1985convergence}; the
+formulation and its application to aircraft control follow the
+treatment of Stevens \emph{et al.}~\cite{stevens2016aircraft}. The
+weight-selection rationale follows established LQ design
+practice~\cite{anderson1990optimal}, starting from Bryson's
+rule~\cite{bryson1975applied}. The design compared in this article is
+the \emph{gain-scheduled} LQRy of the companion article by the second
+author~\cite{mirko2026companion}, which details its synthesis ---
+including the target-transmission-zero augmentation and the gain
+scheduling over the flight envelope --- and its frequency-domain
+(Nichols) robustness assessment; it is summarized here.
+
+The architecture deliberately mirrors the PID mode structure, so that
+the two laws face the same tasks: five independent designs ---
+\emph{ThetaHold}, \emph{AltitudeHold} (cascading into
+$\theta^{ref}$), \emph{VelHold}, \emph{PhiHold} (a $2\times2$ design
+commanding aileron and rudder), and \emph{PsiHold} (cascading into
+$\phi^{ref}$) --- selected by the same three mode switches used by the
+PID (Table~\ref{tab:lqry-loops}). Each synthesis model augments the
+relevant linear subsystem with a frequency-selective filter
+\begin{equation}
+G(s)=\frac{s^{2}+2\zeta\omega_{n}s+\omega_{n}^{2}}{s}
+\end{equation}
+on each tracked output --- imposing target transmission zeros that
+shape the closed loop while providing the integral action --- plus a
+first-order actuator lag at 24\,rad/s; the constant output-feedback
+gains are obtained from the coupled Lyapunov equations of the LQ
+output-feedback problem~\cite{levine1970output,moerder1985convergence}.
+The design is synthesized at nine envelope conditions
+(12/15/18\,m/s $\times$ 590/600/610\,m); the SIL comparison of
+Section~\ref{sec:sil} exercises the condition-2 (12\,m/s, 600\,m) gain
+set, consistent with the mission's initial trim --- mid-mission gain
+switching is not exercised. The weights per condition are given in the
+companion article~\cite{mirko2026companion}.
+
+\begin{table}[!t]
+\caption{LQRy loops: regulated output and actuator (weights per
+envelope condition in the companion article~\cite{mirko2026companion}).}
+\label{tab:lqry-loops}
+\centering
+\begin{tabular}{lll}
+\toprule
+Loop & Output & Actuator \\
+\midrule
+ThetaHold & $\theta$ & elevator \\
+AltitudeHold & $h\!\to\!\theta^{ref}$ & elevator \\
+VelHold & $\VT$ & throttle \\
+PhiHold & $\phi$, $\beta$ & ail.+rud. \\
+PsiHold & $\psi\!\to\!\phi^{ref}$ & aileron \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:lqry-gains} records the condition-2 gains: these are
+the values used in the SIL comparison of Section~\ref{sec:sil}. Two
+structural remarks: the pitch design feeds back the elevator
+(actuator) state itself, its synthesis model carrying the 24\,rad/s
+lag as a fifth state; and the $2\times2$ lateral design carries a
+sideslip-integral gain alongside the bank integral (0.00845 on the
+aileron and 0.02023 on the rudder at condition~2) --- small relative
+to the $\phi$ integral, but not negligible. The earlier
+\emph{fixed-gain} LQRy delivery, deployed on the HIL bench of
+Section~\ref{sec:hil}, used a different, softer gain set, available in
+the repository~\cite{repo}.
+
+\begin{table}[!t]
+\caption{LQRy gains at envelope condition 2 (12\,m/s, 600\,m), as used
+in the SIL comparison (4 significant digits). Convention:
+$u=G_{x}\,x+K_{I}\!\int\!e\,dt$. The $K_I$ column of PhiHold is the
+bank ($\phi$) integral gain.}
+\label{tab:lqry-gains}
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{llll}
+\toprule
+Loop & State vector $x$ & $G_{x}$ & $K_I$ \\
+\midrule
+ThetaHold & $[\VT\,\alpha\,q\,\theta\,\delta_e]$ &
+$[-0.00461\;6.477\;-15.60\;-483.2\;-6.795]$ & $-625$ \\
+AltitudeHold & $[\VT\,\alpha\,q\,\theta\,h]$ &
+$[-0.0718\;4.474\;-0.2121\;-5.064\;-0.5086]$ & $-0.2025$ \\
+VelHold & $[\VT\,\alpha\,q\,\theta]$ &
+$[-78.81\;-0.9055\;0.0589\;1.306]$ & $-50$ \\
+PhiHold (ail.) & $[\beta\,p\,r\,\phi]$ &
+$[0.00693\;0.01013\;0.03505\;0.1595]$ & $0.1720$ \\
+PhiHold (rud.) & $[\beta\,p\,r\,\phi]$ &
+$[-0.01085\;-0.02236\;-0.08167\;-0.3542]$ & $-0.3595$ \\
+PsiHold & $[\beta\,p\,r\,\phi\,\psi]$ &
+$[-5.387\;-0.1123\;-0.7948\;-1.272\;-6.037]$ & $-7.773$ \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+Unlike the PID harness, the LQRy harness of the gain-scheduled design
+includes first-order actuator lags (24\,rad/s on the surfaces, 0.1\,s
+on the throttle) and a $[0,1]$ throttle saturation, but no rate
+limits, no surface position saturations, no reference prefilter, and
+no $\theta^{ref}$ clamp --- references enter the loops as raw steps.
+These differences between the two design harnesses are consolidated
+and discussed in Section~\ref{sec:protocol}.
+
+\subsection{Roll-to-Longitudinal Coupling}
+\label{sec:coupling}
+Both designs treat the longitudinal and lateral--directional channels
+independently, so the classical roll-to-pitch coupling --- banking
+tilts the lift vector, and the lift deficit, proportional to
+$1-\cos\phi$, drops the nose and costs altitude --- is handled by
+feedback alone. Since this is a deliberate design choice, it was
+quantified rather than assumed benign: both controllers --- the PID
+tuning of record and the gain-scheduled LQRy --- were subjected
+to bank captures of increasing amplitude ($\phi^{ref}$ steps of
+$5/15/30^\circ$ at $t=20$\,s, each rig shaping the reference as its
+harness prescribes), in \emph{ThetaHold} (altitude loop open, the
+worst case) and in \emph{AltitudeHold}, with all longitudinal metrics
+taken as deviations from each rig's own $\phi=0$ baseline
+(Fig.~\ref{fig:coupling}).
+\begin{figure}[!t]\centering
+\includegraphics[width=\linewidth]{fig_acoplamento.png}
+\caption{Roll-to-longitudinal coupling, $\phi^{ref}=30^\circ$ step at
+$t=20$\,s: $\phi$ (with the reference), $\Delta\theta$,
+$\Delta h$, and $\Delta$elevator relative to each configuration's
+$\phi=0$ baseline. Solid: ThetaHold at the 12\,m/s trim; dashed:
+AltitudeHold at 15.2\,m/s.}\label{fig:coupling}\end{figure}
+
+The results confirm the mechanism and bound its size. For the PID in
+ThetaHold, the transient pitch dip scales with $1-\cos\phi$ as
+expected --- $-0.005^\circ$, $-0.04^\circ$, and $-0.18^\circ$ for
+$5/15/30^\circ$ --- negligible at the $5^\circ$ amplitude of the
+flight campaign. The LQRy dip is $4$--$5\times$ larger
+(${\approx}-0.8^\circ$ at $30^\circ$): its multivariable structure
+does \emph{not} natively absorb the coupling better than the cascade.
+With the altitude loop open the altitude drifts by construction ---
+$-15.8$\,m for the PID over 200\,s at $30^\circ$, while the LQRy,
+whose high-bandwidth airspeed loop adds energy through the turn,
+drifts $+10.6$\,m \emph{upward}; closing
+the altitude loop absorbs the coupling, with $\theta^{ref}$ settling
+higher ($+0.59^\circ$ PID, $+0.71^\circ$ LQRy) and $\Delta h$
+returning to zero after a transient dip of $0.10$\,m (PID) and
+$1.45$\,m (LQRy), at the cost of a small steady
+elevator increment.
+
+In the steady turn, the elevator increment is \emph{larger} in the
+ThetaHold runs at the 12\,m/s trim (solid traces, $2.06^\circ$ PID
+and $2.26^\circ$ LQRy) than in the AltitudeHold runs at 15.2\,m/s
+(dashed, $1.34^\circ$ and $1.55^\circ$), which at first seems
+backwards ---
+why would the altitude-holding configuration need \emph{less}
+elevator? The explanation is the operating point, not the mode: sustaining the same $30^\circ$ bank
+(load factor $1/\cos 30^\circ = 1.15$) requires an increment of lift
+that, at 15.2\,m/s, is produced with less angle of attack --- and less
+elevator --- because the dynamic pressure is $(15.2/12)^2 = 1.6$ times
+higher. The measured increment ratios ($0.65$ for the PID, $0.69$ for
+the LQRy) sit within a few
+percent of the dynamic-pressure prediction $(12/15.2)^2 = 0.62$, the
+residual owing to the $\theta^{ref}$ adjustment and the
+angle-of-attack dependence of drag.
+
+In answer to the natural question --- no, no feedforward decoupling
+term is used by either law ($K_{f\!f}=0$ throughout): with the
+altitude loop closed the residual coupling is $0.10$\,m even at a
+$30^\circ$ bank (PID), and at the $5^\circ$ amplitude of the flight
+campaign the $1-\cos\phi$ factor is a further $35\times$ smaller, so
+feedback suffices.
+A feedforward stage, and its evaluation on both laws at larger bank
+angles, is left as future work
+(Section~\ref{sec:conclusion}).

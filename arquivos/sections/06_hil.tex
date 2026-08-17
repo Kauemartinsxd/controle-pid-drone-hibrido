@@ -1,0 +1,277 @@
+\section{Hardware-in-the-Loop Development}
+\label{sec:hil}
+HIL simulation is the established bridge between simulation and
+flight for UAV autopilots~\cite{jung2007hil,cai2009design}, and the
+bench lineage of our group runs from the Pegasus real-time HIL
+architecture~\cite{bittar2012pegasus} through X-Plane-based attitude
+HIL~\cite{bittar2014hil} to the fixed-wing autopilot bench of
+Santos~\cite{santos2018}. This section describes the present
+incarnation: a lockstep serial bench in which the embedded controller
+is the auto-generated production code.
+
+\subsection{Controller Discretization}
+\label{sec:discretization}
+Both controllers are discretized at $T_s = 10$\,ms directly in Simulink
+(automatic conversion of the compensators to their discrete-time forms;
+the washout filter via Tustin transformation), producing single-rate
+discrete models suitable for code generation. The discretized PID was
+verified against the continuous design on the nonlinear model, with an RMS
+deviation below $0.1\%$ of each command amplitude --- discretization is
+\emph{not} a significant error source at this sample rate, as quantified
+in Section~\ref{sec:sensitivity}.
+
+\emph{A practical note on output saturation:} applying the automatic
+conversion to the complete control loop with the output saturation blocks
+included did not yield a working discrete model. The procedure adopted was
+to discretize the control law alone and to re-insert the saturations
+\emph{after} discretization. In the deployment reported here the
+saturation limits (throttle in $[0,1]$, surfaces at $\pm 25^\circ$) are
+enforced in the embedded C code, mirroring the host-side limits exactly.
+
+\subsection{HIL Architecture}
+\label{sec:hil-arch}
+Fig.~\ref{fig:hil-loop} shows the architecture. The discrete controller is
+translated to C by Simulink Embedded Coder (\texttt{ert.tlc}, ARM
+Cortex-M, double precision) --- the automatic-code-generation workflow
+of model-based aerospace software
+practice~\cite{erkkinen2006automatic,erkkinen2009model} --- and
+embedded in an STM32 microcontroller running FreeRTOS --- a class of
+target for which HIL validation remains an active
+topic~\cite{laabousse2025advanced}. The host PC runs \emph{only} the nonlinear plant, the
+reference generation, and the serial interface. Host and target exchange
+one frame per controller period over a 460\,800-baud serial link:
+16 single-precision floats to the target (states, filtered references, and
+mode switches) and 4 floats back (throttle, elevator, aileron, rudder),
+delimited by a fixed header (\texttt{0xDE 0xAD}) and terminator.
+
+The link operates in \emph{lockstep}, the mechanism by which
+simulator and autopilot advance strictly by exchanged messages to make
+runs deterministic and reproducible --- standard practice in
+simulation stacks such as PX4~\cite{px4lockstep}: the plant blocks at
+each 10\,ms simulation step until the controller reply arrives, so
+simulated time advances only upon a completed exchange. Every HIL sample therefore
+corresponds one-to-one to a SIL sample --- the comparison is free of
+timing jitter by construction.
+
+Two aspects of the campaign design are worth stating explicitly, as they
+are what make the SIL and HIL results directly comparable:
+\begin{itemize}
+  \item \emph{Single source of references.} One script generates both the
+        SIL and the HIL runs of every flight case, so the two campaigns
+        cannot drift apart in their reference definitions.
+  \item \emph{Mode selection over the link.} The three flight-mode
+        switches travel in the frame rather than being compiled into the
+        firmware, so a single binary serves all flight cases of the PID
+        deployment and the target is never reprogrammed mid-campaign
+        (the LQRy deployment deviates from this, as noted in
+        Section~\ref{sec:campaigns}).
+\end{itemize}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\linewidth]{hil_loop.png}
+\caption{HIL loop in lockstep: nonlinear plant on the host, generated
+controller code on the STM32, binary serial frames at each 10\,ms step.}
+\label{fig:hil-loop}
+\end{figure}
+
+\subsection{Link and Chain Validation}
+Before any campaign, each element of the chain was validated
+independently: (i) serial echo at 460\,800 baud with zero errors;
+(ii) a frame-level test in which the embedded controller response to 200
+known input frames matched the simulated discrete controller to within
+$4\times10^{-8}$ (the single-precision quantization of the bus); and
+(iii) the discretization check of Section~\ref{sec:discretization}.
+
+\subsection{Determinism of the Lockstep Loop}
+\label{sec:determinism}
+A lockstep HIL loop built from double-precision arithmetic on both sides,
+with single-precision quantization only on the wire, has no source of
+run-to-run variability: there is no timing race, no dropped-sample
+interpolation, and no floating-point reduction whose order can change.
+The loop should therefore be \emph{bit-deterministic}.
+
+We verified this property directly. The generated LQRy controller was
+compiled and executed on a microcontroller model \emph{different} from the
+one used in an earlier execution of the same code (STM32F303 versus
+STM32F411, different core configurations and clock trees), driving the same
+host model. Over a full 300-second flight case, the two executions
+produced \emph{bit-identical} outputs on all recorded channels (maximum
+difference identically zero, Fig.~\ref{fig:replica}); repeating additional
+flight cases of the campaign reproduced the same result.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\linewidth]{replica_caso1.png}
+\caption{Bit-exact reproducibility: the same generated controller code
+executed on two different microcontroller models over a 300-second flight
+case. Maximum difference across all channels is identically zero.}
+\label{fig:replica}
+\end{figure}
+
+This is a useful property for a validation bench, and not merely a
+curiosity. Because the loop contributes no noise of its own, \emph{any}
+deviation observed between two runs is attributable to a deliberate change
+in the setup, which makes the bench a measuring instrument rather than a
+source of scatter. It also means that a campaign can be reproduced exactly
+by a third party, on different hardware, from the archived code and
+reference definitions --- a stronger form of reproducibility than the
+usual statistical agreement. The sensitivity study of the next subsection
+relies on this: each experiment changes exactly one factor, and the
+resulting difference is entirely due to that factor.
+
+This determinism also settles a practical concern of embedded
+deployment: block \emph{execution order} in a graphical model can, in
+principle, alter the generated real-time code with respect to the
+simulation. Here, with both controllers auto-generated from single-rate
+discrete models, the cross-MCU bit-exactness rules out target-side
+nondeterminism, and the quantization-floor SIL--HIL residual of the
+synchronized PID deployment (Section~\ref{sec:campaigns}) bounds any
+execution-order effect at the level of the bus quantization itself.
+
+\subsection{Sensitivity of SIL--HIL Agreement}
+\label{sec:sensitivity}
+Deploying a control law on an embedded target involves a number of
+implementation choices whose effect on SIL--HIL agreement is rarely
+quantified. Exploiting the determinism established above, we injected each
+factor individually into the validated PID bench and measured the
+resulting discrepancy against the clean SIL run
+(Table~\ref{tab:sensitivity}). All experiments use flight case 1; the
+baseline row is the unmodified bench.
+
+\begin{table}[!t]
+\caption{Sensitivity of SIL--HIL agreement: each factor injected
+individually into the validated bench (RMS vs.\ the clean SIL run, flight
+case 1).}
+\label{tab:sensitivity}
+\centering
+\begin{tabular}{lcc}
+\toprule
+Factor & $\theta$ [$^\circ$] & $h$ [m] \\
+\midrule
+Baseline (unmodified bench) & 0.030 & 0.09 \\
+S1: start-up desynchronization (7\,s) & 0.014 & 0.07 \\
+S2: airspeed reference mismatch (3\,m/s) & 0.447 & 258 \\
+S3: controller discretization & 0.003 & 0.001 \\
+S4: 1\% frame loss & 0.032 & 1.30 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The ranking is informative, and in part counter-intuitive:
+
+\subsubsection{Reference consistency dominates (S2)} An airspeed reference
+differing by 3\,m/s between the SIL and HIL campaigns --- a plausible
+outcome whenever the two campaigns are configured from separate scripts
+--- produces a 258\,m RMS altitude discrepancy. This is not a fidelity
+loss of the HIL chain at all: it is a comparison between two different
+flight conditions. It is, by two orders of magnitude, the largest effect
+measured, which motivates the single-source-of-references design of
+Section~\ref{sec:hil-arch}.
+
+\subsubsection{Start-up desynchronization leaves a persistent residual (S1)}
+Embedded controllers commonly hold their integrators in reset until the
+communication link engages, so the target starts from the trim command
+while the simulated controller starts from its initial states and produces
+an initial transient. The two trajectories then differ over the first
+seconds and, in modes where an outer loop is open, that difference is
+integrated and never recovered. Synchronizing the two start-ups --- as
+done in the PID deployment --- removes this term; leaving them
+unsynchronized leaves a residual that no amount of link quality can
+remove.
+
+\subsubsection{Frame loss is benign at low rates (S4)} Discarding 1\% of
+the controller replies at random --- each discarded reply is replaced by
+holding the previous command for that step, so the lockstep timing is
+preserved --- degrades altitude agreement to 1.30\,m
+but leaves attitude essentially unaffected, since the actuator rate limits
+and the airframe dynamics filter isolated command glitches. This is
+reassuring for links less reliable than the one used here.
+
+\subsubsection{Discretization is negligible (S3)} The usual first suspect
+--- the continuous-to-discrete conversion of the control law --- accounts
+for $0.003^\circ$ in attitude and $10^{-3}$\,m in altitude at
+$T_s=10$\,ms, three orders of magnitude below the reference-consistency
+term.
+
+\subsection{Embedded Campaign Results}
+\label{sec:campaigns}
+Eight flight cases (all combinations of the three mode switches, with
+doublets on attitude/heading and steps on airspeed/altitude, 300\,s each)
+were executed in SIL and HIL for both controllers, from a single script
+per controller.
+
+\subsubsection{PID} Table~\ref{tab:pid-silhil} reports the RMS SIL--HIL
+discrepancy ($t>12$\,s). The residual reaches the quantization floor:
+pitch attitude within $0.011^\circ$ in the worst case, altitude within
+2.75\,m only where the altitude loop is open (integrated drift), and
+essentially zero elsewhere. Fig.~\ref{fig:pid-c1} illustrates case~1: the
+SIL and HIL traces are indistinguishable at plot scale.
+
+\begin{table}[!t]
+\caption{PID: RMS SIL--HIL discrepancy per flight case ($t>12$\,s).}
+\label{tab:pid-silhil}
+\centering
+\begin{tabular}{lcccc}
+\toprule
+Case & $\theta$ [$^\circ$] & $\VT$ [m/s] & $h$ [m] & $\phi$ [$^\circ$] \\
+\midrule
+1 & 0.0028 & 0.0009 & 0.089 & $\sim$$10^{-6}$ \\
+2 & 0.0007 & 0.0002 & 0.004 & $\sim$$10^{-6}$ \\
+3 & 0.0035 & 0.0011 & 2.75  & $\sim$$10^{-6}$ \\
+4 & 0.0007 & 0.0002 & 0.004 & $\sim$$10^{-7}$ \\
+5 & 0.0109 & 0.0059 & 0.402 & $\sim$$10^{-6}$ \\
+6--8 & $<10^{-3}$ & $<10^{-4}$ & $<10^{-4}$ & $<10^{-6}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\linewidth]{pid_sil_hil_caso1.png}
+\caption{PID, flight case 1: SIL vs.\ HIL on the nonlinear model.}
+\label{fig:pid-c1}
+\end{figure}
+
+\subsubsection{LQRy} The embedded LQRy is the earlier
+\emph{fixed-gain} delivery --- a softer gain set than the
+gain-scheduled design of Section~\ref{sec:lqry}, registered in the
+repository~\cite{repo} --- so the bench results validate the
+deployment pipeline for that build; re-deploying the gain-scheduled
+law on the bench is future work
+(Section~\ref{sec:conclusion}). The LQRy campaign was executed under the same
+protocol, with per-case firmware builds and scripted programming of the
+target. Its SIL--HIL residual is larger --- from $0.23^\circ$ to
+$3.57^\circ$ in pitch depending on the flight case --- and is explained by
+the start-up term quantified in S1: this implementation holds the
+embedded integrators in reset until the link engages, so the embedded and
+simulated runs begin from different states. The effect is deterministic
+and confined to the transient; the doublet responses themselves track
+closely.
+% Figura HIL LQRy dedicada — descomentar apos regeneracao em ingles:
+% \begin{figure}[!t]\centering
+% \includegraphics[width=\linewidth]{fig_lqry_hil.png}
+% \caption{LQRy, flight case 1: SIL vs.\ the original HIL campaign vs.\
+% the corrected HIL run (SIL-sourced references, scripted flashing).}
+% \label{fig:lqry-hil}\end{figure}
+
+\subsection{Controller Comparison on the Bench}
+\label{sec:fair}
+With both controllers on the same bench, the same plant, the same
+references, and the same metric window, the dominant free variable is
+the control law --- subject to the harness asymmetries disclosed in
+Section~\ref{sec:protocol}, which the equalization ablation showed not
+to drive the conclusions. Fig.~\ref{fig:justo} shows flight case~1: on
+the bench, the PID tracks airspeed and pitch more tightly, while the
+LQRy regulates altitude better when the airspeed loop is active ---
+recalling that the embedded LQRy is the earlier fixed-gain build, so
+these bench observations characterize that deployment rather than the
+gain-scheduled law of Section~\ref{sec:sil-comparison}.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\linewidth]{justo_caso1.png}
+\caption{Embedded comparison, flight case 1: PID and LQRy under identical
+conditions on the same bench.}
+\label{fig:justo}
+\end{figure}

@@ -1,0 +1,19 @@
+===== METRICAS 3 CENARIOS (SIL, refs identicas) =====
+overshoot [%] | t_subida 10-90 [s] | t_acomod 2% [s] | erro regime
+
+latero  \phi       PID: OS=  24.1%  tr= 0.44  ts=  3.93  ess=+0.02   |   LQRy: OS=   0.0%  tr=17.47  ts= 30.51  ess=-0.013
+latero  V_T        PID: OS=   0.0%  tr= 6.40  ts= 11.68  ess=+0.000127   |   LQRy: OS=   0.0%  tr=  NaN  ts= 35.00  ess=-0.468
+long    \theta     PID: OS=  15.1%  tr= 0.92  ts=  9.93  ess=+0.0153   |   LQRy: OS=  16.6%  tr=19.12  ts= 50.00  ess=+0.811
+long    V_T        PID: OS=   0.0%  tr= 6.40  ts= 11.71  ess=+0.000104   |   LQRy: OS=   0.0%  tr=  NaN  ts= 35.00  ess=-0.504
+comb    \phi       PID: OS=  24.0%  tr= 0.45  ts=  3.93  ess=+0.02   |   LQRy: OS=   0.0%  tr=17.71  ts= 31.62  ess=-0.0167
+comb    \theta     PID: OS=  15.8%  tr= 0.86  ts=  9.89  ess=+0.0153   |   LQRy: OS=  16.6%  tr=19.27  ts= 50.00  ess=+0.812
+comb    V_T        PID: OS=   0.0%  tr= 6.40  ts= 11.71  ess=+0.000104   |   LQRy: OS=   0.0%  tr=  NaN  ts= 35.00  ess=-0.507
+
+===== LINHAS LaTeX =====
+latero & $\phi$ & 24.1 & 0.44 & 3.93 & 0.02 & 0.0 & 17.47 & 30.51 & -0.013 \\
+latero & $V_T$ & 0.0 & 6.40 & 11.68 & 0.000127 & 0.0 & NaN & 35.00 & -0.468 \\
+long & $\theta$ & 15.1 & 0.92 & 9.93 & 0.0153 & 16.6 & 19.12 & 50.00 & 0.811 \\
+long & $V_T$ & 0.0 & 6.40 & 11.71 & 0.000104 & 0.0 & NaN & 35.00 & -0.504 \\
+comb & $\phi$ & 24.0 & 0.45 & 3.93 & 0.02 & 0.0 & 17.71 & 31.62 & -0.0167 \\
+comb & $\theta$ & 15.8 & 0.86 & 9.89 & 0.0153 & 16.6 & 19.27 & 50.00 & 0.812 \\
+comb & $V_T$ & 0.0 & 6.40 & 11.71 & 0.000104 & 0.0 & NaN & 35.00 & -0.507 \\

@@ -1,0 +1,7 @@
+===== acoplamento v2 (16-Aug-2026 23:19:09) — PID retunado x LQRy v2 =====
+ss Delta elev: PID TH=2.055 AH=1.342 (razao 0.653) | LQRy TH=2.258 AH=1.552 (razao 0.688) | (12/15.2)^2=0.623
+PID TH amp= 5: dip dtheta=-0.0048 (1-cos=0.0038)
+PID TH amp=15: dip dtheta=-0.0435 (1-cos=0.0341)
+PID TH amp=30: dip dtheta=-0.1805 (1-cos=0.1340)
+LQRy TH30: dip dtheta=-0.816 | dh(200s): PID=-15.8 LQRy=10.6
+AH: dtheta_ss PID=0.590 LQRy=0.712 | dh_min AH: PID=-0.10 LQRy=-1.45

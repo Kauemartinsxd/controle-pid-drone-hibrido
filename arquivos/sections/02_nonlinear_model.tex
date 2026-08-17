@@ -1,0 +1,219 @@
+\section{Nonlinear Model, Trim, and Linearization}
+\label{sec:model}
+
+\subsection{Nonlinear Model}
+The aircraft is a small hybrid VTOL platform with a conventional
+fixed-wing configuration for cruise. Its physical parameters are
+$m=2.2$\,kg, wing area $S=0.27$\,m$^2$, span $b=1.2$\,m, mean aerodynamic
+chord $\bar{c}=0.226$\,m (aspect ratio $AR=5.33$, Oswald factor $e=0.8$),
+and inertia tensor (kg\,m$^2$)
+\begin{equation}
+\mathbf{I}=\begin{bmatrix}
+0.1441 & 0 & -0.00167\\
+0 & 0.1155 & 0\\
+-0.00167 & 0 & 0.2572
+\end{bmatrix}.
+\end{equation}
+
+The complete six-degree-of-freedom nonlinear model of this
+aircraft~\cite{ferreira2019modeling,repo} follows the standard rigid-body
+formulation~\cite{stevens2016aircraft} and is implemented in Simulink with a
+state vector of 14 states (body velocities, angular rates, Euler angles,
+and navigation states). The aerodynamic model uses the usual
+coefficient build-up,
+\begin{equation}
+\begin{aligned}
+C_L &= C_{L_0} + C_{L_\alpha}\alpha + C_{L_q}\frac{q\bar{c}}{2V_0}, \quad
+C_D = C_{D_0} + \frac{C_L^2}{\pi e AR},\\
+C_m &= C_{m_0} + C_{m_\alpha}\alpha + C_{m_{\delta_e}}\delta_e +
+C_{m_q}\frac{q\bar{c}}{2V_0},
+\end{aligned}
+\end{equation}
+with analogous expressions for the lateral--directional coefficients
+$C_Y$, $C_l$, and $C_n$ in $\beta$, $p$, $r$, $\delta_a$, and $\delta_r$.
+The stability and control derivatives were obtained by system
+identification from flight-test data of the actual
+aircraft~\cite{angelo2026} (longitudinal Model~4 and
+lateral--directional Model~2 of that identification campaign),
+following the time-domain output-error practice that is standard for
+flight-vehicle identification~\cite{jategaonkar2006flight} and for
+small UAVs in particular~\cite{dorobantu2012system}. Thrust is
+modeled as $T = T_{max}\,\delta_t\,(\rho/\rho_0)^{0.8}$ with
+$T_{max}=14$\,N.
+
+In the fixed-wing flight mode considered here the hover rotors are
+inactive, so the plant input vector comprises the four aerodynamic
+commands and the three components of the wind velocity, the latter
+expressed in the local NED frame:
+\begin{equation}
+\label{eq:inputvec}
+U=[\,\underbrace{\delta_t\;\;\delta_e\;\;\delta_a\;\;\delta_r}_{\text{commands}}
+\;\;|\;\;
+\underbrace{w_N\;\;w_E\;\;w_D}_{\text{wind (NED)}}\,]^{\!\top}.
+\end{equation}
+The wind components are rotated into body axes and subtracted from the
+inertial velocities before the aerodynamic triad is formed, so that
+airspeed, angle of attack, and sideslip are computed from the
+\emph{air-relative} velocity,
+$V_T=\lVert[\,u\;v\;w\,]^{\!\top}-L_{bn}[\,w_N\;w_E\;w_D\,]^{\!\top}\rVert$,
+in the usual way~\cite{stevens2016aircraft}. Wind therefore enters the model as a
+physical disturbance input to the aerodynamics rather than as an additive
+signal on the outputs; it is identically zero at trim and in the nominal
+simulations, and is exercised as a disturbance in the robustness study of
+Section~\ref{sec:robustness}.
+
+Actuator dynamics are included explicitly, since the controllers are
+ultimately deployed on hardware: each control surface is limited to
+$\pm25^\circ$ in position and $150^\circ$/s in rate, followed by a
+first-order lag of $\tau_{act}=0.05$\,s (20\,rad/s bandwidth); the
+throttle channel is limited to $[0,1]$ with a rate limit of 1\,s$^{-1}$
+and a spool-up lag of $\tau_{eng}=0.30$\,s. Without these, a reference
+step produces an unrealizable impulsive surface deflection
+(${\sim}400^\circ$/s in a single step) that no servo --- and no HIL
+target --- could reproduce.
+
+\subsection{Trim Condition}
+\label{sec:trim}
+The aircraft is trimmed numerically --- a Newton solution of
+$\dot{x}=f(x,\delta)=0$ under the flight-condition constraints, the
+standard formulation of the general aircraft trim
+problem~\cite{marco2007trim,stevens2016aircraft} --- in
+steady, wings-level horizontal flight at airspeed $\VT^e = 12.0$\,m/s,
+altitude $h^e = 600$\,m, and flight-path angle $\gamma^e = 0$. The
+resulting equilibrium is stated explicitly below, as it anchors every
+simulation and every embedded test in this article.
+
+\emph{State vector at trim} (body axes; unlisted states are zero):
+\begin{equation}
+\label{eq:xtrim}
+\begin{aligned}
+u^e &= 11.621~\text{m/s}, \quad
+w^e = 2.992~\text{m/s}, \\
+\theta^e &= 0.25196~\text{rad} = 14.44^\circ, \quad
+h^e = 600~\text{m},
+\end{aligned}
+\end{equation}
+so that $\VT^e=\sqrt{(u^e)^2+(w^e)^2}=12.0$\,m/s and, since
+$\alpha^e=\arctan(w^e/u^e)=14.44^\circ=\theta^e$, the flight-path angle is
+indeed $\gamma^e=\theta^e-\alpha^e=0$.
+
+\emph{Output vector at trim}:
+\begin{equation}
+\label{eq:ytrim}
+\VT^e = 12.0~\text{m/s},\;\;
+\alpha^e = 14.44^\circ,\;\;
+\beta^e = 0,\;\;
+\gamma^e = 0,
+\end{equation}
+with $p^e=q^e=r^e=0$, $\phi^e=\psi^e=0$, $\theta^e=14.44^\circ$, and
+$h^e=600$\,m.
+
+\emph{Command vector at trim} (control surfaces and throttle):
+\begin{equation}
+\label{eq:dtrim}
+\delta^e =
+\begin{bmatrix}
+\delta_{t}^{e} \\ \delta_{e}^{e} \\ \delta_{a}^{e} \\ \delta_{r}^{e}
+\end{bmatrix}
+=
+\begin{bmatrix}
+0.2836 \\ 0.1330~\text{rad}~(7.62^\circ) \\ 0 \\ 0
+\end{bmatrix},
+\end{equation}
+with the hover-rotor commands identically zero in this flight mode.
+Throughout the article, the controllers act on \emph{increments} around
+this trim; the trim commands of~\eqref{eq:dtrim} are added at the
+controller output (see the remark in Section~\ref{sec:sil-trim}).
+
+\subsection{Linearization}
+The nonlinear model is linearized about the trim
+condition~\eqref{eq:xtrim}--\eqref{eq:dtrim}, decoupling into the standard
+longitudinal and lateral--directional subsystems used for controller
+design in Section~\ref{sec:control}. With longitudinal states
+$x_{lon}=[\,u\;\alpha\;q\;\theta\;h\,]^{\!\top}$ and inputs
+$[\,\delta_t\;\delta_e\,]^{\!\top}$:
+\begin{equation}
+\resizebox{.91\linewidth}{!}{$
+A_{lon}=\begin{bmatrix}
+0.124 & 13.29 & -2.643 & -9.497 & 0\\
+-0.135 & -2.989 & 0.751 & 0 & 0\\
+0 & -38.75 & -4.108 & 0 & 0\\
+0 & 0 & 1 & 0 & 0\\
+0 & -12 & 0 & 12 & 0
+\end{bmatrix}\!,\;
+B_{lon}=\begin{bmatrix}
+6.071 & 0\\ -0.126 & 0\\ 0 & 45.98\\ 0 & 0\\ 0 & 0
+\end{bmatrix}
+$}
+\end{equation}
+and with lateral--directional states
+$x_{lat}=[\,\beta\;p\;r\;\phi\;\psi\,]^{\!\top}$ and inputs
+$[\,\delta_a\;\delta_r\,]^{\!\top}$:
+\begin{equation}
+\resizebox{.91\linewidth}{!}{$
+A_{lat}=\begin{bmatrix}
+-0.478 & 0.220 & -0.967 & 0.791 & 0\\
+-51.67 & -12.43 & 9.362 & 0 & 0\\
+15.74 & -0.648 & -2.355 & 0 & 0\\
+0 & 1 & 0.257 & 0 & 0\\
+0 & 0 & 1.033 & 0 & 0
+\end{bmatrix}\!,\;
+B_{lat}=\begin{bmatrix}
+0 & 0.040\\ -132.9 & -12.69\\ 3.282 & 19.09\\ 0 & 0\\ 0 & 0
+\end{bmatrix}
+$}
+\end{equation}
+(entries below $10^{-3}$ shown as zero).
+
+\subsection{Open-Loop Stability}
+\label{sec:stability}
+Table~\ref{tab:poles} lists the eigenvalues of $A_{lon}$ and $A_{lat}$ and
+the corresponding classical modes~\cite{etkin1996dynamics,cook2007flight}. The longitudinal dynamics are stable,
+with a well-damped short period and a lightly damped phugoid
+($\zeta=0.085$). The lateral--directional dynamics, however, contain an
+\emph{unstable spiral mode} at $s=+0.233$\,s$^{-1}$ --- an amplitude
+doubling time of only $t_2=\ln 2/0.233 \approx 3.0$\,s --- so the aircraft
+is open-loop unstable and requires closed-loop stabilization for any
+practical operation.
+
+\begin{table}[!t]
+\caption{Open-loop modes at the trim condition ($\VT^e=12$ m/s, $h^e=600$ m).}
+\label{tab:poles}
+\centering
+\begin{tabular}{llcc}
+\toprule
+Mode & Eigenvalues [s$^{-1}$] & $\omega_n$ [rad/s] & $\zeta$ \\
+\midrule
+Short period & $-3.39 \pm 5.31i$ & 6.30 & 0.54 \\
+Phugoid & $-0.094 \pm 1.11i$ & 1.12 & 0.085 \\
+Altitude & $-1.7\times10^{-4}$ & --- & --- \\
+Roll subsidence & $-11.33$ & --- & --- \\
+Dutch roll & $-2.08 \pm 4.59i$ & 5.04 & 0.41 \\
+\textbf{Spiral (unstable)} & $\mathbf{+0.233}$ & --- & --- \\
+Heading & $0$ & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This analysis is corroborated by an open-loop simulation of the
+\emph{nonlinear} model with the commands frozen at the trim
+values~\eqref{eq:dtrim} (Fig.~\ref{fig:openloop}). Initialized exactly at
+the trim state~\eqref{eq:xtrim}, the aircraft remains at equilibrium for
+the full 300\,s (deviations below $10^{-5}$), confirming the trim point.
+Initialized with a small attitude perturbation ($\Delta\theta=1^\circ$,
+$\Delta\phi=5^\circ$) --- an offset representative of a minor upset, whose
+exact size is immaterial since the divergence is exponential --- the
+unstable spiral mode takes over: the bank angle diverges to
+${\approx}63^\circ$; the aircraft accelerates and enters a steadily
+descending spiral --- the behavior predicted by Table~\ref{tab:poles}.
+No other disturbance is applied; the perturbation acts only through the
+initial condition.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\linewidth]{fig_malha_aberta.png}
+\caption{Open-loop nonlinear simulation with commands frozen at trim.
+Solid: initialized exactly at trim (remains at equilibrium). Dashed: small
+initial perturbation --- the unstable spiral mode diverges.}
+\label{fig:openloop}
+\end{figure}

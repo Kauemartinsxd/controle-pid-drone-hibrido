@@ -1,0 +1,43 @@
+===== RECAMPANHA v2 (16-Aug-2026 20:56:23) — PID registro (retunado+b0) x LQRy v2 (scheduled, cond 2) =====
+
+--- A) Robustez missao: RMS/max t>12 s ---
+cen     ctrl  | rmsVT    maxVT    | rmsPSI   maxPSI   | rmsH     maxH    
+nom     PID   | 0.071    0.801    | 1.271    5.797    | 1.652    6.820   
+nom     LQR2  | 0.040    0.494    | 0.713    10.000   | 0.934    9.912   
+sato    PID   | 3.144    13.446   | 818.716  2083.030 | 554.012  1238.807
+sato    LQR2  | DIVERGE (sem arquivo completo)
+satoL   PID   | 0.081    0.893    | 1.280    5.889    | 113.799  193.307 
+satoL   LQR2  | 0.055    0.550    | 0.779    10.000   | 0.957    9.637   
+pert    PID   | 0.073    0.821    | 1.280    5.838    | 1.653    6.817   
+pert    LQR2  | 0.032    0.405    | 0.720    10.000   | 0.934    9.885   
+vento   PID   | 0.104    0.801    | 2.242    12.863   | 2.547    11.521  
+vento   LQR2  | 0.042    0.493    | 0.753    10.000   | 5.120    10.063  
+
+--- degradacao (RMS cen / RMS nom) ---
+sato    PID   | VT 44.26   PSI 644.35  H 335.36 
+satoL   PID   | VT 1.14    PSI 1.01    H 68.89  
+satoL   LQR2  | VT 1.38    PSI 1.09    H 1.03   
+pert    PID   | VT 1.03    PSI 1.01    H 1.00   
+pert    LQR2  | VT 0.82    PSI 1.01    H 1.00   
+vento   PID   | VT 1.46    PSI 1.76    H 1.54   
+vento   LQR2  | VT 1.05    PSI 1.06    H 5.48   
+
+--- B) Degrau por eixo: OS[%] tr[s] ts[s] ess[%] ---
+run              canal  | OS      tr      ts      ess
+pid2_vel_comoesta VT     | 0.0     9.48    18.0    0.00   
+pid2_lat_comoesta PSI    | 0.0     16.14   33.0    0.50   
+pid2_long_comoesta H      | 0.0     23.37   44.4    0.06   
+pid2_vel_equiparado VT     | 0.0     5.78    11.4    0.00   
+pid2_lat_equiparado PSI    | 0.0     13.67   29.3    0.38   
+pid2_long_equiparado H      | 0.0     21.78   40.8    0.04   
+LQR2_ax_vel      VT     | 0.0     3.04    5.8     0.00   
+LQR2_ax_lat      PSI    | 16.4    0.83    12.6    0.01   
+LQR2_ax_long     H      | 0.6     3.44    5.9     0.19   
+
+--- C) Compliance missao (comb, canais guiagem): OS ts ess ---
+PID_nom   VT   | OS=0.0    ts=18.0   ess=0.00 
+PID_nom   PSI  | OS=0.0    ts=38.1   ess=0.72 
+PID_nom   H    | OS=0.0    ts=45.1   ess=0.07 
+LQR2_nom  VT   | OS=0.2    ts=5.8    ess=0.00 
+LQR2_nom  PSI  | OS=24.5   ts=6.9    ess=0.00 
+LQR2_nom  H    | OS=0.2    ts=7.0    ess=1.75 

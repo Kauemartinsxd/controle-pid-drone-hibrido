@@ -1,0 +1,128 @@
+% =========================================================================
+% Artigo IEEE Access — PID cascata x LQRy no drone hibrido (SIL + HIL)
+% Estrutura definida por Kaue + orientadora; rascunho montado em 2026-08-02.
+% Compilar: pdflatex main.tex (ou Overleaf). Classe: ieeeaccess.cls (inclusa).
+% Marcadores [PENDENTE: ...] em vermelho = partes a completar (varias do Mirko).
+% =========================================================================
+\documentclass{ieeeaccess}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{booktabs}
+\usepackage{url}
+
+% Compat: a classe so define \xfigwd dentro do macro \Figure{} dela; com
+% ambientes figure padrao a caption falharia sem isto.
+\makeatletter
+\def\xfigwd{0pt}
+\makeatother
+
+% ---- marcador de pendencia (visivel em vermelho no PDF) ----
+\newcommand{\pendente}[1]{\textcolor{red}{\textbf{[PENDENTE: #1]}}}
+% ---- notacao ----
+\newcommand{\VT}{V_T}
+\graphicspath{{figs/}}
+
+\begin{document}
+\history{Draft — not submitted.}
+\doi{}
+
+\title{Cascade PID Versus Output-Feedback LQR for the Fixed-Wing Flight
+Mode of a Hybrid VTOL UAV: Design, Robustness, and a Deterministic
+Hardware-in-the-Loop Comparison}
+
+% ---------------------------------------------------------------
+% \pendente{confirmar e-mails e ORCIDs dos coautores}
+\author{\uppercase{Kau\^e Martins}\authorrefmark{1},
+\uppercase{Huascar Mirko Montecinos Cortez}\authorrefmark{1},
+and \uppercase{Neusa Maria Franco de Oliveira}\authorrefmark{1}}
+\address[1]{Instituto Tecnol\'ogico de Aeron\'autica (ITA), S\~ao Jos\'e dos
+Campos, SP, Brazil (e-mail: kaue.martins124@gmail.com)}
+\tfootnote{Source code and simulation data are available at
+\underline{https://github.com/Kauemartinsxd/controle-pid-drone-hibrido}.}
+
+\markboth
+{Martins \headeretal: Cascade PID Versus Output-Feedback LQR for the Fixed-Wing Mode of a Hybrid VTOL UAV}
+{Martins \headeretal: Cascade PID Versus Output-Feedback LQR for the Fixed-Wing Mode of a Hybrid VTOL UAV}
+
+\corresp{Corresponding author: Kau\^e Martins (e-mail: kaue.martins124@gmail.com).}
+
+\begin{abstract}
+This article compares two flight control laws --- a classical cascade PID
+and an output-feedback linear--quadratic regulator (LQRy) --- for the
+fixed-wing flight mode of a small hybrid vertical take-off and landing
+(VTOL) UAV, following the complete path from design to embedded
+validation. Both controllers are designed on a model linearized about the
+cruise trim of a nonlinear model identified from flight-test data, whose
+open-loop dynamics include an unstable spiral mode, and are evaluated
+against a common set of literature-grounded closed-loop requirements. In
+software-in-the-loop (SIL) simulation on the nonlinear model, the two
+laws are exercised under identical references on a 300-second combined
+mission; the gain-scheduled LQRy tracks faster and with smaller RMS
+errors but violates the heading-overshoot requirement, while the
+requirements-retuned PID meets every requirement at lower bandwidth. A
+robustness study then reveals complementary weaknesses: under a severe
+lateral--directional model mismatch both compared laws lose the
+mission --- the aggressive LQRy diverging outright, while an earlier,
+softer fixed-gain LQRy iteration completes it with near-nominal error,
+showing that this robustness is set by the tuning rather than by the
+LQ structure --- whereas under a
+longitudinal-only mismatch the LQRy stays nominal and the PID's
+clamped altitude loop drifts; under wind and gusts the LQRy concedes
+altitude where the PID stays firm; both tolerate a plausible $+10\%$
+identification uncertainty. Finally, both controllers are deployed on an
+STM32 microcontroller through automatic code generation and compared on a
+lockstep serial hardware-in-the-loop (HIL) bench that is shown to be
+bit-deterministic, with, for the synchronized PID deployment, a SIL--HIL
+residual at the quantization floor of the bus, and a sensitivity study
+ranking the implementation choices that actually affect embedded
+agreement. The complete toolchain and data are
+publicly available.
+\end{abstract}
+
+\begin{keywords}
+Cascade control, code generation, fixed-wing UAV, hardware-in-the-loop
+simulation, hybrid VTOL aircraft, LQR control, PID control, robustness,
+STM32.
+\end{keywords}
+
+\titlepgskip=-15pt
+\maketitle
+
+\input{sections/01_introduction}
+\input{sections/02_nonlinear_model}
+\input{sections/03_control_design}
+\input{sections/04_sil_simulations}
+\input{sections/05_robustness}
+\input{sections/06_hil}
+\input{sections/07_conclusion}
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+% ---- Biografias (IEEE Access exige; fotos 1in x 1.25in) ----
+% PENDENTE-EXTERNO: dados biograficos reais + fotos dos tres autores.
+% Estrutura pronta abaixo; completar antes da submissao.
+\begin{biography}{Kau\^e Martins}
+is with the Electronic Devices and Systems area (EEC-D) of the
+Instituto Tecnol\'ogico de Aeron\'autica (ITA), S\~ao Jos\'e dos
+Campos, Brazil. % PENDENTE-EXTERNO: titulacao, ano, interesses.
+\end{biography}
+
+\begin{biography}{Huascar Mirko Montecinos Cortez}
+is with the Electronic Devices and Systems area (EEC-D) of the
+Instituto Tecnol\'ogico de Aeron\'autica (ITA), S\~ao Jos\'e dos
+Campos, Brazil. % PENDENTE-EXTERNO: titulacao, ano, interesses.
+\end{biography}
+
+\begin{biography}{Neusa Maria Franco de Oliveira}
+is a professor with the Instituto Tecnol\'ogico de Aeron\'autica
+(ITA), S\~ao Jos\'e dos Campos, Brazil, where she advises research on
+unmanned aerial vehicle identification, control, and
+hardware-in-the-loop validation.
+% PENDENTE-EXTERNO: titulacao, historico, interesses completos.
+\end{biography}
+
+\EOD
+\end{document}

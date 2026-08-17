@@ -270,5 +270,5 @@ Linear × não-linear: para perturbações pequenas em torno do trim a divergên
 ## Referências
 
 - STEVENS, B. L.; LEWIS, F. L. *Aircraft Control and Simulation*, 3rd ed. Wiley, 2016.
-- SANTOS, M. *Modelagem e Controle de Aeronaves*, ITA, 2018.
+- SANTOS, M. H. dos. *Projeto e teste em bancada de um piloto automático para veículos aéreos não tripulados*. Dissertação (Mestrado) — ITA, São José dos Campos, 2018.
 - SATO, F. C. Y. C. *Modelo matemático completo não-linear DH*, ITA / EEC-D.
