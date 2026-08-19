@@ -11,6 +11,15 @@
 \usepackage{textcomp}
 \usepackage{booktabs}
 \usepackage{url}
+% tikz x ieeeaccess.cls: a carga do pgf emite 2 erros recuperados
+% ("Missing number"/"Extra \fi", no submodulo random, que nao usamos).
+% Atrito conhecido da classe; nao afeta o PDF — ignorar no log.
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning}
+% Os titulos de secao usam a cor spot PANTONE3015C da classe, que sai
+% INVISIVEL em varios visualizadores (Preview/poppler: "Bad color
+% space"). Forca o azul IEEE Access equivalente em RGB.
+\definecolor{accessblue}{RGB}{0,98,155}
 
 % Compat: a classe so define \xfigwd dentro do macro \Figure{} dela; com
 % ambientes figure padrao a caption falharia sem isto.
@@ -59,26 +68,27 @@ open-loop dynamics include an unstable spiral mode, and are evaluated
 against a common set of literature-grounded closed-loop requirements. In
 software-in-the-loop (SIL) simulation on the nonlinear model, the two
 laws are exercised under identical references on a 300-second combined
-mission; the gain-scheduled LQRy tracks faster and with smaller RMS
-errors but violates the heading-overshoot requirement, while the
-requirements-retuned PID meets every requirement at lower bandwidth. A
-robustness study then reveals complementary weaknesses: under a severe
-lateral--directional model mismatch both compared laws lose the
-mission --- the aggressive LQRy diverging outright, while an earlier,
-softer fixed-gain LQRy iteration completes it with near-nominal error,
-showing that this robustness is set by the tuning rather than by the
-LQ structure --- whereas under a
-longitudinal-only mismatch the LQRy stays nominal and the PID's
-clamped altitude loop drifts; under wind and gusts the LQRy concedes
-altitude where the PID stays firm; both tolerate a plausible $+10\%$
-identification uncertainty. Finally, both controllers are deployed on an
-STM32 microcontroller through automatic code generation and compared on a
-lockstep serial hardware-in-the-loop (HIL) bench that is shown to be
-bit-deterministic, with, for the synchronized PID deployment, a SIL--HIL
-residual at the quantization floor of the bus, and a sensitivity study
-ranking the implementation choices that actually affect embedded
-agreement. The complete toolchain and data are
-publicly available.
+mission; the requirements-retuned PID meets every requirement and is
+the tighter law on every guidance channel, while the deliberately soft
+fixed-gain LQRy is slower, concedes up to a factor of five in RMS
+tracking error, and violates the airspeed-overshoot requirement. A
+robustness study then inverts that verdict: under a severe
+lateral--directional model mismatch --- an independent identification
+of the same airframe with sign-inverted lateral derivatives --- the
+PID loses the mission outright, while the fixed-gain LQRy completes it
+with near-nominal error --- a tolerance consistent with the classical
+robustness heritage of LQ designs, though earned here by the soft
+tuning. Under a longitudinal-only mismatch the LQRy stays nominal
+and the PID's clamped altitude loop drifts; under wind and gusts both
+complete the mission with the PID firmer; both tolerate a plausible
+$+10\%$ identification uncertainty. Finally, both controllers are
+deployed on an STM32 microcontroller through automatic code generation
+and compared on a lockstep serial hardware-in-the-loop (HIL) bench
+that is shown to be bit-deterministic and reproduces the SIL verdict,
+with, for the synchronized PID deployment, a SIL--HIL residual at the
+quantization floor of the bus, and a sensitivity study ranking the
+implementation choices that actually affect embedded agreement. The
+complete toolchain and data are publicly available.
 \end{abstract}
 
 \begin{keywords}

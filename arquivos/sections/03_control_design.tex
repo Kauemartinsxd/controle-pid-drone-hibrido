@@ -1,5 +1,12 @@
 \section{Controller Design}
 \label{sec:control}
+This section presents the two control laws under comparison. It first
+states the closed-loop requirements against which both are judged;
+then details the cascade PID --- stability augmentation, longitudinal
+and lateral--directional loops, and the tuning of record ---
+summarizes the fixed-gain output-feedback LQR (LQRy) design; and
+closes by quantifying the roll-to-longitudinal coupling that both
+designs deliberately leave to feedback.
 
 \subsection{Closed-Loop Requirements}
 \label{sec:requirements}
@@ -92,6 +99,89 @@ subsidence mode already meets Level~1 handling qualities with margin
 is used ($K_p=0$).
 
 \subsubsection{Longitudinal Loops}
+Fig.~\ref{fig:pid-lon} shows the longitudinal cascade:
+% ---- Diagrama de blocos: cascata longitudinal (fiel ao modelo_NL_DH_CL) ----
+\begin{figure}[!t]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[font=\small, >={Latex[length=1.6mm]},
+  blk/.style={draw, minimum height=1.9em, inner sep=3pt},
+  sum/.style={draw, circle, minimum size=1em, inner sep=0pt},
+  sig/.style={->},
+  lbl/.style={font=\scriptsize, inner sep=1.5pt}]
+% --- linha superior: altitude -> arfagem -> profundor ---
+\node[lbl, left=0pt] (href) at (0.05,0) {$h^{ref}$};
+\node[blk] (Fh) at (0.95,0) {$\tfrac{1}{\tau_{ref}s+1}$};
+\node[sum] (s1) at (2.3,0) {};
+\node[blk] (Calt) at (3.2,0) {$C_{alt}$};
+\node[blk, minimum width=1.6em] (sat) at (4.3,0) {};
+\draw[line width=0.8pt] ($(sat)+(-0.17,-0.11)$) -- ($(sat)+(-0.06,-0.11)$)
+  -- ($(sat)+(0.06,0.11)$) -- ($(sat)+(0.17,0.11)$);
+\node[lbl, above=1pt of sat] {$\pm10^\circ$};
+\node[sum] (s2) at (5.8,0) {};
+\node[blk] (Cth) at (6.7,0) {$C_{\theta}$};
+\node[sum] (s3) at (7.7,0) {};
+\node[blk, anchor=west, minimum width=1.8cm, minimum height=3.0cm,
+      align=center] (ac) at (8.45,-1.05)
+      {aircraft};
+\draw[sig] (href) -- (Fh);
+\draw[sig] (Fh) -- (s1);
+\node[lbl] at ($(s1)+(-0.3,0.18)$) {$+$};
+\draw[sig] (s1) -- (Calt);
+\draw[sig] (Calt) -- (sat);
+\draw[sig] (sat) -- node[lbl, below, pos=0.42] {$\theta^{ref}$} (s2);
+\node[lbl] at ($(s2)+(-0.3,0.18)$) {$+$};
+% entrada alternativa do modo ThetaHold
+\fill (5.2,0) circle (1.1pt);
+\draw[sig, dashed] (5.2,0.8) node[lbl, above]
+  {$\theta^{ref}$ (\emph{ThetaHold})} -- (5.2,0.05);
+\draw[sig] (s2) -- (Cth);
+\draw[sig] (Cth) -- (s3);
+\node[lbl] at ($(s3)+(-0.3,0.18)$) {$+$};
+% trim do profundor
+\draw[sig] (7.7,0.8) node[lbl, right=2pt] {$\delta_e^{e}$} -- (s3);
+\node[lbl] at ($(s3)+(0.22,0.32)$) {$+$};
+\draw[sig] (s3) -- node[lbl, above, pos=0.4] {$\delta_e$} (ac.west|-s3);
+% --- amortecedor de arfagem ---
+\node[blk] (Kq) at (7.7,-1.5) {$K_q$};
+\draw[sig] (Kq) -- (s3);
+\node[lbl] at ($(s3)+(0.24,-0.3)$) {$-$};
+% --- linha inferior: velocidade -> manete ---
+\node[lbl, left=0pt] (vref) at (-0.2,-2.35) {$\VT^{ref}$};
+\node[blk] (Fv) at (0.75,-2.35) {$\tfrac{1}{\tau_{ref}s+1}$};
+\node[sum] (s5) at (1.85,-2.35) {};
+\node[blk] (Cvel) at (3.3,-2.35) {$C_{vel}$};
+\node[sum] (s6) at (4.2,-2.35) {};
+\draw[sig] (vref) -- (Fv);
+\draw[sig] (Fv) -- (s5);
+\node[lbl] at ($(s5)+(-0.26,0.19)$) {$+$};
+\draw[sig] (s5) -- (Cvel);
+\draw[sig] (Cvel) -- (s6);
+\node[lbl] at ($(s6)+(-0.3,0.18)$) {$+$};
+\draw[sig] (4.2,-1.6) node[lbl, right=2pt] {$\delta_t^{e}$} -- (s6);
+\node[lbl] at ($(s6)+(0.22,0.32)$) {$+$};
+\draw[sig] (s6) -- node[lbl, above, pos=0.25] {$\delta_t$} (ac.west|-s6);
+% --- realimentacoes (portas na borda inferior da planta) ---
+\coordinate (pq) at ($(ac.south west)+(0.25,0)$);
+\coordinate (pth) at ($(ac.south west)+(0.65,0)$);
+\coordinate (pvt) at ($(ac.south west)+(1.05,0)$);
+\coordinate (ph) at ($(ac.south west)+(1.45,0)$);
+\draw[sig] (pq) -- ($(pq)+(0,-0.45)$) node[lbl, right, pos=0.9] {$q$}
+  -| (Kq);
+\draw[sig] (pth) -- ($(pth)+(0,-0.85)$) node[lbl, right, pos=0.93] {$\theta$}
+  -| (s2);
+\node[lbl] at ($(s2)+(0.24,-0.3)$) {$-$};
+\draw[sig] (pvt) -- ($(pvt)+(0,-1.25)$) node[lbl, right, pos=0.95] {$\VT$}
+  -| (s5);
+\node[lbl] at ($(s5)+(0.24,-0.3)$) {$-$};
+\draw[sig] (ph) -- ($(ph)+(0,-1.65)$) node[lbl, right, pos=0.96] {$h$}
+  -| (s1);
+\node[lbl] at ($(s1)+(0.24,-0.3)$) {$-$};
+\end{tikzpicture}}
+\caption{Longitudinal cascade of the PID law. Dashed: the direct
+$\theta^{ref}$ input of the \emph{ThetaHold} mode.}
+\label{fig:pid-lon}
+\end{figure}
 \begin{itemize}
   \item \emph{Pitch-attitude inner loop} ($C_{\theta}$): PI on
         $\theta^{ref}-\theta$ to the elevator, closed over the $K_q$ damper;
@@ -107,9 +197,81 @@ is used ($K_p=0$).
 \end{itemize}
 Depending on the flight mode, the pilot-level selector engages either the
 altitude cascade (\emph{AltitudeHold}) or direct pitch tracking
-(\emph{ThetaHold}), in which case the altitude loop is open.
+(\emph{ThetaHold}) --- the dashed input of Fig.~\ref{fig:pid-lon} ---
+in which case the altitude loop is open. As the diagram makes
+explicit, the loops act on increments about trim: every reference
+enters through the $1/(\tau_{ref}s+1)$ command prefilter detailed
+below, and the trim commands $\delta_e^{e}$ and $\delta_t^{e}$
+of~\eqref{eq:dtrim} are added at the controller output, downstream of
+the $K_q$ damper junction. The clamp sits between $C_{alt}$ and the
+pitch loop, so the anti-windup acts on the altitude integrator
+exactly when the limit engages.
 
 \subsubsection{Lateral--Directional Loops}
+Fig.~\ref{fig:pid-lat} shows the lateral--directional structure:
+% ---- Diagrama de blocos: cascata laterodirecional ----
+\begin{figure}[!t]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[font=\small, >={Latex[length=1.6mm]},
+  blk/.style={draw, minimum height=1.9em, inner sep=3pt},
+  sum/.style={draw, circle, minimum size=1em, inner sep=0pt},
+  sig/.style={->},
+  lbl/.style={font=\scriptsize, inner sep=1.5pt}]
+% --- linha superior: proa -> rolamento -> aileron ---
+\node[lbl, left=0pt] (pref) at (0.05,0) {$\psi^{ref}$};
+\node[blk] (Fp) at (0.95,0) {$\tfrac{1}{\tau_{ref}s+1}$};
+\node[sum] (s1) at (2.05,0) {};
+\node[blk] (Kh) at (3.1,0) {$K_{heading}$};
+\node[sum] (s2) at (5.15,0) {};
+\node[blk] (Cphi) at (6.05,0) {$C_{\phi}$};
+\node[sum] (s3) at (7.05,0) {};
+\node[blk, anchor=west, minimum width=1.8cm, minimum height=3.0cm,
+      align=center] (ac) at (7.8,-1.05)
+      {aircraft};
+\draw[sig] (pref) -- (Fp);
+\draw[sig] (Fp) -- (s1);
+\node[lbl] at ($(s1)+(-0.28,0.18)$) {$+$};
+\draw[sig] (s1) -- (Kh);
+\draw[sig] (Kh) -- node[lbl, below, pos=0.4] {$\phi^{ref}$} (s2);
+\node[lbl] at ($(s2)+(-0.3,0.18)$) {$+$};
+% entrada alternativa do modo PhiHold
+\fill (4.55,0) circle (1.1pt);
+\draw[sig, dashed] (4.55,0.8) node[lbl, above]
+  {$\phi^{ref}$ (\emph{PhiHold})} -- (4.55,0.05);
+\draw[sig] (s2) -- (Cphi);
+\draw[sig] (Cphi) -- (s3);
+\node[lbl] at ($(s3)+(-0.3,0.18)$) {$+$};
+\draw[sig] (7.05,0.8) node[lbl, right=2pt] {$\delta_a^{e}$} -- (s3);
+\node[lbl] at ($(s3)+(0.22,0.32)$) {$+$};
+\draw[sig] (s3) -- node[lbl, above, pos=0.4] {$\delta_a$} (ac.west|-s3);
+% --- amortecedor de guinada (washout) -> leme ---
+\node[blk] (Wo) at (5.8,-1.55) {$\tfrac{s}{s+1}$};
+\node[blk] (Kr) at (6.6,-1.55) {$K_r$};
+\node[sum] (s4) at (7.2,-1.55) {};
+\draw[sig] (Wo) -- (Kr);
+\draw[sig] (Kr) -- (s4);
+\node[lbl] at ($(s4)+(-0.3,0.18)$) {$-$};
+\draw[sig] (7.2,-0.85) node[lbl, right=2pt] {$\delta_r^{e}$} -- (s4);
+\node[lbl] at ($(s4)+(0.22,0.32)$) {$+$};
+\draw[sig] (s4) -- node[lbl, above, pos=0.35] {$\delta_r$} (ac.west|-s4);
+% --- realimentacoes ---
+\coordinate (pr) at ($(ac.south west)+(0.35,0)$);
+\coordinate (pphi) at ($(ac.south west)+(0.85,0)$);
+\coordinate (ppsi) at ($(ac.south west)+(1.35,0)$);
+\draw[sig] (pr) -- ($(pr)+(0,-0.5)$) node[lbl, right, pos=0.9] {$r$}
+  -| (Wo);
+\draw[sig] (pphi) -- ($(pphi)+(0,-0.9)$) node[lbl, right, pos=0.93] {$\phi$}
+  -| (s2);
+\node[lbl] at ($(s2)+(0.24,-0.3)$) {$-$};
+\draw[sig] (ppsi) -- ($(ppsi)+(0,-1.3)$) node[lbl, right, pos=0.95] {$\psi$}
+  -| (s1);
+\node[lbl] at ($(s1)+(0.24,-0.3)$) {$-$};
+\end{tikzpicture}}
+\caption{Lateral--directional cascade of the PID law. Dashed: the
+direct $\phi^{ref}$ input of the \emph{PhiHold} mode.}
+\label{fig:pid-lat}
+\end{figure}
 \begin{itemize}
   \item \emph{Bank inner loop} ($C_{\phi}$): PI on $\phi^{ref}-\phi$ to
         the aileron (negative gains, since $C_{l_{\delta_a}}<0$);
@@ -118,8 +280,16 @@ altitude cascade (\emph{AltitudeHold}) or direct pitch tracking
         $K_{heading}=u^e/(g\,\tau_\psi)$ and $\tau_\psi=6$\,s, the
         coordinated-turn relation~\cite{santos2018}. As with the
         longitudinal channel, the mode selector engages either heading
-        hold (\emph{PsiHold}) or direct bank commands (\emph{PhiHold}).
+        hold (\emph{PsiHold}) or direct bank commands (\emph{PhiHold})
+        --- the dashed input of Fig.~\ref{fig:pid-lat}.
 \end{itemize}
+Two structural points are visible in Fig.~\ref{fig:pid-lat}. First,
+the rudder carries \emph{only} the washout yaw damper of the
+stability-augmentation layer --- there is no heading- or bank-driven
+rudder command. Second, the heading reference enters through the same
+$1/(\tau_{ref}s+1)$ prefilter as the longitudinal references, and the
+trim deflections $\delta_a^{e}$ and $\delta_r^{e}$ added at the
+output are both zero at this flight condition~\eqref{eq:dtrim}.
 
 \subsubsection{Tuning and Resulting Gains}
 The compensators are PI ($K_d=0$): damping is provided by the explicit
@@ -196,11 +366,14 @@ treatment of Stevens \emph{et al.}~\cite{stevens2016aircraft}. The
 weight-selection rationale follows established LQ design
 practice~\cite{anderson1990optimal}, starting from Bryson's
 rule~\cite{bryson1975applied}. The design compared in this article is
-the \emph{gain-scheduled} LQRy of the companion article by the second
-author~\cite{mirko2026companion}, which details its synthesis ---
-including the target-transmission-zero augmentation and the gain
-scheduling over the flight envelope --- and its frequency-domain
-(Nichols) robustness assessment; it is summarized here.
+the \emph{fixed-gain} LQRy delivered for this platform by the second
+author and deployed on the embedded bench of Section~\ref{sec:hil}: a
+single-condition synthesis at the cruise trim of
+Section~\ref{sec:trim} (12\,m/s, 600\,m), deliberately tuned soft.
+Its synthesis methodology --- including the target-transmission-zero
+augmentation below and the frequency-domain (Nichols) robustness
+assessment --- is detailed in the companion article by the second
+author~\cite{mirko2026companion}.
 
 The architecture deliberately mirrors the PID mode structure, so that
 the two laws face the same tasks: five independent designs ---
@@ -218,16 +391,14 @@ shape the closed loop while providing the integral action --- plus a
 first-order actuator lag at 24\,rad/s; the constant output-feedback
 gains are obtained from the coupled Lyapunov equations of the LQ
 output-feedback problem~\cite{levine1970output,moerder1985convergence}.
-The design is synthesized at nine envelope conditions
-(12/15/18\,m/s $\times$ 590/600/610\,m); the SIL comparison of
-Section~\ref{sec:sil} exercises the condition-2 (12\,m/s, 600\,m) gain
-set, consistent with the mission's initial trim --- mid-mission gain
-switching is not exercised. The weights per condition are given in the
-companion article~\cite{mirko2026companion}.
+The gains are synthesized once, at the cruise trim condition
+(12\,m/s, 600\,m), and held fixed over the whole mission --- no gain
+scheduling and no mid-mission switching. The synthesis weights are
+given in the companion article~\cite{mirko2026companion}.
 
 \begin{table}[!t]
-\caption{LQRy loops: regulated output and actuator (weights per
-envelope condition in the companion article~\cite{mirko2026companion}).}
+\caption{LQRy loops: regulated output and actuator (synthesis weights
+in the companion article~\cite{mirko2026companion}).}
 \label{tab:lqry-loops}
 \centering
 \begin{tabular}{lll}
@@ -243,51 +414,22 @@ PsiHold & $\psi\!\to\!\phi^{ref}$ & aileron \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:lqry-gains} records the condition-2 gains: these are
-the values used in the SIL comparison of Section~\ref{sec:sil}. Two
-structural remarks: the pitch design feeds back the elevator
-(actuator) state itself, its synthesis model carrying the 24\,rad/s
-lag as a fifth state; and the $2\times2$ lateral design carries a
-sideslip-integral gain alongside the bank integral (0.00845 on the
-aileron and 0.02023 on the rudder at condition~2) --- small relative
-to the $\phi$ integral, but not negligible. The earlier
-\emph{fixed-gain} LQRy delivery, deployed on the HIL bench of
-Section~\ref{sec:hil}, used a different, softer gain set, available in
-the repository~\cite{repo}.
+The gain set of this fixed-gain delivery --- the values exercised in
+every SIL comparison of Section~\ref{sec:sil} and embedded on the
+bench of Section~\ref{sec:hil} --- is registered in the
+repository~\cite{repo}.
+\pendente{inserir aqui a tabela com os ganhos do LQRy de ganho fixo
+(registro da entrega embarcada) --- obter os valores com o Mirko /
+m\'aquina da bancada}
 
-\begin{table}[!t]
-\caption{LQRy gains at envelope condition 2 (12\,m/s, 600\,m), as used
-in the SIL comparison (4 significant digits). Convention:
-$u=G_{x}\,x+K_{I}\!\int\!e\,dt$. The $K_I$ column of PhiHold is the
-bank ($\phi$) integral gain.}
-\label{tab:lqry-gains}
-\centering
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{llll}
-\toprule
-Loop & State vector $x$ & $G_{x}$ & $K_I$ \\
-\midrule
-ThetaHold & $[\VT\,\alpha\,q\,\theta\,\delta_e]$ &
-$[-0.00461\;6.477\;-15.60\;-483.2\;-6.795]$ & $-625$ \\
-AltitudeHold & $[\VT\,\alpha\,q\,\theta\,h]$ &
-$[-0.0718\;4.474\;-0.2121\;-5.064\;-0.5086]$ & $-0.2025$ \\
-VelHold & $[\VT\,\alpha\,q\,\theta]$ &
-$[-78.81\;-0.9055\;0.0589\;1.306]$ & $-50$ \\
-PhiHold (ail.) & $[\beta\,p\,r\,\phi]$ &
-$[0.00693\;0.01013\;0.03505\;0.1595]$ & $0.1720$ \\
-PhiHold (rud.) & $[\beta\,p\,r\,\phi]$ &
-$[-0.01085\;-0.02236\;-0.08167\;-0.3542]$ & $-0.3595$ \\
-PsiHold & $[\beta\,p\,r\,\phi\,\psi]$ &
-$[-5.387\;-0.1123\;-0.7948\;-1.272\;-6.037]$ & $-7.773$ \\
-\bottomrule
-\end{tabular}}
-\end{table}
-
-Unlike the PID harness, the LQRy harness of the gain-scheduled design
-includes first-order actuator lags (24\,rad/s on the surfaces, 0.1\,s
-on the throttle) and a $[0,1]$ throttle saturation, but no rate
-limits, no surface position saturations, no reference prefilter, and
-no $\theta^{ref}$ clamp --- references enter the loops as raw steps.
+Unlike the PID harness, the LQRy harness includes first-order actuator
+lags (24\,rad/s on the surfaces, 0.1\,s on the throttle) and a $[0,1]$
+throttle saturation, but no rate limits, no surface position
+saturations, no reference prefilter, and no $\theta^{ref}$ clamp ---
+references enter the loops as raw steps.
+\pendente{confirmar com o Mirko que o harness da entrega de ganho fixo
+cont\'em exatamente estes elementos (lags, satura\c{c}\~ao de manete,
+aus\^encia de prefiltro/clamp)}
 These differences between the two design harnesses are consolidated
 and discussed in Section~\ref{sec:protocol}.
 
@@ -298,51 +440,47 @@ independently, so the classical roll-to-pitch coupling --- banking
 tilts the lift vector, and the lift deficit, proportional to
 $1-\cos\phi$, drops the nose and costs altitude --- is handled by
 feedback alone. Since this is a deliberate design choice, it was
-quantified rather than assumed benign: both controllers --- the PID
-tuning of record and the gain-scheduled LQRy --- were subjected
-to bank captures of increasing amplitude ($\phi^{ref}$ steps of
-$5/15/30^\circ$ at $t=20$\,s, each rig shaping the reference as its
-harness prescribes), in \emph{ThetaHold} (altitude loop open, the
-worst case) and in \emph{AltitudeHold}, with all longitudinal metrics
-taken as deviations from each rig's own $\phi=0$ baseline
-(Fig.~\ref{fig:coupling}).
+quantified rather than assumed benign on the cascade PID --- the law
+whose clamped altitude loop the robustness study of
+Section~\ref{sec:robustness} stresses hardest: bank captures of
+increasing amplitude ($\phi^{ref}$ steps of $5/15/30^\circ$ at
+$t=20$\,s, shaped by the reference prefilter as in every PID run), in
+\emph{ThetaHold} (altitude loop open, the worst case) and in
+\emph{AltitudeHold}, with all longitudinal metrics taken as deviations
+from the $\phi=0$ baseline (Fig.~\ref{fig:coupling}).
 \begin{figure}[!t]\centering
-\includegraphics[width=\linewidth]{fig_acoplamento.png}
-\caption{Roll-to-longitudinal coupling, $\phi^{ref}=30^\circ$ step at
-$t=20$\,s: $\phi$ (with the reference), $\Delta\theta$,
-$\Delta h$, and $\Delta$elevator relative to each configuration's
-$\phi=0$ baseline. Solid: ThetaHold at the 12\,m/s trim; dashed:
-AltitudeHold at 15.2\,m/s.}\label{fig:coupling}\end{figure}
+\includegraphics[width=\linewidth]{fig_v1_acopla.png}
+\caption{Roll-to-longitudinal coupling (PID), amplitude sweep:
+$\phi^{ref}$ steps of $5/15/30^\circ$ at $t=20$\,s, prefiltered
+reference; $\phi$, $\Delta\theta$, $\Delta h$, and $\Delta$elevator
+relative to the $\phi=0$ baseline. Solid: ThetaHold at the 12\,m/s
+trim; dashed: $30^\circ$ in AltitudeHold at 15.2\,m/s.
+\pendente{re-exportar em fundo branco para a vers\~ao final}}
+\label{fig:coupling}\end{figure}
 
-The results confirm the mechanism and bound its size. For the PID in
-ThetaHold, the transient pitch dip scales with $1-\cos\phi$ as
-expected --- $-0.005^\circ$, $-0.04^\circ$, and $-0.18^\circ$ for
-$5/15/30^\circ$ --- negligible at the $5^\circ$ amplitude of the
-flight campaign. The LQRy dip is $4$--$5\times$ larger
-(${\approx}-0.8^\circ$ at $30^\circ$): its multivariable structure
-does \emph{not} natively absorb the coupling better than the cascade.
+The results confirm the mechanism and bound its size. In ThetaHold,
+the transient pitch dip scales with $1-\cos\phi$ as expected ---
+$-0.005^\circ$, $-0.04^\circ$, and $-0.18^\circ$ for $5/15/30^\circ$
+--- negligible at the $5^\circ$ amplitude of the flight campaign.
 With the altitude loop open the altitude drifts by construction ---
-$-15.8$\,m for the PID over 200\,s at $30^\circ$, while the LQRy,
-whose high-bandwidth airspeed loop adds energy through the turn,
-drifts $+10.6$\,m \emph{upward}; closing
-the altitude loop absorbs the coupling, with $\theta^{ref}$ settling
-higher ($+0.59^\circ$ PID, $+0.71^\circ$ LQRy) and $\Delta h$
-returning to zero after a transient dip of $0.10$\,m (PID) and
-$1.45$\,m (LQRy), at the cost of a small steady
-elevator increment.
+$-15.8$\,m over 200\,s at $30^\circ$; closing the altitude loop
+absorbs the coupling, with $\theta^{ref}$ settling higher
+($+0.59^\circ$) and $\Delta h$ returning to zero after a transient
+dip of only $0.10$\,m, at the cost of a small steady elevator
+increment. The commands stay smooth throughout: aileron peak of
+$1.0^\circ$ at $1.0^\circ$/s, courtesy of the same command shaping
+applied to every reference.
 
 In the steady turn, the elevator increment is \emph{larger} in the
-ThetaHold runs at the 12\,m/s trim (solid traces, $2.06^\circ$ PID
-and $2.26^\circ$ LQRy) than in the AltitudeHold runs at 15.2\,m/s
-(dashed, $1.34^\circ$ and $1.55^\circ$), which at first seems
-backwards ---
-why would the altitude-holding configuration need \emph{less}
-elevator? The explanation is the operating point, not the mode: sustaining the same $30^\circ$ bank
+ThetaHold run at the 12\,m/s trim (solid trace, $2.06^\circ$) than in
+the AltitudeHold run at 15.2\,m/s (dashed, $1.34^\circ$), which at
+first seems backwards --- why would the altitude-holding
+configuration need \emph{less} elevator? The explanation is the
+operating point, not the mode: sustaining the same $30^\circ$ bank
 (load factor $1/\cos 30^\circ = 1.15$) requires an increment of lift
 that, at 15.2\,m/s, is produced with less angle of attack --- and less
 elevator --- because the dynamic pressure is $(15.2/12)^2 = 1.6$ times
-higher. The measured increment ratios ($0.65$ for the PID, $0.69$ for
-the LQRy) sit within a few
+higher. The measured increment ratio ($0.65$) sits within a few
 percent of the dynamic-pressure prediction $(12/15.2)^2 = 0.62$, the
 residual owing to the $\theta^{ref}$ adjustment and the
 angle-of-attack dependence of drag.
@@ -350,7 +488,7 @@ angle-of-attack dependence of drag.
 In answer to the natural question --- no, no feedforward decoupling
 term is used by either law ($K_{f\!f}=0$ throughout): with the
 altitude loop closed the residual coupling is $0.10$\,m even at a
-$30^\circ$ bank (PID), and at the $5^\circ$ amplitude of the flight
+$30^\circ$ bank, and at the $5^\circ$ amplitude of the flight
 campaign the $1-\cos\phi$ factor is a further $35\times$ smaller, so
 feedback suffices.
 A feedforward stage, and its evaluation on both laws at larger bank

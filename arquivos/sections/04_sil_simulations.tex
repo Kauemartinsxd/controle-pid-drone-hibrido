@@ -1,5 +1,12 @@
 \section{Closed-Loop Simulations (SIL)}
 \label{sec:sil}
+This section evaluates both controllers on the nonlinear model. It
+opens with two framing remarks --- the incremental-command convention
+about trim, and the comparison protocol with its known harness
+asymmetries --- then validates the PID against its linear design
+predictions, characterizes the LQRy in its own harness, and closes
+with the head-to-head comparison on the combined mission, judged
+against the requirements of Section~\ref{sec:control}.
 
 \subsection{Remark on Trim Commands}
 \label{sec:sil-trim}
@@ -59,22 +66,24 @@ changing any comparative conclusion drawn below.
 \caption{Equalization ablation, combined scenario: PID as delivered
 vs.\ PID with the harness equalized to the LQRy rig (24\,rad/s
 actuators, no rate limits, no clamp, no prefilter), with the LQRy
-response for context.}
+response for context. \pendente{a curva de contexto do LQRy nesta
+figura n\~ao \'e a da entrega comparada --- re-exportar com a curva
+correta ou sem ela}}
 \label{fig:eq-comb}
 \end{figure}
 
-Two further implementation notes complete the disclosure. First, an
-earlier fixed-gain LQRy build fed back the \emph{absolute} state
-instead of the deviation from trim, producing a start-up kick (initial
-elevator command of $4.11^\circ$ instead of the trim $7.62^\circ$);
-the gain-scheduled build compared here feeds back trim deviations by
-construction, and its runs were verified to start at the trim command.
-The embedded (incremental-form) implementation of
-Section~\ref{sec:hil} was immune to this distinction throughout.
-Second, the LQRy rig initializes the plant at $\VT=12.0$\,m/s while
-its stored controller trim corresponds to 11.62\,m/s, so LQRy runs
-begin with a small longitudinal offset that the airspeed loop resolves
-before the first reference event.
+Two further implementation notes complete the disclosure. First, the
+\emph{original} delivery of the fixed-gain LQRy fed back the
+\emph{absolute} state instead of the deviation from trim, producing a
+start-up kick (initial elevator command of $4.11^\circ$ instead of
+the trim $7.62^\circ$); the corrected delivery --- the build compared
+here --- feeds back trim deviations, and its runs were verified to
+start at the trim command. The embedded (incremental-form)
+implementation of Section~\ref{sec:hil} was immune to this
+distinction throughout. Second, the LQRy rig initializes the plant at
+$\VT=12.0$\,m/s while its stored controller trim corresponds to
+11.62\,m/s, so LQRy runs begin with a small longitudinal offset that
+the airspeed loop resolves before the first reference event.
 
 \subsection{PID on the Nonlinear Model}
 \label{sec:sil-pid}
@@ -105,15 +114,16 @@ $+40^\circ$ simultaneous): nonlinear model vs.\ linear closed loop.}
 \subsection{LQRy on the Nonlinear Model}
 \label{sec:sil-lqry}
 The LQRy was evaluated directly on the nonlinear model, in its own
-harness, under the same maneuver set used for the comparison below.
-Its closed-loop character is consistent across maneuvers: fast,
-high-bandwidth captures --- airspeed and altitude in ${\approx}6$\,s
-with essentially no overshoot, heading in ${\approx}13$\,s with
-visible overshoot (Table~\ref{tab:metrics}). Unlike the PID case, no linear-overlay
-validation is presented: the linear design models of
-Section~\ref{sec:lqry} are the basis of the synthesis, and the
-nonlinear evaluation here is the verification step of record for the
-delivered design.
+harness, on the same mission used for the comparison below. Its
+closed-loop character is the deliberate opposite of the retuned PID's:
+soft, low-bandwidth captures --- airspeed settling in
+${\approx}34$\,s with a visible $16.5\%$ overshoot, heading in
+${\approx}50$\,s, altitude in ${\approx}41$\,s
+(Table~\ref{tab:compliance}) --- with smooth actuator activity
+throughout. Unlike the PID case, no linear-overlay validation is
+presented: the linear design models of Section~\ref{sec:lqry} are the
+basis of the synthesis, and the nonlinear evaluation here is the
+verification step of record for the delivered design.
 
 \subsection{Controller Comparison}
 \label{sec:sil-comparison}
@@ -135,70 +145,68 @@ characterize each channel, and a 300\,s \emph{combined mission}
 (airspeed step, heading doublet, altitude doublet, overlapping in
 time) as the mission-level verdict.
 
-The two controllers are compared on the nonlinear model under four
-guidance-level scenarios
-(\emph{VelHold}+\emph{PsiHold}+\emph{AltitudeHold}) with
-\emph{identical} reference profiles on both rigs (amplitudes injected
-into each rig's unmodified reference harness):
+The two controllers are compared on the nonlinear model on the 300\,s
+combined mission, with \emph{identical} reference profiles injected
+into each rig's unmodified reference harness
+(\emph{VelHold}+\emph{PsiHold}+\emph{AltitudeHold} engaged):
 \begin{enumerate}
   \item \emph{Airspeed}: step $12\!\to\!15.2$\,m/s at 5\,s;
   \item \emph{Heading}: doublet of $\pm5^\circ$ at 50/100/150\,s;
-  \item \emph{Altitude}: doublet of $\pm5$\,m at 80/160/240\,s;
-  \item \emph{Combined mission}: all three simultaneously, 300\,s
-        (flight case~4 of the campaign of Section~\ref{sec:hil}).
+  \item \emph{Altitude}: doublet of $\pm5$\,m at 80/160/240\,s,
 \end{enumerate}
-Table~\ref{tab:metrics} reports the classical step-response metrics
-per guidance channel, and Fig.~\ref{fig:cen-comb} shows the
-combined mission.
-\begin{figure}[!t]\centering
-\includegraphics[width=\linewidth]{fig_alt_pid_lqry.png}
-\caption{Altitude channel of the combined mission (SIL): reference,
-PID, and LQRy on a single axis.}\label{fig:alt-single}\end{figure}
-The roles observed in the earlier fixed-gain iteration of this
-comparison are reversed: the gain-scheduled LQRy is now the fast,
-high-bandwidth law --- it captures heading in ${\approx}13$\,s at the
-cost of $16.4\%$ overshoot, and completes the airspeed and altitude
-captures in ${\approx}6$\,s with essentially no overshoot --- while
-the requirements-retuned PID is the smooth one, with zero overshoot on
-every channel and settling times of 18--44\,s. Neither tuning
-dominates: the LQRy buys speed at the cost of a heading-overshoot
-requirement violation; the PID buys strict compliance at the cost of
-bandwidth.
+all three overlapping in time (flight case~4 of the campaign of
+Section~\ref{sec:hil}); the reference events are spaced widely enough
+that each channel's capture can be read individually.
+Table~\ref{tab:metrics} reports the mission tracking errors,
+Table~\ref{tab:compliance} the per-channel metrics against the
+requirements, and Fig.~\ref{fig:cen-comb} the time histories.
+The verdict at guidance level is one-sided in performance terms: the
+requirements-retuned PID is both the faster and the tighter law ---
+zero overshoot on every channel, captures in 18--45\,s, and RMS
+tracking errors of 0.07\,m/s, $1.27^\circ$, and 1.65\,m --- while the
+soft fixed-gain LQRy concedes a factor of ${\approx}5$ in airspeed
+RMS (0.38\,m/s) and ${\approx}2.3$ in heading RMS ($2.92^\circ$),
+with the altitude channel essentially matched (1.78 versus 1.65\,m).
+The LQRy's captures are slower on airspeed and heading (34 and
+${\approx}50$\,s) and marginally faster on altitude (40.6 versus
+45.1\,s), always with smooth actuator activity. What the LQRy buys
+with this softness is not visible on the nominal plant; it is
+precisely what the robustness study of Section~\ref{sec:robustness}
+measures.
 
 \begin{table}[!t]
-\caption{Per-axis guidance captures (SIL, identical references),
-metrics on the $+$step segment of each channel. OS = overshoot, $t_r$
-= 10--90\% rise time, $t_s$ = 2\% settling time, $e_{ss}$ =
-steady-state error.}
+\caption{Combined-mission tracking errors (SIL, identical references,
+$t>12$\,s).}
 \label{tab:metrics}
 \centering
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lcccccccc}
+\begin{tabular}{lcccc}
 \toprule
- & \multicolumn{4}{c}{PID} & \multicolumn{4}{c}{LQRy} \\
-Ch. & OS[\%] & $t_r$[s] & $t_s$[s] & $e_{ss}$[\%] & OS[\%] & $t_r$[s] & $t_s$[s] & $e_{ss}$[\%] \\
+ & \multicolumn{2}{c}{PID} & \multicolumn{2}{c}{LQRy} \\
+Channel & RMS & max & RMS & max \\
 \midrule
-$\VT$ & 0.0 & 9.48 & 18.0 & 0.00 & 0.0 & 3.04 & 5.8 & 0.00 \\
-$\psi$ & 0.0 & 16.14 & 33.0 & 0.50 & 16.4 & 0.83 & 12.6 & 0.01 \\
-$h$ & 0.0 & 23.37 & 44.4 & 0.06 & 0.6 & 3.44 & 5.9 & 0.19 \\
+$\VT$ [m/s]    & 0.07 & 0.80 & 0.38 & 2.35 \\
+$\psi$ [$^\circ$] & 1.27 & 5.79 & 2.92 & 10.16 \\
+$h$ [m]        & 1.65 & 6.82 & 1.78 & 10.00 \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \end{table}
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=\linewidth]{fig_cen_comb.png}
-\caption{Scenario 4 (combined mission): PID vs.\ LQRy on the nonlinear
-model, identical references.}
+\includegraphics[width=\linewidth]{fig_v1_comb.png}
+\caption{Combined mission: PID vs.\ LQRy on the nonlinear model,
+identical references --- states on the left, actuators on the right.
+\pendente{re-exportar em fundo branco para a vers\~ao final}}
 \label{fig:cen-comb}
 \end{figure}
 
 Table~\ref{tab:compliance} closes the loop with the requirements of
-Section~\ref{sec:requirements}, evaluated on the guidance channels of
-the combined mission. The PID meets every row. The LQRy settles far
-inside the 60\,s limit on every channel (5.8--7.0\,s) and meets the
-steady-state row, but violates the overshoot requirement on the
-heading channel ($24.5\%$ against the $10\%$ line).
+Section~\ref{sec:requirements}, evaluated per channel on the mission's
+reference events. The PID meets every row. The LQRy meets the
+settling row on every channel (34--50\,s, inside the 60\,s limit) and
+the steady-state row (at most $3.1\%$), but violates the overshoot
+requirement on the airspeed channel ($16.5\%$ against the $10\%$
+line).
 
 \begin{table}[!t]
 \caption{Requirements compliance on the combined mission (SIL),
@@ -210,18 +218,17 @@ guidance channels, identical references.}
  & \multicolumn{3}{c}{PID} & \multicolumn{3}{c}{LQRy} \\
 Requirement & $\VT$ & $\psi$ & $h$ & $\VT$ & $\psi$ & $h$ \\
 \midrule
-OS $<10\%$ & 0.0 & 0.0 & 0.0 & 0.2 & \textbf{24.5} & 0.2 \\
-$t_s<60$\,s & 18.0 & 38.1 & 45.1 & 5.8 & 6.9 & 7.0 \\
-$e_{ss}\le5\%$ & 0.00 & 0.72 & 0.07 & 0.00 & 0.00 & 1.75 \\
+OS $<10\%$ [\%] & 0.0 & 0.0 & 0.0 & \textbf{16.5} & 3.4 & 0.0 \\
+$t_s<60$\,s [s] & 18.0 & 38.1 & 45.1 & 34.0 & $\approx$50 & 40.6 \\
+$e_{ss}\le5\%$ [\%] & 0.1 & 1.1 & 0.1 & 0.1 & 3.1 & 0.1 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The embedded (HIL) campaign of Section~\ref{sec:hil} was executed with
-the \emph{earlier fixed-gain} LQRy build (Section~\ref{sec:lqry}), so
-its LQRy-side numbers characterize that deployment rather than the
-gain-scheduled law compared here; the PID-side SIL--HIL fidelity
-results are unaffected.
+The embedded (HIL) campaign of Section~\ref{sec:hil} deploys exactly
+the two laws compared here --- the PID tuning of record and this
+fixed-gain LQRy --- so the bench results of
+Section~\ref{sec:fair} close the same comparison on hardware.
 
 % (Robustez movida para secao propria: sections/05_robustness.tex.
 %  Remark de execution order movido, encurtado, para o fim de

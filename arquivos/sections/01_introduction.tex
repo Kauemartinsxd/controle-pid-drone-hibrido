@@ -14,6 +14,7 @@ focuses on the \emph{fixed-wing flight mode} of a hybrid VTOL platform
 the complete path from controller design to embedded validation;
 hover and transition are outside its scope.
 
+\subsection{Related Work}
 Autopilots for small UAVs remain dominated by nested
 proportional--integral--derivative (PID) loops, a
 legacy of their simplicity and field-proven
@@ -27,17 +28,7 @@ al.}~\cite{bouabdallah2004pid}: on quadrotor
 platforms~\cite{argentim2013pid,rinaldi2023comparative}, on a
 commercial mini-drone with experimental PID/LQR/MPC
 benchmarks~\cite{okasha2022design}, and, less frequently, on
-fixed-wing longitudinal dynamics~\cite{ingabire2019control}. Three
-gaps recur in this literature. First, most comparisons target
-rotary-wing platforms; the fixed-wing mode of a hybrid vehicle is
-rarely the object of study. Second, the comparisons are usually
-confined to simulation of isolated channels, rather than a full
-mission exercising the longitudinal and lateral--directional loops
-together on the embedded implementation. Third, robustness ---
-arguably where the two design philosophies should differ most --- is
-seldom part of the protocol, even though LQ designs carry classical
-margin guarantees~\cite{safonov1977gain} that do not survive output
-feedback in general~\cite{doyle1978guaranteed}.
+fixed-wing longitudinal dynamics~\cite{ingabire2019control}.
 
 Hardware-in-the-loop (HIL) simulation --- preceded in practice by
 software-in-the-loop (SIL) verification on the same models --- is the
@@ -61,7 +52,27 @@ whose cascade methodology this work adopts. The aircraft models in
 this line of work are identified from flight-test
 data~\cite{sato2021,sato2020identificacao,angelo2026}.
 
-The present work extends that lineage in three directions: the plant
+\subsection{Research Gaps}
+Three gaps recur in this comparative literature:
+\begin{enumerate}
+  \item \emph{Platform.} Most PID--LQ comparisons target rotary-wing
+        platforms; the fixed-wing mode of a hybrid VTOL vehicle is
+        rarely the object of study.
+  \item \emph{Mission-level embedded evaluation.} The comparisons are
+        usually confined to simulation of isolated channels, rather
+        than a full mission exercising the longitudinal and
+        lateral--directional loops together on the embedded
+        implementation.
+  \item \emph{Robustness.} Arguably where the two design philosophies
+        should differ most, robustness is seldom part of the
+        protocol, even though LQ designs carry classical margin
+        guarantees~\cite{safonov1977gain} that do not survive output
+        feedback in general~\cite{doyle1978guaranteed}.
+\end{enumerate}
+
+\subsection{Contributions}
+The present work addresses these gaps, extending the group lineage in
+three directions: the plant
 is the fixed-wing mode of a \emph{hybrid VTOL} aircraft rather than a
 conventional fixed-wing one; the embedded controller is not hand-coded
 but \emph{automatically generated} from the same Simulink model that
@@ -76,20 +87,18 @@ The main contributions of this work are:
 \begin{itemize}
   \item the design of a cascade PID architecture for the fixed-wing
         flight mode of a hybrid VTOL aircraft, evaluated against a
-        gain-scheduled output-feedback LQR (LQRy) designed for the same
+        fixed-gain output-feedback LQR (LQRy) designed for the same
         platform, both judged against a common set of
         literature-grounded closed-loop requirements;
-  \item a robustness study showing that a severe, sign-changing
-        lateral--directional model mismatch defeats \emph{both}
-        compared laws --- the aggressively tuned LQRy diverging
-        outright, while an earlier, softer fixed-gain iteration of the
-        same structure survives it, isolating tuning (not structure)
-        as what buys this robustness --- and
-        exposing \emph{complementary} weaknesses in the remaining
-        scenarios: under a longitudinal-only mismatch the LQRy stays
-        nominal while the PID's clamped altitude loop drifts, and
-        under wind and gusts the LQRy concedes altitude where the PID
-        stays firm;
+  \item a robustness study that inverts the nominal verdict: a
+        severe, sign-changing lateral--directional model mismatch
+        makes the aggressively tuned cascade PID lose the mission
+        outright, while the soft fixed-gain LQRy completes it with
+        near-nominal error --- with the remaining scenarios adding
+        nuance: under a longitudinal-only mismatch the LQRy stays
+        nominal while the PID's clamped altitude loop drifts, under
+        wind and gusts the PID is the firmer law, and both tolerate a
+        plausible $+10\%$ identification uncertainty;
   \item a low-cost HIL architecture based on
         automatic code generation and a lockstep serial protocol, whose
         SIL--HIL residual is shown to reach the quantization floor of
@@ -104,7 +113,7 @@ The main contributions of this work are:
         asymmetries of the two design harnesses disclosed explicitly.
 \end{itemize}
 
-The remainder of this article is organized as follows.
+\subsection{Organization}
 Section~\ref{sec:model} presents the nonlinear model, the trim condition,
 and the linearization. Section~\ref{sec:control} details the closed-loop
 requirements and both controller designs. Section~\ref{sec:sil} reports

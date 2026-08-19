@@ -1,9 +1,20 @@
 \section{Nonlinear Model, Trim, and Linearization}
 \label{sec:model}
+This section establishes the plant on which everything else is built:
+the six-degree-of-freedom nonlinear model of the aircraft with its
+flight-test-identified aerodynamics, the numerically computed trim
+condition that anchors every simulation and embedded test of this
+article, the linearized longitudinal and lateral--directional models
+used for controller design, and the open-loop stability analysis that
+motivates closed-loop control --- the aircraft carries an unstable
+spiral mode.
 
 \subsection{Nonlinear Model}
-The aircraft is a small hybrid VTOL platform with a conventional
-fixed-wing configuration for cruise. Its physical parameters are
+The aircraft, shown in Fig.~\ref{fig:platform}, is a small hybrid VTOL
+platform with a conventional fixed-wing configuration for cruise: four
+hover rotors are carried on twin booms mounted on the wing, and a
+separate propeller drives the vehicle in forward flight. Its physical
+parameters are
 $m=2.2$\,kg, wing area $S=0.27$\,m$^2$, span $b=1.2$\,m, mean aerodynamic
 chord $\bar{c}=0.226$\,m (aspect ratio $AR=5.33$, Oswald factor $e=0.8$),
 and inertia tensor (kg\,m$^2$)
@@ -14,6 +25,19 @@ and inertia tensor (kg\,m$^2$)
 -0.00167 & 0 & 0.2572
 \end{bmatrix}.
 \end{equation}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\linewidth]{fig_drone.jpg}
+\caption{The hybrid VTOL platform used as the target aircraft in this
+work, developed at the Instituto Tecnol\'ogico de Aeron\'autica (ITA).
+The four hover rotors are carried on twin booms and are inactive in the
+fixed-wing flight mode studied here, in which the aircraft flies on its
+forward propeller and aerodynamic surfaces. The stability and control
+derivatives used throughout were identified from flight tests of this
+airframe~\cite{angelo2026}.}
+\label{fig:platform}
+\end{figure}
 
 The complete six-degree-of-freedom nonlinear model of this
 aircraft~\cite{ferreira2019modeling,repo} follows the standard rigid-body
@@ -74,14 +98,25 @@ target --- could reproduce.
 
 \subsection{Trim Condition}
 \label{sec:trim}
-The aircraft is trimmed numerically --- a Newton solution of
-$\dot{x}=f(x,\delta)=0$ under the flight-condition constraints, the
-standard formulation of the general aircraft trim
-problem~\cite{marco2007trim,stevens2016aircraft} --- in
-steady, wings-level horizontal flight at airspeed $\VT^e = 12.0$\,m/s,
-altitude $h^e = 600$\,m, and flight-path angle $\gamma^e = 0$. The
-resulting equilibrium is stated explicitly below, as it anchors every
-simulation and every embedded test in this article.
+The aircraft is trimmed numerically, in the standard formulation of
+the general aircraft trim
+problem~\cite{marco2007trim,stevens2016aircraft}: the steady,
+wings-level constraints ($v=p=q=r=\phi=0$, $u=\VT^e\cos\alpha$,
+$w=\VT^e\sin\alpha$, $\theta=\alpha+\gamma^e$) are imposed by
+construction, reducing the equilibrium condition
+$\dot{x}=f(x,\delta)=0$ to a square system of three nonlinear
+algebraic equations --- the axial-force, normal-force, and
+pitching-moment balances $(\dot{u},\dot{w},\dot{q})=0$, evaluated on
+the full nonlinear dynamics --- in the three unknowns
+$(\alpha^e,\delta_t^e,\delta_e^e)$. Because the identified
+aerodynamic build-up makes these equations transcendental, with no
+closed-form solution, the system is solved with \textsc{Matlab}'s
+\texttt{fsolve} (trust-region dogleg, a Newton-type method). The trim
+sought is steady, wings-level horizontal flight at airspeed
+$\VT^e = 12.0$\,m/s, altitude $h^e = 600$\,m, and flight-path angle
+$\gamma^e = 0$; the resulting equilibrium is stated explicitly below,
+as it anchors every simulation and every embedded test in this
+article.
 
 \emph{State vector at trim} (body axes; unlisted states are zero):
 \begin{equation}

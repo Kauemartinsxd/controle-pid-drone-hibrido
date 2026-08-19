@@ -7,7 +7,12 @@ architecture~\cite{bittar2012pegasus} through X-Plane-based attitude
 HIL~\cite{bittar2014hil} to the fixed-wing autopilot bench of
 Santos~\cite{santos2018}. This section describes the present
 incarnation: a lockstep serial bench in which the embedded controller
-is the auto-generated production code.
+is the auto-generated production code. It covers the controller
+discretization and code generation, the bench architecture and its
+link-level validation, the bit-determinism of the lockstep loop and
+the sensitivity study that determinism enables, and the embedded
+campaign results --- closing with the controller comparison repeated
+on the hardware.
 
 \subsection{Controller Discretization}
 \label{sec:discretization}
@@ -233,15 +238,13 @@ Case & $\theta$ [$^\circ$] & $\VT$ [m/s] & $h$ [m] & $\phi$ [$^\circ$] \\
 \label{fig:pid-c1}
 \end{figure}
 
-\subsubsection{LQRy} The embedded LQRy is the earlier
-\emph{fixed-gain} delivery --- a softer gain set than the
-gain-scheduled design of Section~\ref{sec:lqry}, registered in the
-repository~\cite{repo} --- so the bench results validate the
-deployment pipeline for that build; re-deploying the gain-scheduled
-law on the bench is future work
-(Section~\ref{sec:conclusion}). The LQRy campaign was executed under the same
+\subsubsection{LQRy} The embedded LQRy is exactly the fixed-gain law
+of Section~\ref{sec:lqry} compared throughout this article, with the
+gain set registered in the repository~\cite{repo} --- the bench
+therefore closes the comparison on the same two builds evaluated in
+SIL. The LQRy campaign was executed under the same
 protocol, with per-case firmware builds and scripted programming of the
-target. Its SIL--HIL residual is larger --- from $0.23^\circ$ to
+target. Its SIL--HIL residual is larger than the PID's --- from $0.23^\circ$ to
 $3.57^\circ$ in pitch depending on the flight case --- and is explained by
 the start-up term quantified in S1: this implementation holds the
 embedded integrators in reset until the link engages, so the embedded and
@@ -261,12 +264,33 @@ With both controllers on the same bench, the same plant, the same
 references, and the same metric window, the dominant free variable is
 the control law --- subject to the harness asymmetries disclosed in
 Section~\ref{sec:protocol}, which the equalization ablation showed not
-to drive the conclusions. Fig.~\ref{fig:justo} shows flight case~1: on
-the bench, the PID tracks airspeed and pitch more tightly, while the
-LQRy regulates altitude better when the airspeed loop is active ---
-recalling that the embedded LQRy is the earlier fixed-gain build, so
-these bench observations characterize that deployment rather than the
-gain-scheduled law of Section~\ref{sec:sil-comparison}.
+to drive the conclusions. Table~\ref{tab:hil-comparison} reports the
+combined mission executed on the hardware: the bench reproduces the
+SIL verdict of Section~\ref{sec:sil-comparison} essentially unchanged
+--- the PID tracks airspeed and heading substantially more tightly
+(RMS 0.07\,m/s and $1.27^\circ$ against 0.37\,m/s and $2.92^\circ$)
+with altitude comparable (1.63 versus 1.78\,m), and the LQRy's single
+requirement violation remains the airspeed overshoot ($14.6\%$ on the
+bench against $16.5\%$ in SIL, the small difference owing to the
+start-up term above). The maxima occur at the reference-step
+transients. Fig.~\ref{fig:justo} shows flight case~1.
+
+\begin{table}[!t]
+\caption{Embedded comparison on the bench (HIL, combined mission,
+identical references, $t>12$\,s).}
+\label{tab:hil-comparison}
+\centering
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{PID} & \multicolumn{2}{c}{LQRy} \\
+Channel & RMS & max & RMS & max \\
+\midrule
+$\VT$ [m/s]    & 0.07 & 0.76 & 0.37 & 2.11 \\
+$\psi$ [$^\circ$] & 1.27 & 5.79 & 2.92 & 10.16 \\
+$h$ [m]        & 1.63 & 6.82 & 1.78 & 10.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{figure}[!t]
 \centering

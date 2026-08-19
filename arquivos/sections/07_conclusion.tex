@@ -8,25 +8,28 @@ and wind, and deployed to an STM32 microcontroller through automatic
 code generation, so that the artifact exercised on the bench is the
 production code itself.
 
-Four results stand out. First, on the nominal plant the gain-scheduled
-LQRy is the faster law --- guidance captures in 6--13\,s and RMS
-tracking errors roughly $2\times$ smaller --- but violates the
-heading-overshoot requirement ($24.5\%$), while the
-requirements-retuned PID meets every requirement row at lower
-bandwidth. Second, the robustness study shows that a severe,
-sign-changing lateral--directional model mismatch defeats
-\emph{both} compared laws --- the aggressive gain-scheduled LQRy
-diverging outright, while the earlier, softer fixed-gain iteration of
-the very same structure completes the mission with near-nominal error
---- which exposes robustness to severe mismatch as a property
-of the tuning rather than of the LQ structure; the remaining scenarios
-still reveal \emph{complementary} weaknesses: under the
-longitudinal-only mismatch the LQRy stays nominal while the PID's
-clamped altitude loop drifts, under wind and gusts the LQRy concedes
-altitude (5.1\,m RMS) where the PID stays firm, and both tolerate a
-plausible $+10\%$ identification uncertainty. Which weakness matters
-more depends on whether the dominant threat is model error or
-atmospheric disturbance. Third, the lockstep HIL architecture
+Four results stand out. First, on the nominal plant the
+requirements-retuned PID dominates the performance comparison: zero
+overshoot and the tighter tracking on every guidance channel, meeting
+every requirement row, while the deliberately soft fixed-gain LQRy
+concedes a factor of ${\approx}5$ in airspeed RMS and violates the
+airspeed-overshoot requirement ($16.5\%$). Second, the robustness
+study inverts that verdict where it matters most: under a severe,
+sign-changing lateral--directional model mismatch the PID loses the
+mission outright, while the fixed-gain LQRy completes it with
+near-nominal error --- a tolerance consistent with the classical
+robustness heritage of LQ designs, earned here by the deliberately
+soft tuning; the remaining scenarios add nuance: under the
+longitudinal-only mismatch
+the LQRy stays nominal while the PID's clamped altitude loop drifts,
+under wind and gusts the PID holds every channel more tightly, and
+both tolerate a plausible $+10\%$ identification uncertainty. The
+comparison thus isolates a genuine performance--robustness trade-off
+between the two standard laws: which one is preferable depends on
+whether the dominant threat is model error --- where the PID's
+failure is catastrophic and the LQRy's tolerance is decisive --- or
+atmospheric disturbance, where the PID holds the line more tightly.
+Third, the lockstep HIL architecture
 is practically transparent when the campaign is scripted from a single
 source of references and the controller start-up is synchronized: for
 the synchronized PID deployment, the SIL--HIL residual reaches the
@@ -56,8 +59,8 @@ shaping, and protection logic) so that future comparisons are free of
 these asymmetries; a requirements set rederived specifically for
 unmanned aircraft in the sense of the scaled flying-qualities
 literature~\cite{cotting2010evolution,greene2014toward};
-re-deployment of the gain-scheduled LQRy on the bench, so that the
-embedded comparison covers the same build as the SIL comparison; and flight
+extension of the LQRy with gain scheduling over the flight envelope,
+evaluated under this same SIL-to-HIL protocol; and flight
 testing of the embedded controllers validated on the bench, closing
 the simulation-to-flight loop that the HIL stage
 approximates~\cite{shen2025model}.

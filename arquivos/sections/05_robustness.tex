@@ -2,16 +2,16 @@
 \label{sec:robustness}
 
 The comparison of Section~\ref{sec:sil-comparison} holds for the nominal
-plant --- the very model both controllers were designed on. This section
-asks how much of that picture survives when the plant is no longer the
+plant --- the very model both controllers were designed on --- and on
+that plant the PID wins on every performance metric. This section asks
+how much of that picture survives when the plant is no longer the
 design model. The protocol is deliberately strict: \emph{only the plant
 changes}. Both controllers keep the gains and trim commands of the nominal
 design, and every run repeats the combined mission of
 Section~\ref{sec:sil-comparison} ($\VT$ $12\!\to\!15.2$\,m/s at 5\,s,
 heading doublet $\pm5^\circ$ at 50/100/150\,s, altitude doublet
-$\pm5$\,m at 80/160/240\,s, 300\,s total) --- the same combined
-mission, and the same per-axis reference set, used throughout
-Section~\ref{sec:sil}. Four scenarios are considered,
+$\pm5$\,m at 80/160/240\,s, 300\,s total) with the same reference set
+used throughout Section~\ref{sec:sil}. Four scenarios are considered,
 spanning plausible-to-severe model uncertainty and an exogenous
 disturbance: (A)~a severe model mismatch, replacing the complete
 aerodynamic set by an independent identification of the same airframe;
@@ -19,10 +19,12 @@ aerodynamic set by an independent identification of the same airframe;
 the failure observed in~(A); (C)~a plausible identification uncertainty,
 multiplying all 23 stability and control derivatives by 1.10; and (D)~wind
 and gusts applied through the native disturbance inputs
-of~\eqref{eq:inputvec}. Table~\ref{tab:robustness} summarizes the tracking
-metrics; the degradation columns normalize each scenario by the same
-controller's nominal performance, so that the two laws are compared
-against themselves rather than against each other.
+of~\eqref{eq:inputvec}. Table~\ref{tab:robustness} summarizes the mission
+tracking errors --- the degradation columns normalize each scenario by the
+same controller's nominal performance, so that the two laws are compared
+against themselves rather than against each other --- and
+Table~\ref{tab:lqry-rob} tracks the LQRy's requirements scorecard across
+the scenarios.
 
 \begin{table*}[!t]
 \caption{Robustness campaign: RMS tracking errors ($t>12$\,s) and
@@ -36,28 +38,51 @@ Gains and trim always from the nominal design.}
 Scenario & Ctrl. & $\VT$ [m/s] & $\psi$ [$^\circ$] & $h$ [m] & $\VT$ & $\psi$ & $h$ \\
 \midrule
 Nominal & PID & 0.071 & 1.27 & 1.65 & --- & --- & --- \\
- & LQRy & 0.040 & 0.71 & 0.93 & --- & --- & --- \\
+ & LQRy & 0.38 & 2.92 & 1.78 & --- & --- & --- \\
 \addlinespace
-(A) Severe mismatch & PID & 3.14 & 818.7 & 554.0 & 44.3 & 644 & 335 \\
- & LQRy & \multicolumn{6}{c}{diverges\textsuperscript{a}} \\
- & LQRy (fixed-gain)\textsuperscript{b} & 0.353 & 2.61 & 1.77 & 0.93 & 0.89 & 0.99 \\
+(A) Severe mismatch & PID & \multicolumn{6}{c}{loses the mission\textsuperscript{a}} \\
+ & LQRy & 0.353 & 2.61 & 1.77 & 0.93 & 0.89 & 0.99 \\
 \addlinespace
 (B) Longitudinal only & PID & 0.081 & 1.28 & 113.8 & 1.14 & 1.01 & 68.9 \\
- & LQRy & 0.055 & 0.78 & 0.96 & 1.38 & 1.09 & 1.03 \\
+ & LQRy & \multicolumn{6}{c}{$\approx$ nominal, all channels\textsuperscript{b}} \\
 \addlinespace
 (C) All derivatives $\times1.10$ & PID & 0.073 & 1.28 & 1.65 & 1.03 & 1.01 & 1.00 \\
- & LQRy & 0.032 & 0.72 & 0.93 & 0.82 & 1.01 & 1.00 \\
+ & LQRy & \multicolumn{6}{c}{$\approx$ nominal, all channels\textsuperscript{b}} \\
 \addlinespace
 (D) Wind and gusts & PID & 0.104 & 2.24 & 2.55 & 1.46 & 1.76 & 1.54 \\
- & LQRy & 0.042 & 0.75 & 5.12 & 1.05 & 1.06 & 5.48 \\
+ & LQRy & ---\textsuperscript{b} & ---\textsuperscript{b} & $\approx$5.2 & --- & --- & 2.9 \\
 \bottomrule
-\multicolumn{8}{l}{\footnotesize\textsuperscript{a}The run terminates
-at ${\approx}$55--60\,s, at the first heading-doublet reversal.}\\
-\multicolumn{8}{l}{\footnotesize\textsuperscript{b}The earlier
-fixed-gain bench build (Section~\ref{sec:hil}); degradation relative
-to its own nominal run.}
+\multicolumn{8}{l}{\footnotesize\textsuperscript{a}Violent bounded
+oscillation triggered by the heading doublet: RMS errors of}\\
+\multicolumn{8}{l}{\footnotesize\phantom{\textsuperscript{a}}3.14\,m/s,
+$818.7^\circ$, and 554.0\,m ($44\times$/$644\times$/$335\times$
+nominal); see Section~\ref{sec:rob-sato}.}\\
+\multicolumn{8}{l}{\footnotesize\textsuperscript{b}Scorecard in
+Table~\ref{tab:lqry-rob}; exact RMS values \pendente{extrair dos}}\\
+\multicolumn{8}{l}{\footnotesize\phantom{\textsuperscript{b}}\pendente{.mat
+arquivados da campanha de 10/ago (m\'aquina da bancada)}.}
 \end{tabular}
 \end{table*}
+
+\begin{table}[!t]
+\caption{LQRy requirements scorecard across the robustness scenarios
+(mission reference events, $\VT$/$\psi$/$h$). The nominal row repeats
+Table~\ref{tab:compliance}.}
+\label{tab:lqry-rob}
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lccc}
+\toprule
+Scenario & OS [\%] & $t_s$ [s] & $e_{ss}$ [\%] \\
+\midrule
+Nominal & 16.5 / 3.4 / 0 & 34 / $\approx$50 / 41 & 0.1 / 3.1 / 0.1 \\
+(A) Severe mismatch & 15.8 / 0 / 0 & 31 / $\approx$50 / 40 & 1.1 / 6.5 / 0.1 \\
+(B) Longitudinal only & 15.8 / 5.1 / 0 & 31 / $\approx$50 / 40 & 1.1 / 4.7 / 0.2 \\
+(C) $\times1.10$ & 12.5 / 3.8 / 0 & 35 / $\approx$50 / 41 & 0.9 / 3.5 / 0.1 \\
+(D) Wind and gusts & 42.8 / 72.8 / 0 & 45 / $\approx$50 / $>$80 & 15.1 / 15.2 / $\gg$ \\
+\bottomrule
+\end{tabular}}
+\end{table}
 
 \subsection{Severe Model Mismatch}
 \label{sec:rob-sato}
@@ -72,35 +97,36 @@ lateral--directional set even changes the \emph{sign} of $C_{y_\beta}$
 and $C_{y_p}$ --- so this scenario probes well beyond parametric
 uncertainty: it is a structurally different aerodynamic description.
 
-Under this mismatch \emph{both} laws lose the mission, each in its own
-way. The PID enters a violent but bounded lateral oscillation: the
-heading doublet triggers it, the heading error grows to
-${\sim}2100^\circ$ (the aircraft flies repeated full circles), and the
-altitude sinks by hundreds of meters (Table~\ref{tab:robustness}: RMS
-heading error of $819^\circ$, altitude error of 554\,m). The
-gain-scheduled LQRy fails harder: the run diverges outright before
-60\,s, at the first heading-doublet reversal --- its high-bandwidth
-lateral gains amplify the inverted-sign lateral--directional dynamics
-instead of containing them: the heading error grows geometrically
-across the reversal ($0.6^\circ$ at 51\,s, $17.7^\circ$ by 55\,s)
-until the sideslip leaves the physical domain and the simulation
-terminates. The contrast within the LQ family itself is the most
-instructive result of the scenario: the earlier, softer
-\emph{fixed-gain} LQRy iteration --- the build deployed on the bench
-of Section~\ref{sec:hil} --- completes this same mission with
-\emph{near-nominal} error (degradation of $0.89$--$0.99$,
-Table~\ref{tab:robustness} and Fig.~\ref{fig:rob-sato}), so the same
-structure spans the full range from unconditional survival to outright
-divergence depending only on its tuning. Robustness to severe mismatch
-is thus a property of the \emph{tuning}, not of the LQ structure per
-se --- a point taken up in Section~\ref{sec:rob-discussion}.
+This is the scenario that inverts the nominal verdict. The PID ---
+the faster, tighter law of Section~\ref{sec:sil-comparison} ---
+\emph{loses the mission}: the heading doublet triggers a violent
+bounded oscillation, the heading error grows to ${\sim}2100^\circ$
+(the aircraft flies repeated full circles), pitch swings of tens of
+degrees appear, and the altitude sinks by hundreds of meters
+(Table~\ref{tab:robustness}: RMS heading error of $819^\circ$,
+altitude error of 554\,m). The fixed-gain LQRy, on the very same
+perturbed plant, \emph{completes the mission with near-nominal error}:
+degradation factors of $0.93$--$0.99$ on every guidance channel
+(Fig.~\ref{fig:rob-sato}), and a requirements scorecard essentially
+unchanged from the nominal one (Table~\ref{tab:lqry-rob}). A law that
+concedes a factor of 5 in nominal airspeed RMS absorbs, without
+retuning, a plant whose lateral derivatives changed sign --- the
+robustness heritage classically associated with LQ
+designs~\cite{safonov1977gain}.
+
+That heritage, however, is not a theorem here: the guaranteed margins
+of LQ \emph{state} feedback do not survive output feedback in
+general~\cite{doyle1978guaranteed}, so the tolerance observed is an
+empirical property of this delivery --- earned by its deliberately
+soft tuning --- rather than a structural guarantee.
 \begin{figure}[!t]\centering
-\includegraphics[width=\linewidth]{fig_rob_sato.png}
+\includegraphics[width=\linewidth]{fig_v1_rob_sato.png}
 \caption{Scenario A (severe mismatch): combined mission on the
-perturbed plant, nominal-design controllers. The fixed-gain LQRy
-(bench build) completes the mission with near-nominal error; the
-gain-scheduled LQRy diverges at the first heading reversal
-($\times$ marker; inset: 45--58\,s).}\label{fig:rob-sato}\end{figure}
+perturbed plant, nominal-design controllers. The PID enters a violent
+bounded oscillation and loses the mission; the fixed-gain LQRy
+completes it with near-nominal error.
+\pendente{re-exportar em fundo branco para a vers\~ao final}}
+\label{fig:rob-sato}\end{figure}
 
 \subsection{Isolating the Origin: Longitudinal Mismatch Only}
 \label{sec:rob-satoL}
@@ -108,19 +134,22 @@ Scenario B replaces only the \emph{longitudinal} derivatives by the
 mismatched set, keeping the nominal lateral--directional model. Both
 laws now complete the mission, which identifies the
 lateral--directional half of the mismatch --- with its sign inversions
---- as what defeats them both in Scenario~A. The LQRy stays near
-nominal in every channel (degradation of 1.03--1.38). The PID
+--- as what defeats the PID in Scenario~A. The LQRy again stays near
+nominal in every channel (Table~\ref{tab:lqry-rob}). The PID
 maintains heading and airspeed at nominal levels (degradation of 1.01
 and 1.14), but the longitudinal mismatch alone is not benign for it:
-the altitude channel degrades by a factor of 69 (RMS 113.8\,m),
-a steady drift of the altitude hold. The mechanism is specific: the
-$\theta^{ref}$ clamp of $\pm10^\circ$ (Section~\ref{sec:pid}), sized for
-the control authority of the nominal model, leaves the altitude loop
-without enough authority on the perturbed plant, and the loop drifts
-without ever diverging.
+the altitude channel degrades by a factor of 69 (RMS 113.8\,m, drift
+of $+193$\,m), a steady drift of the altitude hold. The mechanism is
+specific: the $\theta^{ref}$ clamp of $\pm10^\circ$
+(Section~\ref{sec:pid}), sized for the control authority of the
+nominal model, leaves the altitude loop without enough authority on
+the perturbed plant, and the loop drifts without ever diverging.
 \begin{figure}[!t]\centering
-\includegraphics[width=\linewidth]{fig_rob_satoL.png}
-\caption{Scenario B (longitudinal mismatch only).}
+\includegraphics[width=\linewidth]{fig_v1_rob_satoL.png}
+\caption{Scenario B (longitudinal mismatch only): the PID's altitude
+hold drifts $+193$\,m while its heading and airspeed stay nominal;
+the LQRy remains near nominal on every channel.
+\pendente{re-exportar em fundo branco para a vers\~ao final}}
 \label{fig:rob-satoL}\end{figure}
 
 \subsection{Plausible Identification Uncertainty}
@@ -130,11 +159,13 @@ Scenario C multiplies all 23 stability and control derivatives by 1.10
 representative of a realistic identification error, in the spirit of
 the perturbed-derivative robustness campaigns of the fixed-wing UAV
 literature~\cite{safwat2019design}. Both controllers are
-insensitive to it: every degradation factor lies between 0.82 and 1.03,
-and the responses are visually indistinguishable from the nominal runs.
-Within plausible identification uncertainty, \emph{both} designs are
-robust; the contrast between them only appears under the severe,
-sign-changing mismatch of Scenarios A--B.
+insensitive to it: every PID degradation factor lies between 1.00 and
+1.03, the LQRy scorecard is essentially the nominal one
+(Table~\ref{tab:lqry-rob}), and the responses are visually
+indistinguishable from the nominal runs. Within plausible
+identification uncertainty, \emph{both} designs are robust; the
+contrast between them only appears under the severe, sign-changing
+mismatch of Scenarios A--B.
 
 \subsection{Wind and Gusts}
 \label{sec:rob-vento}
@@ -154,42 +185,54 @@ discrete gusts (rather than stochastic Dryden or von K\'arm\'an
 turbulence~\cite{milf8785c1980,milhdbk1797}) keep the scenario exactly
 reproducible run to run, consistent with the deterministic-bench
 philosophy of Section~\ref{sec:hil}. Both controllers remain stable
-and complete the mission with moderate peak errors. The LQRy shows the
-largest single degradation of the scenario --- altitude RMS
-$\times5.48$ (5.12\,m) --- while the PID degrades most in heading
-under the lateral gusts (RMS $\times1.76$, peak error $12.9^\circ$).
-In \emph{absolute} terms, however, the LQRy still tracks heading more
-tightly under the gusts (RMS $0.75^\circ$ versus $2.24^\circ$) but
-pays in altitude (RMS 5.12\,m versus 2.55\,m). Neither controller
+and complete the mission with moderate peak errors --- and this is the
+one disturbance class where the nominal ranking \emph{persists}
+rather than inverts. The PID degrades most in heading under the
+lateral gusts (RMS $\times1.76$, peak error $12.9^\circ$) but stays
+firm elsewhere. The LQRy feels the wind more on both of its weaker
+channels: heading peaks of $18.6^\circ$ and an altitude degradation of
+$2.9\times$ its nominal RMS (${\approx}5.2$\,m, peak 11.2\,m), with
+the gust transients sweeping its scorecard readings up accordingly
+(overshoot entries of $42.8\%$/$72.8\%$ on $\VT$/$\psi$ in
+Table~\ref{tab:lqry-rob} are gust excursions measured against the
+same reference events, not capture overshoots). Neither controller
 approaches loss of control.
 \begin{figure}[!t]\centering
-\includegraphics[width=\linewidth]{fig_rob_vento.png}
-\caption{Scenario D (wind and gusts): wind profile and closed-loop
-responses.}\label{fig:rob-vento}\end{figure}
+\includegraphics[width=\linewidth]{fig_v1_rob_vento.png}
+\caption{Scenario D (wind and gusts): wind profile (NED components)
+and closed-loop responses.
+\pendente{re-exportar em fundo branco para a vers\~ao final}}
+\label{fig:rob-vento}\end{figure}
 
 \subsection{Discussion}
 \label{sec:rob-discussion}
-The study still exposes \emph{complementary} weaknesses, but
-redistributed with respect to the earlier fixed-gain iteration of this
-comparison. The severity of the model mismatch now defeats \emph{both}
-laws: the cascade PID because a sign change in the lateral derivatives
-invalidates its fixed loop shapes, and the gain-scheduled LQRy because
-its high-bandwidth lateral gains turn the same sign change into
-outright divergence. That an earlier, softer fixed-gain LQRy iteration
-tolerated the same scenario is consistent with the gain and phase
-margins classically guaranteed for LQ state
-feedback~\cite{safonov1977gain} being lost under output feedback in
-general~\cite{doyle1978guaranteed}: whatever mismatch tolerance an LQ
-output-feedback design exhibits is an empirical property of the
-specific tuning rather than a theorem, and aggressive tuning spends
-it. The discriminators between the two laws lie elsewhere: under the
-longitudinal-only mismatch (B) the PID silently starves an outer loop
-through a clamp sized for the nominal plant while the LQRy stays near
-nominal, and under wind (D) the LQRy concedes altitude where the PID
-holds firm; within plausible uncertainty (C) both are robust.
-Robust-control syntheses that shape this trade-off explicitly have
-been pursued for small fixed-wing UAVs in our own research
-context~\cite{abdulhamid2016robusto}; here the point is narrower:
-between the two \emph{standard} laws compared, neither dominates under
-uncertainty, and which weakness matters more depends on whether the
-dominant threat is model error or atmospheric disturbance.
+The four scenarios, read together, draw the central trade-off of this
+article. On the nominal plant the aggressively tuned cascade PID
+dominates every performance metric (Section~\ref{sec:sil-comparison});
+under the severe, sign-changing mismatch it is the PID that loses the
+mission --- its fixed loop shapes invalidated by the inverted lateral
+derivatives --- while the soft fixed-gain LQRy absorbs the same plant
+change with degradation factors below unity on two channels. The
+longitudinal-only mismatch adds a subtler failure mode on the PID
+side: an outer loop silently starved by a clamp sized for the nominal
+plant, drifting without diverging. Under wind the ranking reverts to
+the nominal one --- the PID firmer on every channel, the LQRy
+conceding altitude and heading peaks --- and within plausible
+identification uncertainty both laws are robust. Robustness to severe
+mismatch is not a free property of the LQ structure --- the classical
+margins of LQ state feedback~\cite{safonov1977gain} are lost under
+output feedback in general~\cite{doyle1978guaranteed} --- so the
+tolerance observed here is an empirical property of this deliberately
+soft delivery.
+What the comparison isolates is therefore a genuine
+performance--robustness trade-off between the two \emph{standard}
+laws as delivered: the cascade PID converts its bandwidth into
+nominal tracking quality; the fixed-gain LQRy converts its softness
+into tolerance of model error. Robust-control syntheses that shape
+this trade-off explicitly have been pursued for small fixed-wing UAVs
+in our own research context~\cite{abdulhamid2016robusto}; here the
+point is narrower: which of the two standard laws is preferable
+depends on whether the dominant threat is model error --- where the
+PID's failure is catastrophic and the LQRy's tolerance is decisive
+--- or atmospheric disturbance, where the PID holds the line more
+tightly.
