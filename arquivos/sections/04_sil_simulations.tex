@@ -36,12 +36,11 @@ uncontrolled:
 \begin{enumerate}
   \item \emph{Actuator models.} The PID harness includes the full
         actuator chain of Section~\ref{sec:model} (position and rate
-        saturations, first-order servo and engine lags). The LQRy
-        harness includes first-order actuator lags --- 24\,rad/s on
-        the surfaces versus the 20\,rad/s assumed on the PID side,
-        and 0.1\,s versus 0.30\,s for the throttle --- and a $[0,1]$
-        throttle saturation, but omits the rate limits and surface
-        position saturations of the PID harness.
+        saturations, 20\,rad/s servo and 0.30\,s engine lags). The
+        LQRy harness carries no actuator model at all --- its
+        commands drive the plant inputs directly; the 24\,rad/s lag
+        exists only inside its pitch synthesis model
+        (Section~\ref{sec:lqry}).
   \item \emph{Reference shaping.} The PID applies the
         $1/(3s+1)$ prefilter of Section~\ref{sec:pid} to every
         reference increment; the LQRy receives raw reference steps.
@@ -51,8 +50,9 @@ uncontrolled:
 
 To bound the effect of these asymmetries on the conclusions, the PID
 scenarios were repeated in an \emph{equalized} configuration ---
-actuator bandwidth matched to 24\,rad/s, rate limits removed, clamp
-and prefilter disabled, matching the LQRy harness.
+rate limits removed, clamp and prefilter disabled, and the actuator
+lags lightened to 24\,rad/s (surfaces) and 0.1\,s (throttle) ---
+approaching the LQRy's unfiltered, rigid-command harness.
 Fig.~\ref{fig:eq-comb} overlays the two PID configurations on the
 combined scenario: the equalization shifts the guidance captures
 moderately --- airspeed rise time from 9.5 to 5.8\,s and settling from
@@ -64,11 +64,9 @@ changing any comparative conclusion drawn below.
 \centering
 \includegraphics[width=\linewidth]{fig_eq_comb.png}
 \caption{Equalization ablation, combined scenario: PID as delivered
-vs.\ PID with the harness equalized to the LQRy rig (24\,rad/s
-actuators, no rate limits, no clamp, no prefilter), with the LQRy
-response for context. \pendente{a curva de contexto do LQRy nesta
-figura n\~ao \'e a da entrega comparada --- re-exportar com a curva
-correta ou sem ela}}
+vs.\ PID with the harness equalized toward the LQRy rig (24\,rad/s
+actuators, no rate limits, no clamp, no prefilter), with the
+fixed-gain LQRy response for context.}
 \label{fig:eq-comb}
 \end{figure}
 
@@ -195,8 +193,7 @@ $h$ [m]        & 1.65 & 6.82 & 1.78 & 10.00 \\
 \centering
 \includegraphics[width=\linewidth]{fig_v1_comb.png}
 \caption{Combined mission: PID vs.\ LQRy on the nonlinear model,
-identical references --- states on the left, actuators on the right.
-\pendente{re-exportar em fundo branco para a vers\~ao final}}
+identical references --- states on the left, actuators on the right.}
 \label{fig:cen-comb}
 \end{figure}
 

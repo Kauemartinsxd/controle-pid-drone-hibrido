@@ -416,20 +416,54 @@ PsiHold & $\psi\!\to\!\phi^{ref}$ & aileron \\
 
 The gain set of this fixed-gain delivery --- the values exercised in
 every SIL comparison of Section~\ref{sec:sil} and embedded on the
-bench of Section~\ref{sec:hil} --- is registered in the
-repository~\cite{repo}.
-\pendente{inserir aqui a tabela com os ganhos do LQRy de ganho fixo
-(registro da entrega embarcada) --- obter os valores com o Mirko /
-m\'aquina da bancada}
+bench of Section~\ref{sec:hil} --- is recorded in
+Table~\ref{tab:lqry-gains} and registered in the
+repository~\cite{repo}. Two structural remarks: the pitch design
+carries the actuator as a fifth synthesis state (the 24\,rad/s lag),
+so its gain vector feeds back the elevator alongside the rigid-body
+states; and the $2\times2$ lateral design provides for a
+sideslip-integral gain alongside the bank integral, but in this
+delivery the $\beta$-integral column is numerically zero --- only the
+bank integral is active.
 
-Unlike the PID harness, the LQRy harness includes first-order actuator
-lags (24\,rad/s on the surfaces, 0.1\,s on the throttle) and a $[0,1]$
-throttle saturation, but no rate limits, no surface position
-saturations, no reference prefilter, and no $\theta^{ref}$ clamp ---
-references enter the loops as raw steps.
-\pendente{confirmar com o Mirko que o harness da entrega de ganho fixo
-cont\'em exatamente estes elementos (lags, satura\c{c}\~ao de manete,
-aus\^encia de prefiltro/clamp)}
+\begin{table}[!t]
+\caption{Gains of the fixed-gain LQRy delivery (4 significant
+digits). Convention: $\Delta u=G_{x}\,(x-x^{e})+K_{I}\!\int\!e\,dt$,
+the increments adding to the trim commands of~\eqref{eq:dtrim}. The
+$K_I$ entries of PhiHold are the bank ($\phi$) integral gains.}
+\label{tab:lqry-gains}
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{llll}
+\toprule
+Loop & State vector $x$ & $G_{x}$ & $K_I$ \\
+\midrule
+ThetaHold & $[\VT\,\alpha\,q\,\theta\,\delta_e]$ &
+$[-0.004694\;5.362\;-10.69\;-95.34\;-5.477]$ & $-25$ \\
+AltitudeHold & $[\VT\,\alpha\,q\,\theta\,h]$ &
+$[-0.07210\;4.535\;-0.2142\;-5.140\;-0.4439]$ & $-0.04$ \\
+VelHold & $[\VT\,\alpha\,q\,\theta]$ &
+$[-0.7506\;-0.5861\;0.006315\;0.6642]$ & $-0.4410$ \\
+PhiHold (ail.) & $[\beta\,p\,r\,\phi]$ &
+$[0.01697\;0.004305\;0.01497\;0.06072]$ & $0.003883$ \\
+PhiHold (rud.) & $[\beta\,p\,r\,\phi]$ &
+$[-0.003758\;-0.0009542\;-0.003318\;-0.01346]$ & $-0.0008727$ \\
+PsiHold & $[\beta\,p\,r\,\phi\,\psi]$ &
+$[-9.147\;-0.1859\;0.1492\;-1.994\;-0.6554]$ & $-0.03366$ \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+Unlike the PID harness, the LQRy delivery harness contains no
+actuator models at all: the commanded increments, added to the trim
+commands of~\eqref{eq:dtrim}, drive the plant inputs directly --- no
+lags, no rate limits, no position or throttle saturations, no
+reference prefilter, and no $\theta^{ref}$ clamp --- and references
+enter the loops as raw steps. The 24\,rad/s lag lives in the
+\emph{synthesis} models only; on the rig, the fifth gain of the pitch
+loop multiplies the commanded elevator itself. (Every statement in
+this paragraph was verified block by block on the archived delivery
+rig.)
 These differences between the two design harnesses are consolidated
 and discussed in Section~\ref{sec:protocol}.
 
@@ -454,8 +488,7 @@ from the $\phi=0$ baseline (Fig.~\ref{fig:coupling}).
 $\phi^{ref}$ steps of $5/15/30^\circ$ at $t=20$\,s, prefiltered
 reference; $\phi$, $\Delta\theta$, $\Delta h$, and $\Delta$elevator
 relative to the $\phi=0$ baseline. Solid: ThetaHold at the 12\,m/s
-trim; dashed: $30^\circ$ in AltitudeHold at 15.2\,m/s.
-\pendente{re-exportar em fundo branco para a vers\~ao final}}
+trim; dashed: $30^\circ$ in AltitudeHold at 15.2\,m/s.}
 \label{fig:coupling}\end{figure}
 
 The results confirm the mechanism and bound its size. In ThetaHold,

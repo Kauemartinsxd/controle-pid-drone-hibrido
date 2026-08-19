@@ -44,23 +44,19 @@ Nominal & PID & 0.071 & 1.27 & 1.65 & --- & --- & --- \\
  & LQRy & 0.353 & 2.61 & 1.77 & 0.93 & 0.89 & 0.99 \\
 \addlinespace
 (B) Longitudinal only & PID & 0.081 & 1.28 & 113.8 & 1.14 & 1.01 & 68.9 \\
- & LQRy & \multicolumn{6}{c}{$\approx$ nominal, all channels\textsuperscript{b}} \\
+ & LQRy & 0.353 & 2.94 & 1.77 & 0.93 & 1.01 & 0.99 \\
 \addlinespace
 (C) All derivatives $\times1.10$ & PID & 0.073 & 1.28 & 1.65 & 1.03 & 1.01 & 1.00 \\
- & LQRy & \multicolumn{6}{c}{$\approx$ nominal, all channels\textsuperscript{b}} \\
+ & LQRy & 0.375 & 2.93 & 1.77 & 0.99 & 1.00 & 1.00 \\
 \addlinespace
 (D) Wind and gusts & PID & 0.104 & 2.24 & 2.55 & 1.46 & 1.76 & 1.54 \\
- & LQRy & ---\textsuperscript{b} & ---\textsuperscript{b} & $\approx$5.2 & --- & --- & 2.9 \\
+ & LQRy & 0.481 & 3.68 & 5.21 & 1.26 & 1.26 & 2.93 \\
 \bottomrule
 \multicolumn{8}{l}{\footnotesize\textsuperscript{a}Violent bounded
 oscillation triggered by the heading doublet: RMS errors of}\\
 \multicolumn{8}{l}{\footnotesize\phantom{\textsuperscript{a}}3.14\,m/s,
 $818.7^\circ$, and 554.0\,m ($44\times$/$644\times$/$335\times$
-nominal); see Section~\ref{sec:rob-sato}.}\\
-\multicolumn{8}{l}{\footnotesize\textsuperscript{b}Scorecard in
-Table~\ref{tab:lqry-rob}; exact RMS values \pendente{extrair dos}}\\
-\multicolumn{8}{l}{\footnotesize\phantom{\textsuperscript{b}}\pendente{.mat
-arquivados da campanha de 10/ago (m\'aquina da bancada)}.}
+nominal); see Section~\ref{sec:rob-sato}.}
 \end{tabular}
 \end{table*}
 
@@ -124,8 +120,7 @@ soft tuning --- rather than a structural guarantee.
 \caption{Scenario A (severe mismatch): combined mission on the
 perturbed plant, nominal-design controllers. The PID enters a violent
 bounded oscillation and loses the mission; the fixed-gain LQRy
-completes it with near-nominal error.
-\pendente{re-exportar em fundo branco para a vers\~ao final}}
+completes it with near-nominal error.}
 \label{fig:rob-sato}\end{figure}
 
 \subsection{Isolating the Origin: Longitudinal Mismatch Only}
@@ -148,8 +143,7 @@ the perturbed plant, and the loop drifts without ever diverging.
 \includegraphics[width=\linewidth]{fig_v1_rob_satoL.png}
 \caption{Scenario B (longitudinal mismatch only): the PID's altitude
 hold drifts $+193$\,m while its heading and airspeed stay nominal;
-the LQRy remains near nominal on every channel.
-\pendente{re-exportar em fundo branco para a vers\~ao final}}
+the LQRy remains near nominal on every channel.}
 \label{fig:rob-satoL}\end{figure}
 
 \subsection{Plausible Identification Uncertainty}
@@ -200,8 +194,7 @@ approaches loss of control.
 \begin{figure}[!t]\centering
 \includegraphics[width=\linewidth]{fig_v1_rob_vento.png}
 \caption{Scenario D (wind and gusts): wind profile (NED components)
-and closed-loop responses.
-\pendente{re-exportar em fundo branco para a vers\~ao final}}
+and closed-loop responses.}
 \label{fig:rob-vento}\end{figure}
 
 \subsection{Discussion}
