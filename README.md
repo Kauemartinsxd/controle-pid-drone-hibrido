@@ -3,8 +3,14 @@
 Modelo da planta + piloto automático em **PID cascata** para o drone híbrido (DH) voando em modo asa-fixa.
 
 > 📽️ **Apresentação:** [`docs/Apresentacao_alinhamento_artigo.html`](docs/Apresentacao_alinhamento_artigo.html) —
-> alinhamento do artigo (PID × LQRy do SIL ao HIL, com estudo de robustez). Arquivo HTML
-> auto-contido: baixe e abra no navegador (o GitHub não renderiza HTML no repositório).
+> alinhamento do artigo (PID × LQRy do SIL ao HIL, com estudo de robustez). Há também uma versão
+> sem a slide de margens ([`docs/Apresentacao_alinhamento_artigo_sem_margens.html`](docs/Apresentacao_alinhamento_artigo_sem_margens.html)).
+> Arquivos HTML auto-contidos: baixe e abra no navegador (o GitHub não renderiza HTML no repositório).
+
+> 📄 **Artigo:** [`arquivos/`](arquivos/) contém o draft IEEE Access
+> *"Cascade PID Versus Output-Feedback LQR for the Fixed-Wing Mode of a Hybrid VTOL UAV"*
+> (fontes LaTeX, figuras, dados e scripts de simulação). Pendências abertas em
+> [`arquivos/PENDENCIAS.md`](arquivos/PENDENCIAS.md).
 
 ---
 
@@ -41,7 +47,7 @@ plot_NL_DH
 ## Estrutura
 
 ```
-PID/
+controle-pid-drone-hibrido/
 ├── DH_inicializacao.m      ★ Setup do workspace + paths (rode TODA sessão)
 ├── plot_NL_DH.m            ★ Plot dos resultados (após uma sim)
 ├── README.md
@@ -69,13 +75,21 @@ PID/
 ├── utilitarios/            ← planta + ferramentas de build
 │   ├── DH_build_model.m       trim + linearização (gera MATRIZES_DH)
 │   ├── modelo_DH.m            forças e momentos
-│   ├── coef_DH.m             coeficientes aerodinâmicos (coef. Ana)
+│   ├── coef_DH.m              coeficientes aerodinâmicos (coef. Ana)
 │   ├── dyn_rigidbody_DH.m     derivadas (flag=1)
 │   ├── obs_rigidbody_DH.m     saídas (flag=3)
 │   └── trimagem_DH.m          trim via fsolve
 │
-├── relatorio_PID/          ← relatório LaTeX (main.tex) + figuras
-└── backup/                 ← scripts auxiliares, comparações, backups .slx e PDF
+├── arquivos/               ← artigo IEEE Access (PID × LQRy de ganho fixo)
+│   ├── main.tex / main.pdf    draft do artigo
+│   ├── sections/              seções 01–07 (intro … conclusão)
+│   ├── figs/                  figuras do artigo (fundo branco, 300 dpi)
+│   ├── sims/                  scripts que geram figuras/tabelas (sims_artigo_A…E,
+│   │                          pid_recampanha_v2, acoplamento_v2, fig_v1_white, …)
+│   ├── dados_*.txt            métricas exportadas p/ as tabelas LaTeX
+│   └── PENDENCIAS.md          pontos abertos do draft (marcados com \pendente{})
+│
+└── docs/                   ← apresentações HTML auto-contidas (deck de alinhamento)
 ```
 
 ---
@@ -202,17 +216,25 @@ h_ref ─►(+)─► C_alt ─► θ_ref ─[clamp ±10°]─┐
 
 ## Ganhos
 
-Retuning 2026-06-09 sobre o modelo linear (coef. Ana, Ve=12 m/s, he=600 m), fechamento sequencial *inner-first* via `pidtune`.
+Retuning **2026-08-10** para os requisitos da dissertação (ts < 60 s, OS < 10%, ess ≤ 5%, GM > 10 dB, PM > 45°), sobre o modelo linear (coef. Ana, Ve=12 m/s, he=600 m), fechamento sequencial *inner-first*.
 
 | Malha | Função | Tipo | P | I | N |
 |---|---|---|---|---|---|
-| Pitch Attitude (`C_theta`) | θ_ref → δe | PI | 0.4007 | 0.3918 | 100 |
-| Velocity Hold (`C_vel`) | VT_ref → δT | PI | 0.2899 | 0.0870 | 100 |
-| Altitude Hold (`C_alt`) | h_ref → θ_ref | PI | 0.02875 | 0.00259 | 100 |
-| Bank Angle (`C_phi`) | φ_ref → δa | PI | −0.2831 | −0.2716 | 100 |
+| Pitch Attitude (`C_theta`) | θ_ref → δe | PI | 0.917 | 0.857 | 100 |
+| Velocity Hold (`C_vel`) | VT_ref → δT | PI | 0.32 | 0.096 | 100 |
+| Altitude Hold (`C_alt`) | h_ref → θ_ref | PI | 0.050 | 0.0043 | 100 |
+| Bank Angle (`C_phi`) | φ_ref → δa | PI | −0.45 | −0.036 | 100 |
 | Heading (`K_heading`) | ψ_ref → φ_ref | P | 0.1975 | — | — |
 
-**SAS dampers:** `Kq = 0.0524` (pitch) · `Kr = 0.1481` (yaw, sobre washout) · `Kp = 0` (roll).
+**SAS dampers:** `Kq = 0.10` (pitch) · `Kr = 0.1481` (yaw, sobre washout) · `Kp = 0` (roll).
+
+Principais mudanças vs o tuning 2026-06-09 (valores antigos comentados no `DH_inicializacao.m`):
+- **Kq** 0.0524 → 0.10 (ζ_SP 0.68 → 0.81, folga p/ fechamento de θ);
+- **C_theta** re-sintonizado (`pidtune` wc=3.5, PM=75°, ref-tracking) — o OS de 15% em θ vinha do acoplamento com o throttle, não da malha;
+- **C_vel** +10% de ganho (corta OS de VT no NL: degrau +2 m/s dava 20,9%);
+- **C_alt** Kp/Ki +74%/+66% (v2: OS de h 5,8%, ess ≈ 0 — a v1 deixava offsets de 1–2 m na missão a 15,2 m/s);
+- **C_phi** P forte + I profundo (zero 0.08) — planta φ/δa não é tipo-1; P puro deixava ess de 10–15%, PI clássico dava OS de 24–28%;
+- **Kr / Kp / K_heading / tau_psi / tau_ref / clamp:** inalterados.
 
 > Ganhos do roll com sinal negativo pois `Cl_da < 0`.
 
@@ -228,13 +250,16 @@ O modelo NL inclui dinâmica de atuador realista (preparação p/ hardware-in-th
 
 ---
 
-## Estabilidade da malha fechada (linear, retune 2026-06-09)
+## Estabilidade e desempenho da malha fechada (retune 2026-08-10)
 
-- **Longitudinal:** ζ_mín = 0.57; curto-período via SAS Kq com ζ_SP ≈ 0.70.
-- **Látero-direcional:** todos os polos no SPE; Dutch roll via SAS Kr com ζ_DR ≈ 0.707; espiral estabilizada em −0.14.
-- **Margens de projeto (pidtune):** C_theta wc≈2.0, PM≈65° · C_vel wc≈0.8 · C_alt wc≈0.35, PM≈55°, GM≈26 dB · C_phi wc≈2.0, PM≈65°. Separação inner/outer ≈ 5–7×.
+Verificação do retuning contra os requisitos da dissertação:
 
-> Para os modos da planta atual, ver a saída de `DH_build_model` / `linear/MATRIZES_DH.m` (os autovalores dependem dos coeficientes carregados).
+- **Não-linear (overshoot):** VT 8,1% · h 1,4% · ψ 0%.
+- **Linear (overshoot):** θ 7,6% · φ 8,5%.
+- **Margens:** GM ≥ 21 dB, PM ≥ 86° em todas as malhas (requisito: GM > 10 dB, PM > 45°).
+- **Curto-período:** via SAS Kq, ζ_SP ≈ 0.81.
+
+> Para os modos da planta atual, ver a saída de `DH_build_model` / `linear/MATRIZES_DH.m` (os autovalores dependem dos coeficientes carregados). O script de verificação do retune está em `HIL_PID\Matlab\retuning_requisitos_PID.m` (fora deste repositório).
 
 ---
 
@@ -263,7 +288,18 @@ PID_out (delta) ─►(+)─► Sat ─► canal absoluto da S-Function
 
 ## Validação
 
-Linear × não-linear: para perturbações pequenas em torno do trim a divergência é pequena; para manobras grandes os modelos divergem como esperado (não-linearidades aerodinâmicas + acoplamentos cinemáticos). As figuras estão em `relatorio_PID/`.
+Linear × não-linear: para perturbações pequenas em torno do trim a divergência é pequena; para manobras grandes os modelos divergem como esperado (não-linearidades aerodinâmicas + acoplamentos cinemáticos). As figuras estão em `arquivos/figs/` (`fig_nl_lin_*.png`).
+
+---
+
+## Artigo (`arquivos/`)
+
+Draft IEEE Access comparando o **PID cascata** deste repositório com o **LQRy de ganho fixo** (entrega embarcada na bancada, campanha de 10/ago), do SIL ao HIL, com estudo de robustez (modelo do Sato, perturbação paramétrica, vento). Narrativa: PID vence desempenho nominal; LQRy vence robustez.
+
+- `main.tex` + `sections/01–07` — fontes LaTeX (classe `ieeeaccess.cls`); `main.pdf` — última compilação.
+- `sims/` — scripts que geram as figuras e tabelas do artigo (rodam sobre este repo + os `.mat` das campanhas, fora do repositório).
+- `dados_*.txt` — métricas exportadas para as tabelas.
+- `PENDENCIAS.md` — pontos abertos do draft, marcados no LaTeX com `\pendente{...}`.
 
 ---
 
