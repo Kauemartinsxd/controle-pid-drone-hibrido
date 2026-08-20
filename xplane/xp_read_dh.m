@@ -4,7 +4,7 @@ function y = xp_read_dh(cmd, t_sim)
 % Adaptado de ins_read_xplane.m (Julio Machado, PIPER-1-6) para o
 % conjunto minimo de sinais do controle do DH em modo asa-fixa.
 %
-% Output y (10x1):
+% Output y (13x1):
 %   y(1)  = VT       velocidade aerodinamica [m/s]
 %   y(2)  = p        taxa de rolamento [rad/s]
 %   y(3)  = q        taxa de arfagem [rad/s]
@@ -15,6 +15,17 @@ function y = xp_read_dh(cmd, t_sim)
 %   y(8)  = h        altitude MSL [m] (= -xD do modelo, ponto de trim he)
 %   y(9)  = beta     derrapagem [rad] (nao usado pelas malhas; log)
 %   y(10) = t_xplane tempo de voo do X-Plane [s]
+%   y(11) = xN       posicao Norte RELATIVA ao engate [m]
+%   y(12) = xE       posicao Leste RELATIVA ao engate [m]
+%   y(13) = psi_abs  proa ABSOLUTA [rad, [0,2pi) como o X-Plane reporta]
+%
+% Posicao NE (guiagem por waypoints): convencao OpenGL do XP9
+% (padrao do ins_read_xplane do Julio): local_x = LESTE, local_z = SUL
+%   xE = local_x - x0;  xN = -(local_z - z0)
+% com a ancora (x0,z0) capturada na 1a leitura boa apos o engate
+% (cmd==1 zera a ancora, ou seja, POS-teleporte — mesmo padrao do psi
+% relativo). A LOS da guiagem e' calculada em NE absoluto com psi_abs;
+% o psi relativo do canal 7 continua alimentando o heading hold.
 %
 % Input cmd:
 %   0 = leitura normal
@@ -42,9 +53,9 @@ function y = xp_read_dh(cmd, t_sim)
     global GlobalSocket;
     import XPlaneConnect.*;
 
-    persistent psi_acc psi_prev y_good wall_clock n_call;
+    persistent psi_acc psi_prev y_good wall_clock n_call xz0;
 
-    if isempty(y_good), y_good = zeros(10,1); end
+    if isempty(y_good), y_good = zeros(13,1); end
     y = y_good;
 
     %% Conexao (socket compartilhado com xp_send_dh)
@@ -54,7 +65,8 @@ function y = xp_read_dh(cmd, t_sim)
     if nargin > 0 && cmd == 1
         psi_acc = [];
         psi_prev = [];
-        y_good = zeros(10,1);
+        xz0 = [];                    % re-ancora a posicao NE no engate
+        y_good = zeros(13,1);
         global XP_IC;
         if isstruct(XP_IC)
             try
@@ -107,6 +119,21 @@ function y = xp_read_dh(cmd, t_sim)
                 else
                     disp('xp_read_dh: AVISO — teleporte nao confirmado pela telemetria.');
                 end
+                % RE-ZERA atitude/velocidade/taxas imediatamente antes de
+                % liberar o 1o sample: durante o loop de confirmacao acima
+                % (~1-1.5 s) o profundor fica fixo em de0 e o DH (instavel)
+                % faz pitch-up ate theta ~9 deg — o PID entao engatava com
+                % transitorio grande de theta, VT despencava e o voo caia
+                % na armadilha do 2o regime (VT~10, thr 1.0, sink 1.7 m/s).
+                % Repetir o POSI+vel+taxas aqui entrega o engate SEMPRE em
+                % (pitch0, VT0, q=0) — visto 2026-08-20.
+                sendPOSI([r0(1), r0(2), target_msl, pitch0, 0, psi0, -998], 0, GlobalSocket);
+                sendDREF('sim/flightmodel/position/local_vx',  XP_IC.VT0*sin(hdg), GlobalSocket);
+                sendDREF('sim/flightmodel/position/local_vy',  0,                  GlobalSocket);
+                sendDREF('sim/flightmodel/position/local_vz', -XP_IC.VT0*cos(hdg), GlobalSocket);
+                sendDREF('sim/flightmodel/position/Prad', 0, GlobalSocket);
+                sendDREF('sim/flightmodel/position/Qrad', 0, GlobalSocket);
+                sendDREF('sim/flightmodel/position/Rrad', 0, GlobalSocket);
             catch ME
                 disp(['xp_read_dh: falha no teleporte - ' ME.message]);
             end
@@ -154,9 +181,17 @@ function y = xp_read_dh(cmd, t_sim)
         psi_prev = psi_meas;
     end
 
+    %% Posicao NE relativa ao engate (OpenGL: local_x=Leste, local_z=Sul)
+    if isempty(xz0)
+        xz0 = [raw(11) raw(12)];                % ancora na 1a leitura boa
+    end
+    xE =  (raw(11) - xz0(1));
+    xN = -(raw(12) - xz0(2));
+
     y = [raw(1); raw(2); raw(3); raw(4); ...
          deg2rad(raw(5)); deg2rad(raw(6)); psi_acc; ...
-         raw(8); deg2rad(raw(9)); raw(10)];
+         raw(8); deg2rad(raw(9)); raw(10); ...
+         xN; xE; psi_meas];
     y_good = y;
 
     % DEBUG: primeiros N samples do engate
@@ -207,7 +242,9 @@ function y = xp_read_dh(cmd, t_sim)
                 'sim/flightmodel/position/psi', ...           % 7: heading [deg]
                 'sim/flightmodel/position/elevation', ...     % 8: h MSL [m]
                 'sim/flightmodel/position/beta', ...          % 9: sideslip [deg]
-                'sim/time/total_flight_time_sec'};            % 10: t [s]
+                'sim/time/total_flight_time_sec', ...         % 10: t [s]
+                'sim/flightmodel/position/local_x', ...       % 11: OpenGL x = LESTE [m]
+                'sim/flightmodel/position/local_z'};          % 12: OpenGL z = SUL [m]
             raw = double(getDREFs(drefs, GlobalSocket));
         catch
             raw = [];

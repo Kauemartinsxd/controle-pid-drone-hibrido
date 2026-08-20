@@ -5,6 +5,37 @@
 > Referência: guiagem LOS do Julio Machado em
 > `trabalho_julio/PIPER-1-6-roll_back/PIPER-1-6-roll_back/guiagem/`.
 
+## STATUS 2026-08-20 — implementado; G2 nominal aguarda conserto do motor
+
+- **Fase 1 FEITA**: `xp_read_dh` com 13 canais (xN/xE/ψ_abs, âncora no
+  engate); `modelo_XP_DH_CL` atualizado (Demux 13). Engate melhorado:
+  re-zero de atitude/taxas após a confirmação do teleporte.
+- **Fase 2 FEITA**: `modelo_XP_DH_GUIA.slx` com `Guidance_Star` (LOS do
+  Julio + conversão ψ_abs→ψ_rel; wp_idx inicia em 1; hold de proa após
+  capturar o último WP — adaptação ao envelope do DH, o Julio orbita) e
+  `Step_theta_test` (degrau de θ_ref p/ validação da Fase 0).
+- **Fase 3 FEITA**: `XP_missao.m` (WPs no referencial da proa de engate ou
+  NE, interpolação Δh>20 m, TimeXP auto, pre-flight tolerante, resumo de
+  capturas) + `plot_XP_missao.m` (trajetória 2D + séries, salva PNGs).
+- **Fase 0 FEITA E SEPARADA (opt-in)**: identificação q/δe no X-Plane
+  (`XP_ident_theta.m`, dados em `voos/XP_ident_theta_*.mat`) e retune
+  documentado em `XP_retune_Ctheta.m` (C_theta_XP: Kp 1,6/Ki 0,9 — OS 8%
+  vs 14,9% do original nesta planta). **Por decisão do Kaue, o trabalho
+  oficial voa com os ganhos da dissertação**; o retune só entra com
+  `XP_use_Ctheta_XP = true` no `XP_missao`.
+- **Campanha**: G1 ✓ (captura a 7,8 m). **G2-planeio ✓** (2026-08-19 23:16,
+  `voos/XP_missao_20260819_231632_G2_planeio.*`): quadrado 500×500 m
+  rotacionado pela proa de engate, **4/4 capturas (26,6/10,4/27,7/0,0 m),
+  φ max 22,5° < 25°, sync 0,994, ganhos originais** — trajetória passa
+  pelos 4 círculos (ver PNG). VT ficou 10±1 (não 12±1) e h desceu em
+  rampa: causa única = **hélice do .acf sem empuxo em voo** (≤0 N; ver
+  `PENDENCIA_MOTOR.md`). Lição de voo: teto de θ_ref +5° é obrigatório
+  (teto 6° → ciclo de estol, reproduzido e registrado em
+  `voos/XP_missao_20260819_225422_G1.mat`).
+- **Falta**: conserto da hélice no Plane Maker (checklist em
+  `PENDENCIA_MOTOR.md`) → re-voar G2 nominal (h constante, VT 12±1);
+  G3 (Δh) e G4 (SIL) na sequência.
+
 ## Objetivo
 
 Voar o DH no X-Plane por uma **missão de waypoints** — matriz

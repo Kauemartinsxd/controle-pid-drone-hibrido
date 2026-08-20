@@ -53,7 +53,9 @@ if t2 <= r0(6)
     error(['XP_voo: tempo do X-Plane CONGELADO (tela de crash/pausa). ' ...
         'Faca Reset Flight no X-Plane e rode de novo.']);
 end
-if r0(2) > 3 || abs(r0(3)) > 4 || abs(r0(4)) > 4 || r0(5) > 3
+% (theta ate 6: a atitude de REPOUSO do DH no solo e' ~4.5 deg — trem
+%  enterrado, nariz p/ cima — medida em 2026-08-19/20; nao e' wreck)
+if r0(2) > 3 || abs(r0(3)) > 6 || abs(r0(4)) > 4 || r0(5) > 3
     error(['XP_voo: aeronave nao parece intacta/estacionada (AGL=%.1f m, ' ...
         'theta=%.1f deg, phi=%.1f deg, VT=%.1f m/s) — provavel wreck da corrida ' ...
         'anterior. Faca Reset Flight no X-Plane (aeronave inteira, na pista) ' ...
@@ -107,7 +109,7 @@ voosDir = fullfile(rootDir, 'xplane', 'voos');
 if ~isfolder(voosDir), mkdir(voosDir); end
 voo = struct();
 voo.quando     = datestr(now, 'yyyy-mm-dd HH:MM:SS');
-voo.Y          = squeeze(out.Y_xp);      % 10 x T: [VT p q r phi theta psi h beta t_xp]
+voo.Y          = squeeze(out.Y_xp);      % 13 x T: [VT p q r phi theta psi h beta t_xp xN xE psi_abs]
 voo.U          = out.U_xp;               % T x 4:  [thr de da dr]
 voo.t          = out.tout(:);
 voo.t_xplane   = out.t_xplane_log(:);
