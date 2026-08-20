@@ -26,3 +26,6 @@ relatorio_PID/
 # Backups de modelo (.slx) locais
 *_bk_pre2dof*.slx
 *_pre_*.slx
+
+# Config local do agente (tooling)
+.satk/
