@@ -1,4 +1,43 @@
-# Equivalência .acf ↔ drone real (modelo da Ana) — Fase A: medição (2026-08-30)
+# Equivalência .acf ↔ drone real (modelo da Ana)
+
+## STATUS 2026-08-30 — FASE B iterações 1–2 FEITAS: gêmeo ~85–90%
+
+Edições aplicadas (com o Kaue; backup pré-Fase B:
+`DH-Lon-REV-03_backup_preFaseB_20260830.acf`):
+- **B1**: incidência da asa +5°→0° (6 elementos, tela Wings);
+- **B2 iter-1**: aerofólio novo `Aircraft/Radio Control/airfoils/DH asa
+  equiv.afl` (base NACA 2412: intercept 0.25→0.20→**0.30**, slope
+  0.102→**0.064**, lin range 10→**16**, maximum 1.6→1.4→**1.45**,
+  cd-min 0.006→**0.020**, d alpha=10 0.012→0.040→**0.048**), atribuído
+  aos 4 slots da WING 1;
+- **B2 iter-2**: h-stab incidence −2°→**−5°** (4 elementos).
+
+Resultado medido (trim nivelado sink 0.00, polar 6 pontos, ident de
+arfagem, sondas laterais — voos de 2026-08-30 ~14:30–15:00):
+| métrica | Ana | .acf iter-2 |
+|---|---|---|
+| α trim 12 m/s | 14,4° | **14,9°** ✅ |
+| CLα | 2,88/rad | **2,87** ✅ |
+| α(VT) na polar | — | ±0,5° ✅ |
+| sink(VT) | 2,1–3,2 | 2,55–3,04 (+12%) |
+| curto período | 6,3 rad/s / ζ0,54 | 9,5 / **ζ0,61** ✅ζ |
+| δe trim | +7,6° | +9,7° |
+| p_ss/δa | −8,5 | −6,9 (−19%) |
+| dutch roll | 5,0 / 0,41 | ~5,6–8,9 / 0,35 |
+
+**Refinamentos restantes** (opcionais, ordem de impacto):
+1. ωn do curto período 9,5→6,3: reduzir área/braço do h-stab (~−35% de
+   Cmα) — re-conferir trim depois;
+2. δe de trim +9,7→+7,6: h-stab incidence −5°→−6°;
+3. rolagem −19%: área/corda do aileron +20%;
+4. sink +12%: d alpha=10 0.048→0.044.
+ATENÇÃO: as âncoras de missão (XP_missao/XP_voo: Xe(8), clamp, trims de
+engate) foram calibradas p/ o .acf ANTIGO — recalibrar antes de voar
+G2 no gêmeo (trim novo: α≈15°, θ_ref centro ~14–15°, de ≈+10, thr ≈0,47).
+
+---
+
+# Fase A: medição original (2026-08-30, pré-Fase B)
 
 > Objetivo: transformar o `DH-Lon-REV-03.acf` num gêmeo do DRONE REAL,
 > cuja referência é o modelo identificado da Ana (coef_DH.m, 24/04/2026).

@@ -38,9 +38,9 @@ GlobalSocket = openUDP('127.0.0.1', 49009, 0, 500);
 %% Ponto de operacao (regime do voo asa5, 2026-08-19)
 MSL0    = 600;
 VT0     = 12;
-pitch0  = 2;              % [deg]
-thr_op  = 0.80;
-de_op   = 2.0;            % [deg] profundor fisico no ponto de operacao
+pitch0  = 14;             % [deg]
+thr_op  = 0.50;
+de_op   = 10.0;           % [deg] profundor fisico no ponto de operacao (iter-2)
 
 steps   = [0 +2 -2 +3 -3];   % [deg] degraus (0 = baseline da deriva)
 T_set   = 1.2;            % [s] settle antes do re-zero
