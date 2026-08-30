@@ -142,8 +142,17 @@ fprintf('XP_missao_lqry2: pre-flight OK (proa %.0f deg, phi_psi=%d).\n', psi_eng
 % de/thr com a planta vale no ponto 12 m/s onde o CG foi calibrado; em
 % outras VTs o gradiente de de difere — medido na polar):
 alpha0    = atan2(double(Plantas(i).Xe(3)), double(Plantas(i).Xe(1)));
-XP_thr0   = double(Plantas(i).Ue(1));
-XP_de0_dg = rad2deg(double(Plantas(i).Ue(2)));
+% DEFAULT = trim REAL do gemeo v1/v1.1 a 12 m/s (medido: thr 0.45,
+% de +5.50) — NAO depender de override no workspace: os clears de
+% outros lancadores/auditorias apagam as variaveis e o voo engata com
+% o trim da planta matematica (thr 0.284 -> deficit de empuxo ->
+% windup garantido no engate; visto em 2026-08-30 19:10).
+XP_thr0   = 0.45;
+XP_de0_dg = 5.50;
+if i ~= 2   % fora do ponto calibrado, parte do trim da planta agendada
+    XP_thr0   = double(Plantas(i).Ue(1));
+    XP_de0_dg = rad2deg(double(Plantas(i).Ue(2)));
+end
 if ~exist('XP_de0_override','var') || isempty(XP_de0_override)
 else, XP_de0_dg = XP_de0_override; end
 if ~exist('XP_thr0_override','var') || isempty(XP_thr0_override)

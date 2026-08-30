@@ -1,5 +1,37 @@
 # LQRY no X-Plane — experimento e resultado (2026-08-30)
 
+## ADENDO 5 — Teste da "missão mansa": REFUTADA — departure em VOO RETO
+
+Hipótese do Kaue pós-auditoria: missão dentro do envelope pequeno
+(curvas ≤10°) o LQRY cumpriria. Missão-teste: 3 WPs em arco suave
+(curvas de ~10°/perna, 12 m/s, h constante, alpha-protection, WP1 na
+proa = zero degrau inicial), gêmeo v1.1, âncoras corretas
+(`voos/XP_missao_20260830_193300_*_arco_suave_v2.*`; o voo _191046 é
+inválido — engatou com âncoras da planta matemática, ver nota abaixo).
+
+**Resultado: 1/3, com departure em t=12,5 s AINDA NA PERNA RETA** —
+nenhuma curva havia sido comandada (erro de ψ ~2° no engate):
+φ ±29° já nos primeiros 5 s → ±40° → >70° em 12,5 s; windup do
+throttle a partir de t=4 s (zoom de engate → VT 20,6 → motor idle).
+A captura do WP1 (50 m, t=14,8 s) ocorreu já rolando pelo círculo.
+
+**Conclusão final do arco LQRY**: a 12 m/s na planta real, o envelope
+estável do PsiHold é NULO na prática — a oscilação lateral cresce
+sozinha em voo reto (o SIL, mais otimista, dava ±5–10°; as camadas de
+implementação — latência 20 Hz, spool pós-teleporte, windup com
+saturação real, windmill — consomem a margem restante). Todas as
+alavancas foram exauridas: planta estática (v1), dinâmica (v1.1),
+proteção de envelope, âncoras, velocidade (12/15), amplitude da missão
+(90°→10°→reta). Melhor caso permanece **2/4** (v1, 12 m/s, sorte do
+caos no transiente). Única alavanca não testada: anti-windup DENTRO do
+controlador — com expectativa moderada, pois a marginalidade lateral
+independe do motor.
+
+Nota de harness: âncoras do gêmeo (thr 0.45 / δe +5.50) agora são
+DEFAULT INTERNO do lançador p/ i=2 — não dependem de override no
+workspace (os clears de outros lançadores as apagavam e o engate caía
+no trim da planta matemática, thr 0.284 → windup garantido).
+
 ## ADENDO 4 — Auditoria a pedido do Kaue: "funciona no NL" vale só p/ degraus ≤5–15°
 
 Verificação completa contra o documento de setup do Mirko
