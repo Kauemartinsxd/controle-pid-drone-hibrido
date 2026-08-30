@@ -29,13 +29,15 @@
 if ~exist('XP_msl0','var')   || isempty(XP_msl0),   XP_msl0   = 600; end
 if ~exist('XP_VT0','var')    || isempty(XP_VT0),    XP_VT0    = 12;  end
 if ~exist('XP_TimeXP','var') || isempty(XP_TimeXP), XP_TimeXP = 60;  end
-setpref('XP_DH','cfg',[XP_msl0 XP_VT0 XP_TimeXP]);   % sobrevive ao clear
+if ~exist('XP_VT_ref','var') || isempty(XP_VT_ref), XP_VT_ref = NaN; end  % NaN = Ve (default)
+setpref('XP_DH','cfg',[XP_msl0 XP_VT0 XP_TimeXP XP_VT_ref]);   % sobrevive ao clear
 
 %% 1) Workspace completo (ganhos, socket, refs) — faz clear/bdclose
 run(fullfile(fileparts(mfilename('fullpath')), 'XP_inicializacao.m'));
 
 cfg = getpref('XP_DH','cfg');
 XP_msl0 = cfg(1); XP_VT0 = cfg(2); TimeXP = cfg(3);
+XP_VT_ref = NaN; if numel(cfg) >= 4, XP_VT_ref = cfg(4); end
 rmpref('XP_DH','cfg');
 
 %% 2) PRE-FLIGHT CHECK: aeronave inteira, nivelada no solo, X-Plane rodando
@@ -53,15 +55,14 @@ if t2 <= r0(6)
     error(['XP_voo: tempo do X-Plane CONGELADO (tela de crash/pausa). ' ...
         'Faca Reset Flight no X-Plane e rode de novo.']);
 end
-% (theta ate 6: a atitude de REPOUSO do DH no solo e' ~4.5 deg — trem
-%  enterrado, nariz p/ cima — medida em 2026-08-19/20; nao e' wreck)
-if r0(2) > 3 || abs(r0(3)) > 6 || abs(r0(4)) > 4 || r0(5) > 3
-    error(['XP_voo: aeronave nao parece intacta/estacionada (AGL=%.1f m, ' ...
-        'theta=%.1f deg, phi=%.1f deg, VT=%.1f m/s) — provavel wreck da corrida ' ...
-        'anterior. Faca Reset Flight no X-Plane (aeronave inteira, na pista) ' ...
-        'e rode de novo.'], r0(2), r0(3), r0(4), r0(5));
+% O teleporte-no-engate normaliza posicao/atitude/velocidade/taxas a
+% partir de QUALQUER estado com fisica rodando (mesma logica do
+% XP_missao, 2026-08-20) — o pre-flight so bloqueia simulador travado.
+if ~(r0(2) < 3 && r0(5) < 3)
+    fprintf(['XP_voo: engatando A PARTIR DE VOO (AGL=%.1f m, VT=%.1f m/s, ' ...
+        'phi=%.1f deg) — o teleporte normaliza o estado.\n'], r0(2), r0(5), r0(4));
 end
-fprintf('XP_voo: pre-flight OK (aeronave no solo, nivelada, X-Plane rodando).\n');
+fprintf('XP_voo: pre-flight OK (X-Plane rodando).\n');
 ground_msl = r0(1) - r0(2);
 if XP_msl0 - ground_msl < 120
     warning(['Solo local em %.0f m MSL: MSL0 = %.0f m daria so %.0f m AGL. ' ...
@@ -88,6 +89,7 @@ theta_ref_clamp = [-0.1745  deg2rad(3)];
 h_ref  = XP_msl0;               % altitude MSL alvo
 he     = XP_msl0;               % bias dos PIDs b=0 no ponto de voo
 VT_ref = Ve;                    % 12 m/s — ponto de projeto
+if ~isnan(XP_VT_ref), VT_ref = XP_VT_ref; end   % override p/ mapa de trim
 
 %% 4) Compila o modelo e ARMA o teleporte-no-engate
 mdl = 'modelo_XP_DH_CL';
