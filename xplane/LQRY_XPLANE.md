@@ -1,5 +1,36 @@
 # LQRY no X-Plane — experimento e resultado (2026-08-30)
 
+## ADENDO 3 — GÊMEO v1.1 (dinâmica casada): a falha fica ISOLADA no windup
+
+Com a inércia de arfagem calibrada (gêmeo v1.1: ωn 6,25 vs alvo 6,3 —
+EQUIVALENCIA_ACF.md), o LQRY foi re-voado no G2 em duas configurações:
+
+- **Puro** (`voos/XP_missao_20260830_171651_*_G2_puro.*`): 1/4 (WP1 a
+  63,7 m). Transiente de engate CAIU de θ 29° (v1) p/ 21,6° — a
+  dinâmica casada reduz a amplificação do loop de α — mas ainda tocou
+  o estol (18,5°); asa solta → mergulho (VT 18,4) → windup do hold de
+  VT → mush sem potência em α 36–46° → departure na perna 2.
+- **Com alpha-protection** (`voos/XP_missao_20260830_172755_*_G2_prot.*`):
+  **arfagem 100% resolvida** — α máx 16,2° pré-departure, zero estol
+  longitudinal, engate limpo (θ pico 16,2 nos primeiros s). Mas o zoom
+  residual do engate (θ 21° a 1,3 s, reação ao spool de RPM
+  pós-teleporte) levou VT a 20 m/s → hold de VT (Gs=−78,8 %/(m/s))
+  comandou −630%, saturou em 0 e o integrador afundou (−5→−25%, pico
+  −153/+1097% no voo) → **motor em idle de t≈4 s até o fim** → voo sem
+  potência a α≈15° → wing rock lateral (φ ±17→±73°) → departure
+  t≈18 s. 0/4.
+
+**Isolamento final**: depois de (1) equivalência estática (v1),
+(2) equivalência dinâmica (v1.1) e (3) proteção de envelope na
+plataforma, a ÚNICA deficiência restante é o **windup do integrador do
+hold de velocidade** sob saturação de throttle — deficiência de
+IMPLEMENTAÇÃO clássica (o projeto LQRY não especifica anti-windup e o
+ganho de −78,8 %/(m/s) satura o atuador com ±1,3 m/s de erro). Ela é
+interna ao controlador: não existe correção possível do lado da
+planta/harness. Corrigi-la (1 clamp no integrador, ganhos intocados)
+seria o experimento final "custo de implantação do LQRY"; sem ela, o
+melhor caso permanece 2/4 (v1, 12 m/s).
+
 ## ADENDO 2 — Alpha-protection na PLANTA: a falha MIGRA de camada
 
 Última tentativa de 4/4 sem tocar ganhos: proteção de envelope no

@@ -61,7 +61,7 @@ julioX = fullfile(fileparts(fileparts(xpDir)), 'trabalho_julio', ...
 addpath(raizN); addpath(xpDir); addpath(julioX);
 import XPlaneConnect.*
 
-clearvars -except cfg_user raizN xpDir julioX XP_att_alt XP_reftheta XP_clamp_lqry XP_de0_override XP_thr0_override
+clearvars -except cfg_user raizN xpDir julioX XP_att_alt XP_reftheta XP_clamp_lqry XP_de0_override XP_thr0_override XP_prot_on
 clear global XP_IC
 clear xp_read_dh xp_send_dh
 global GlobalSocket
@@ -105,6 +105,7 @@ end
 % alpha_prot o teto nose-up do profundor desce ao trim (rampa de 2 deg).
 % Unica protecao efetiva p/ regulador de estados (clamp de ref vaza).
 prot_on    = 1;
+if exist('XP_prot_on','var') && ~isempty(XP_prot_on), prot_on = XP_prot_on; end
 alpha_prot = deg2rad(16);
 
 %% 4) PRE-FLIGHT
@@ -216,9 +217,9 @@ if ~isfolder(voosDir), mkdir(voosDir); end
 voo = struct();
 voo.quando     = datestr(now, 'yyyy-mm-dd HH:MM:SS');
 voo.Y          = squeeze(out.Y_xp);
-voo.U          = out.U_xp;
+voo.U          = squeeze(out.U_xp);  % o chart alpha_protection loga 4x1xT
 if size(voo.U,1) == 4 && size(voo.U,2) > 4
-    voo.U = voo.U.';       % o chart alpha_protection loga 4xT -> T x 4
+    voo.U = voo.U.';                 % -> T x 4
 end
 fatU = max(1, round((size(voo.U,1)-1)/(size(voo.Y,2)-1)));
 voo.U = voo.U(1:fatU:end, :);
