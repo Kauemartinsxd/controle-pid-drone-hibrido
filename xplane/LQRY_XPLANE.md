@@ -1,5 +1,40 @@
 # LQRY no X-Plane — experimento e resultado (2026-08-30)
 
+## ADENDO — versão ATUALIZADA do Mirko (lqry_mirko_atualizado, 18-jun-2026)
+
+A versão nova (gain scheduling 3×3 Ve×He via var `i`; PsiHold
+RE-PROJETADO — validado no SIL: φ(0)=3° converge em ~12 s, a réplica
+antiga explodia; atuadores modelados; controlador em DESVIOS com o trim
+`Plantas(i).Ue` somado na planta) foi transplantada com o mesmo rigor:
+`modelo_XP_LQRY2_GUIA.slx` + `XP_missao_lqry2.m` (trim somado na
+Planta_XP, ICs em deltas, ref de VT da missão em vez do trim da planta
+agendada, scheduling POR EIXO: longitudinal pela planta de α compatível
+(i=8, α_e=4,5° ≈ .acf), lateral pela pressão dinâmica (i_lat=2, 12 m/s)).
+
+**Resultado: diverge igualmente (5 voos, t1–t5).** O voo instrumentado
+(`voos/XP_missao_20260830_135225_LQRY2_t5_probe.mat`, probes nas
+referências internas) isola o mecanismo de forma definitiva:
+
+- refVT = 12,00 e refH = 0,00 CONSTANTES (referências perfeitas);
+- h cravada em 600 m (erro de altitude ~0);
+- e ainda assim **θ_ref do hold de altitude: +8° → +32° (1,5 s) → +65°
+  (3 s)** → estol. Com ZERO erro de altitude, quem move θ_ref é o
+  termo de estado em α: `GstateLong_Alt(α) ≈ +4,5 rad/rad` (idêntico em
+  TODAS as 9 plantas e na v1 — assinatura do projeto). No .acf, o loop
+  α → θ_ref → δe → α↑ é instável (na planta matemática, a dinâmica de
+  curto período com α_e alto o fecha estável).
+- Secundários corrigidos no caminho (documentados no lançador): a ref
+  de VT do harness dele parte de `Plantas(i).Xe(1)` (17,95 p/ i=8 → o
+  throttle% com Gint=−50 ia a +297%/s); o hold VT novo tem
+  `Gs(VT) = −78,8 %/(m/s)` e satura/winda sem anti-windup quando o .acf
+  entra em pré-estol.
+
+**Conclusão consolidada (v1 E v2)**: com ganhos e estrutura intocados, o
+LQRY não estabiliza o .acf — não por afinação, mas pelo acoplamento
+estrutural de α na malha longitudinal, cuja estabilidade depende da
+dinâmica exata da planta de projeto. O PID cascata (sem realimentação
+de α; erros de saída + clamps) voou a mesma missão com ganhos originais.
+
 > Mesma metodologia do PID (mesmo harness, mesma guiagem LOS, mesmas
 > âncoras de engate, mesma missão G2), controlador LQRY da réplica do
 > Mirko **com ganhos e estrutura 100% intocados**.
