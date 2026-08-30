@@ -7,8 +7,11 @@ function plot_XP_missao(voo, vooFile)
 %   v = load('...\XP_missao_*.mat'); plot_XP_missao(v.voo)   % re-plot
 %
 % Fig 1: trajetoria 2D (Leste x Norte) com WPs, circulos de R_accept e
-%        marcas de troca de wp_idx. Fig 2: series temporais.
+% marcas de troca de wp_idx. Fig 2: series temporais.
 % (Adaptacao 2D do plot3d_voo_xplane.m do PIPER-1-6 do Julio.)
+%
+% Cores seguem o TEMA do MATLAB (claro ou escuro): nada de preto/azul
+% escuro chumbado — no escuro a trajetoria e' clara e os azuis, vivos.
 
     if nargin < 2, vooFile = ''; end
     Y = voo.Y; U = voo.U; t = voo.t;
@@ -20,18 +23,31 @@ function plot_XP_missao(voo, vooFile)
     t_wp = linspace(t(1), t(end), numel(voo.wp_idx))';
 
     %% Fig 1 — trajetoria 2D
-    f1 = figure('Name', 'XP_missao — trajetoria 2D', 'Color', 'w', ...
-        'Position', [80 80 720 720]);
+    f1 = figure('Name', 'XP_missao — trajetoria 2D', 'Position', [80 80 720 720]);
+    escuro = false;
+    try, escuro = strcmpi(f1.Theme.BaseColorStyle, 'dark'); catch, end
+    if escuro
+        corTraj = [0.92 0.92 0.92];  corAzul = [0.40 0.65 1.00];
+        corFill = [0.16 0.22 0.34];  corEdge = [0.45 0.62 0.95];
+        corVerde = [0.35 0.85 0.45]; corLar = [1.00 0.60 0.20];
+    else
+        set(f1, 'Color', 'w');
+        corTraj = [0 0 0];           corAzul = [0.00 0.20 0.85];
+        corFill = [0.90 0.95 1.00];  corEdge = [0.30 0.50 0.90];
+        corVerde = [0.00 0.60 0.00]; corLar = [0.85 0.40 0.00];
+    end
     hold on; axis equal; grid on;
     th = linspace(0, 2*pi, 90);
     for i = 1:nWP
-        fill(WPs(i,2) + R*cos(th), WPs(i,1) + R*sin(th), [0.9 0.95 1], ...
-            'EdgeColor', [0.3 0.5 0.9], 'LineStyle', '--', 'FaceAlpha', 0.5);
-        plot(WPs(i,2), WPs(i,1), 'b^', 'MarkerFaceColor', 'b', 'MarkerSize', 7);
-        text(WPs(i,2)+18, WPs(i,1)+18, sprintf('WP%d', i), 'Color', 'b', 'FontWeight', 'bold');
+        fill(WPs(i,2) + R*cos(th), WPs(i,1) + R*sin(th), corFill, ...
+            'EdgeColor', corEdge, 'LineStyle', '--', 'FaceAlpha', 0.5);
+        plot(WPs(i,2), WPs(i,1), '^', 'Color', corAzul, ...
+            'MarkerFaceColor', corAzul, 'MarkerSize', 7);
+        text(WPs(i,2)+18, WPs(i,1)+18, sprintf('WP%d', i), ...
+            'Color', corAzul, 'FontWeight', 'bold');
     end
-    plot(xE, xN, 'k-', 'LineWidth', 1.4);
-    plot(xE(1), xN(1), 'go', 'MarkerFaceColor', 'g', 'MarkerSize', 9);
+    plot(xE, xN, '-', 'Color', corTraj, 'LineWidth', 1.4);
+    plot(xE(1), xN(1), 'o', 'Color', corVerde, 'MarkerFaceColor', corVerde, 'MarkerSize', 9);
     plot(xE(end), xN(end), 'rs', 'MarkerFaceColor', 'r', 'MarkerSize', 9);
     % marca as trocas de waypoint sobre a trajetoria (mapeia t_wp -> t)
     if isfield(voo, 'wp_idx') && ~isempty(voo.wp_idx)
@@ -43,29 +59,29 @@ function plot_XP_missao(voo, vooFile)
     title(sprintf('DH no X-Plane — missao por waypoints (R_{accept} = %.0f m)', R));
 
     %% Fig 2 — series temporais
-    f2 = figure('Name', 'XP_missao — estados', 'Color', 'w', ...
-        'Position', [820 80 720 780]);
+    f2 = figure('Name', 'XP_missao — estados', 'Position', [820 80 720 780]);
+    if ~escuro, set(f2, 'Color', 'w'); end
     subplot(5,1,1);
-    plot(t, Y(1,:), 'b', 'LineWidth', 1.1); hold on;
+    plot(t, Y(1,:), 'Color', corAzul, 'LineWidth', 1.1); hold on;
     if isfield(voo.cfg, 'VT_ref'), yline(voo.cfg.VT_ref, 'r--'); end
     grid on; ylabel('V_T [m/s]');
     title('Missao por waypoints — cascata PID (ganhos da dissertacao)');
     subplot(5,1,2);
-    plot(t, Y(8,:), 'b', 'LineWidth', 1.1); hold on;
+    plot(t, Y(8,:), 'Color', corAzul, 'LineWidth', 1.1); hold on;
     stairs(t_wp, WPs(max(round(voo.wp_idx(:)),1), 3), 'r--');
     grid on; ylabel('h MSL [m]'); legend('h', 'h_{WP}', 'Location', 'best');
     subplot(5,1,3);
-    plot(t, rad2deg(Y(5,:)), 'Color', [0 0.6 0]); hold on;
-    plot(t, rad2deg(Y(6,:)), 'Color', [0.85 0.4 0]);
+    plot(t, rad2deg(Y(5,:)), 'Color', corVerde); hold on;
+    plot(t, rad2deg(Y(6,:)), 'Color', corLar);
     grid on; ylabel('[deg]'); legend('\phi', '\theta', 'Location', 'best');
     subplot(5,1,4);
-    plot(t_wp, voo.dist_wp, 'b', 'LineWidth', 1.1); hold on;
+    plot(t_wp, voo.dist_wp, 'Color', corAzul, 'LineWidth', 1.1); hold on;
     yline(R, 'r--');
     yyaxis right; stairs(t_wp, voo.wp_idx, 'm-'); ylabel('wp idx');
     yyaxis left; grid on; ylabel('dist WP [m]');
     subplot(5,1,5);
-    plot(t, U(:,1), 'b', 'LineWidth', 1.1); hold on;
-    plot(t, rad2deg(U(:,2))/25, 'Color', [0.85 0.4 0]);
+    plot(t, U(:,1), 'Color', corAzul, 'LineWidth', 1.1); hold on;
+    plot(t, rad2deg(U(:,2))/25, 'Color', corLar);
     grid on; ylabel('thr | de/25deg'); xlabel('t [s]');
     legend('\delta_T', '\delta_e (norm)', 'Location', 'best');
 
