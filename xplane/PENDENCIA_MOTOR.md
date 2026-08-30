@@ -1,62 +1,74 @@
-# PENDÊNCIA: motor/hélice do .acf sem empuxo em voo (2026-08-20)
+# Motor elétrico do DH no X-Plane 9 — diagnóstico e operação (2026-08-29)
 
-> Bloqueia o G2 **nominal** (altitude constante) do PLANO_GUIAGEM. A guiagem
-> em si está validada (G1 + G2-planeio, 4/4 capturas — ver `voos/`).
+> Substitui o diagnóstico de 2026-08-20 (que culpava hélice sobre-passo e
+> "tanque vazio" — ambos FALSOS). Consolidado após a campanha de
+> 2026-08-29 com o motor caracterizado em voo.
 
-## Sintoma
+## O que o motor é
 
-O DH v3 no X-Plane **nunca produz empuxo líquido positivo em voo**, em
-nenhuma condição medida. Todos os voos (inclusive os de 2026-08-19 tidos
-como "sustentados") eram planeios: h sempre caindo (sink 0,2–1,7 m/s),
-throttle subindo até saturar sem efeito.
+- **Elétrico** (`sim/aircraft/prop/acf_en_type = 3`), 1226 W (1,6 hp),
+  redline 1445 rad/s (13.800 RPM). **Fuel = 0 é NORMAL** — não escrever
+  drefs de combustível.
+- Empuxo real com motor vivo: **+10 a +30 N** (12–18 m/s, thr 1.0) —
+  ~2× o T_max do modelo matemático (14 N). Consequência: o C_vel
+  (projetado p/ 14 N) trabalha em ciclo-limite de throttle
+  (0.4↔1.0, período ~3 s). Voa e regula bem mesmo assim.
 
-## Medições (via `sim/flightmodel/engine/POINT_thrust`, 2026-08-20)
+## As 3 regras de ouro (aprendidas a caro preço)
 
-| Condição | Hélice [rad/s] | Empuxo [N] |
-|---|---|---|
-| thr 1.0, VT 12–13,8 m/s | satura ~520 (~5000 RPM) | **−0,1 a −0,9** |
-| thr 1.0, VT 10–12 m/s | 340–440 | −0,1 a −0,8 |
-| thr 1.0, VT 17–18,5 m/s | 600–670 | −0,6 a −1,2 |
-| Gabarito: Piper 1/6 do Julio | — | **+5 a +19** (mesmo dref) |
+1. **O estado do motor é um latch frágil.** Ele MORRE (TRQ=0, hélice só
+   em windmill; sem falha registrada em `rel_engfai0`) quando:
+   (a) a **bateria esgota** — **~150 s** de voo motorizado no config
+   atual (assinatura: thr médio subindo continuamente até saturar em
+   1.0, aí o empuxo some); (b) crash + auto-reload ("reset on hard
+   crash" — já DESLIGADO nos settings em 2026-08-29); (c) writes de
+   drefs `sim/aircraft/*` (pmax etc.) com o sim rodando.
+2. **Religamento confiável: SÓ `File → Open Aircraft` na UI** (com
+   "Start each flight with engines running" marcado ✓). Via dref é
+   loteria: o power-cycle (battery_array_on/ENGN_running 0→1) religou
+   UMA vez (hélice em windmill alto) e nas demais TRAVOU a hélice de
+   vez (RPM 0 até em voo). NÃO tentar religar por dref.
+3. **Medição de empuxo no solo é INVÁLIDA**: o DH estacionado fica com
+   AGL −0,5 m (trem enterrado) e o disco da hélice DENTRO do terreno —
+   o X-Plane zera as forças das pás (TRQ aparece, hélice não gira,
+   POINT_thrust lixo). Medir empuxo SÓ em voo. O teleporte (sendPOSI)
+   derruba o RPM para ~60 rad/s, mas com motor vivo o spool volta em
+   ~1–2 s (não mata o motor).
 
-Causa provável: **RPM máximo ~5000 com o passo atual → velocidade de passo
-≈ 12 m/s ≈ VT de voo** — a hélice "acompanha" o ar, nunca traciona
-(windmill leve). O modelo matemático do DH tem T_max = 14 N (F = 14·δt);
-o .acf entrega ~0 N.
+## Resultado com o motor vivo (validação do PID)
 
-## Fatos correlatos descobertos
+G2 de 2026-08-29 22:52 (`voos/XP_missao_20260829_225253_G2.*`), ganhos
+100% da dissertação: **t=0–150 s NOMINAL** — h cravada em ~595±3 m,
+VT ~12±1, 2 capturas, curvas suaves — até a bateria esgotar (thr médio
+0.35→1.0 em 150 s); depois planeio (h 595→415), mas ainda **4/4
+capturas** (6,8/21,4/16,3/0,0 m), φ máx 19,6°, sync 0,997.
 
-1. **Capacidade de combustível do .acf = 0** (`sim/aircraft/weight/
-   acf_m_fuel_tot` = 0) — provável efeito colateral da edição de peso de
-   2026-08-19 no Plane Maker (7,0→4,9 lb). Em 2026-08-20 o motor foi
-   encontrado MORTO (hélice 12 rad/s, windmill); foi religado pela UI
-   durante a sessão (starter — não há starter via UDP/dref no XP9;
-   `ENGN_running`, `POINT_tacrad`, DATA rows 34/35 foram testados e o
-   modelo do motor sobrescreve tudo).
-2. **Teleporte (sendPOSI) derruba o RPM do motor para ~60 rad/s** e o
-   spool de volta leva ~15–20 s — mais uma manha do harness: mesmo com
-   empuxo consertado, os primeiros ~20 s pós-engate terão tração parcial.
-   (Se necessário: engatar e aguardar o spool antes de exigir subida.)
-3. Escrever fuel via dref funciona (`sim/aircraft/overflow/acf_tank_rat`
-   primeiro [0]=1, depois `sim/flightmodel/weight/m_fuel1`), mas foi
-   restaurado a zero — o peso extra piora o planeio e não religa o motor.
+## Edições no Plane Maker (FEITAS em 2026-08-29 com o Kaue)
 
-## Conserto (Plane Maker, ~5 min — mão do Kaue)
+1. **Power 1,60 → 0,80 hp** (Standard → Engines → Description,
+   "maximum allowable power"): FEITO e validado — pmax lido 613 W,
+   empuxo em voo +9..+16,5 N (casou com o T_max=14 N do modelo). ✓
+2. **Battery 1.000 → 4.000 watt-hours** (Standard → Systems →
+   Electrical → SOURCES): FEITO — **SEM efeito na endurance** (o motor
+   elétrico do XP9 NÃO bebe desses watt-hours).
+3. **FADEC "keep within RPM limits"** (Engines → Description): FEITO —
+   também sem efeito na endurance.
 
-1. `Plane Maker > Standard > Engine Specs`: subir o **prop RPM máximo**
-   para ~8000–9000 (ou aumentar o passo da hélice ~+2°/reduzir o
-   diâmetro) — alvo: velocidade de passo ≥ 1,5× VT de cruzeiro (≥18 m/s).
-2. `Standard > Weight & Balance`: definir **fuel capacity > 0** (ex.
-   0,3 kg) para o starvation não voltar (ou confirmar que o XP9 aceita
-   capacidade 0 sem matar o motor após reload).
-3. Salvar o .acf e **recarregar a aeronave no X-Plane** (Aircraft > Open).
-4. Validar ANTES de voar (MATLAB):
-   ```matlab
-   import XPlaneConnect.*; global GlobalSocket
-   GlobalSocket = openUDP('127.0.0.1', 49009, 0, 500);
-   sendCTRL([0 0 0 1.0 -998 -998], 0, GlobalSocket); pause(8);
-   t = getDREFs({'sim/flightmodel/engine/POINT_thrust'}, GlobalSocket);
-   double(t(1))   % alvo: >= +4 N em voo a ~12 m/s (T/W do modelo: 14 N max)
-   ```
-5. Re-voar o G2 nominal: `XP_missao` (defaults = quadrado 500×500 m em
-   h constante). Critérios: 4 capturas, φ<25°, VT 12±1, h ~constante.
+## PENDÊNCIA REMANESCENTE: endurance do motor (~90–150 s por reload)
+
+Fato empírico (4 missões G2 em 2026-08-29): o empuxo-por-throttle DECAI
+desde o engate (o C_vel compensa com thr médio crescendo 0,4→1,0 em
+~90–150 s) e o motor então APAGA (TRQ=0) até o próximo Open Aircraft.
+Durações observadas: 55 / 150 / 90 / 135 s — não correlaciona com
+potência, watt-hours nem FADEC. Hipótese NÃO testada (decisão do Kaue,
+2026-08-29: não mexer em combustível num motor elétrico): no XP9 o
+elétrico debitar energia do FUEL — este .acf tem fuel capacity = 0
+(zerada na edição de peso de 2026-08-19; o `asa5` daquela noite já
+mostrava a mesma rampa de throttle). Se um dia quiser testar: Plane
+Maker → Weight & Balance → fuel total = 1.0 lb, salvar, recarregar,
+voar e ver se a rampa some/escala.
+
+Consequência prática: missões com fase motorizada ≤ ~130 s por reload;
+depois o DH degrada graciosamente para planeio (a guiagem segue
+capturando — 4/4 em TODAS as missões). Entre corridas: File → Open
+Aircraft para "recarregar" o motor.

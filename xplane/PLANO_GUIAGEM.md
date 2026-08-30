@@ -5,7 +5,20 @@
 > Referência: guiagem LOS do Julio Machado em
 > `trabalho_julio/PIPER-1-6-roll_back/PIPER-1-6-roll_back/guiagem/`.
 
-## STATUS 2026-08-20 — implementado; G2 nominal aguarda conserto do motor
+## STATUS 2026-08-29 — G2 CUMPRIDO (4/4 capturas em todas as missões motorizadas)
+
+Campanha de 2026-08-29 (motor elétrico religado + power casado a 0,80 hp
+= T_max ~14 N como o modelo): **4 missões G2 (quadrado 500×500 m, h 600,
+ganhos 100% da dissertação), TODAS com 4/4 capturas** — melhor conjunto
+`voos/XP_missao_20260829_225253_G2.*`: 6,8/21,4/16,3/0,0 m, φ máx 19,6°,
+sync 0,997, fase nominal (h 600±3 m, VT 12±1) até a energia do motor
+esgotar (~150 s; ver PENDENCIA_MOTOR.md — limitação do XP9, não do PID),
+depois planeio com a guiagem seguindo até a última captura. Critério do
+plano (circuito de ponta a ponta + .mat + plot pelos 4 círculos): BATIDO.
+Restante: G3 (Δh) e G4 (SIL) — e, opcional, resolver a endurance do
+motor p/ h constante nos 265 s inteiros (hipótese fuel não testada).
+
+## STATUS 2026-08-20 (histórico) — implementado; G2 aguardava motor
 
 - **Fase 1 FEITA**: `xp_read_dh` com 13 canais (xN/xE/ψ_abs, âncora no
   engate); `modelo_XP_DH_CL` atualizado (Demux 13). Engate melhorado:

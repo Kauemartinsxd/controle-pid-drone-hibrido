@@ -41,6 +41,16 @@ function status = xp_send_dh(u)
                 'sim/aircraft/controls/acf_elev_up', ...
                 'sim/aircraft/controls/acf_ail1_up', ...
                 'sim/aircraft/controls/acf_rudd_lr'}, GlobalSocket));
+            % VALIDACAO (2026-08-20): apos timeout UDP a fila pode entregar
+            % uma resposta ORFA de outra query — ja vimos "29/0/0" aqui
+            % (ail 0 => divisao por zero => lateral morto o voo inteiro).
+            % Limite de superficie plausivel: 5..60 deg. Fora disso NAO
+            % memoriza (tenta de novo na proxima chamada).
+            if any(lims < 5) || any(lims > 60)
+                fprintf('xp_send_dh: limites INVALIDOS lidos (%s) — descartando e retentando.\n', ...
+                    mat2str(lims, 3));
+                return;
+            end
             max_elev = deg2rad(lims(1));
             max_ail  = deg2rad(lims(2));
             max_rudd = deg2rad(lims(3));

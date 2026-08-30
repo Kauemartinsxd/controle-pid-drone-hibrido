@@ -93,6 +93,15 @@ if ~no_solo
 end
 psi_engate = r0(7);                       % [deg] proa mantida no teleporte
 ground_msl = r0(1) - r0(2);
+
+% NOTA DE POTENCIA (2026-08-29): o .acf com pmax=1226 W entrega T ate
+% ~30 N; o modelo da dissertacao tem T_max = 14 N (F = 14*dt). Com o
+% dobro do ganho no canal de throttle o C_vel (intocado) oscila em
+% ciclo-limite (thr 0.4<->1.0, periodo ~3 s) — voa e segura h, mas o
+% ideal e' casar a potencia NO PLANE MAKER (power 1.6 -> ~0.8 hp;
+% validar T_max ~+14 N a 12 m/s via POINT_thrust). NAO escrever
+% acf_pmax via dref com o sim rodando: derruba o latch do motor
+% eletrico do XP9 (helice morta/travada — visto em 2026-08-29).
 if XP_msl0 - ground_msl < 120
     warning('Solo local em %.0f m MSL: subindo engate p/ %.0f m MSL (150 m AGL).', ...
         ground_msl, ground_msl+150);
@@ -104,10 +113,12 @@ fprintf('XP_missao: pre-flight OK (%s, proa de engate %.0f deg).\n', ...
 
 %% 3) Ancoras de operacao do .acf v3 (NAO sao ganhos do controlador)
 % Ponto de regime medido (asa5 + ident Fase 0): theta~5.5, thr~0.85, de~+2
-XP_thr0   = 0.80;                 % throttle do engate ~ regime
+XP_thr0   = 0.55;                 % throttle do engate ~ regime COM motor
 XP_de0    = deg2rad(2.0)/deg2rad(25);  % profundor de trim REAL normalizado
 XP_pitch0 = 2;                    % atitude de teleporte [deg] (config 2026-08-19)
-TrimInput = [0.80; deg2rad(2.0); 0; 0];   % centro dos comandos = regime real
+TrimInput = [0.50; deg2rad(2.0); 0; 0];   % centro dos comandos = regime real
+% (2026-08-20: com o motor VIVO — ver PENDENCIA_MOTOR.md — o regime a
+%  VT 12 usa thr ~0.3-0.5; os 0.80 anteriores eram do periodo planeio.)
 Xe(8) = deg2rad(2);               % centro de theta_ref (config 2026-08-19)
 theta_ref_clamp = [-0.1745  deg2rad(3)];  % theta_ref em [-8, +5] deg.
 % ATENCAO (validado em voo 2026-08-20, missao G1 c/ teto 6): teto de

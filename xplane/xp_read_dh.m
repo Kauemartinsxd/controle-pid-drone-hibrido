@@ -70,12 +70,35 @@ function y = xp_read_dh(cmd, t_sim)
         global XP_IC;
         if isstruct(XP_IC)
             try
-                r0 = double(getDREFs({ ...
-                    'sim/flightmodel/position/latitude', ...
-                    'sim/flightmodel/position/longitude', ...
-                    'sim/flightmodel/position/elevation', ...
-                    'sim/flightmodel/position/y_agl', ...
-                    'sim/flightmodel/position/psi'}, GlobalSocket));
+                % RETRY (2026-08-20): logo apos um Open Aircraft / reset o
+                % X-Plane fica ~segundos sem responder UDP (tela de load) —
+                % sem retry o teleporte falhava, desarmava, e a corrida
+                % inteira rodava com o drone parado no chao.
+                r0 = [];
+                for k_try = 1:6
+                    try
+                        r0 = double(getDREFs({ ...
+                            'sim/flightmodel/position/latitude', ...
+                            'sim/flightmodel/position/longitude', ...
+                            'sim/flightmodel/position/elevation', ...
+                            'sim/flightmodel/position/y_agl', ...
+                            'sim/flightmodel/position/psi'}, GlobalSocket));
+                        break;
+                    catch
+                        fprintf('xp_read_dh: X-Plane sem resposta (tent. %d/6) — aguardando...\n', k_try);
+                        pause(1.5);
+                        reopen_socket();
+                    end
+                end
+                if isempty(r0)
+                    error('X-Plane nao respondeu apos 6 tentativas');
+                end
+                % NAO tentar "religar" o motor eletrico via dref aqui
+                % (battery/ENGN_running/tacrad/pmax): testado exaustivamente
+                % em 2026-08-29 — o estado do motor do XP9 e' um latch
+                % fragil, os writes ora religam ora TRAVAM a helice de vez.
+                % Motor morto (TRQ=0, so windmill) = pedir File->Open
+                % Aircraft na UI (unico religamento confiavel).
                 ground_msl = r0(3) - r0(4);
                 if isfield(XP_IC,'target_msl') && ~isempty(XP_IC.target_msl)
                     target_msl = XP_IC.target_msl;
