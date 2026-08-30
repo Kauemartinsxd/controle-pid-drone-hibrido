@@ -113,20 +113,19 @@ fprintf('XP_missao: pre-flight OK (%s, proa de engate %.0f deg).\n', ...
 
 %% 3) Ancoras de operacao do .acf v3 (NAO sao ganhos do controlador)
 % Ponto de regime medido (asa5 + ident Fase 0): theta~5.5, thr~0.85, de~+2
-XP_thr0   = 0.55;                 % throttle do engate ~ regime COM motor
-XP_de0    = deg2rad(2.0)/deg2rad(25);  % profundor de trim REAL normalizado
-XP_pitch0 = 2;                    % atitude de teleporte [deg] (config 2026-08-19)
-TrimInput = [0.50; deg2rad(2.0); 0; 0];   % centro dos comandos = regime real
-% (2026-08-20: com o motor VIVO — ver PENDENCIA_MOTOR.md — o regime a
-%  VT 12 usa thr ~0.3-0.5; os 0.80 anteriores eram do periodo planeio.)
-Xe(8) = deg2rad(2);               % centro de theta_ref (config 2026-08-19)
-theta_ref_clamp = [-0.1745  deg2rad(3)];  % theta_ref em [-8, +5] deg.
-% ATENCAO (validado em voo 2026-08-20, missao G1 c/ teto 6): teto de
-% theta_ref ACIMA de +5 deg poe o DH no CICLO DE ESTOL deste .acf
-% (theta_ref 6 -> theta real 7-8 c/ overshoot -> arrasto > empuxo ->
-% VT < 10 -> bombeia theta +-10 e desce). Teto +5 = protecao de
-% energia; o preco e' um sink residual ~0.1-0.2 m/s (h assenta um
-% pouco abaixo da ref — limitacao conhecida do .acf, nao do PID).
+% ===== ANCORAS DO GEMEO v1 (2026-08-30, ver EQUIVALENCIA_ACF.md) =====
+% O .acf agora e' equivalente ao drone real: o trim medido em voo
+% (alpha 14.50, de +6.99, thr 0.43) coincide com o Ue/Xe da propria
+% dissertacao — as ancoras voltam a ser "os numeros do projeto".
+XP_thr0   = 0.43;                 % throttle de trim do gemeo
+XP_de0    = deg2rad(7.0)/deg2rad(25);  % profundor de trim normalizado
+XP_pitch0 = 14;                   % atitude de trim [deg]
+TrimInput = [0.43; deg2rad(7.0); 0; 0];   % feedforward = trim do gemeo
+Xe(8) = deg2rad(14.3);            % centro de theta_ref = theta de trim
+theta_ref_clamp = [-0.1745  deg2rad(3)];  % theta_ref em [4.3, 17.3] deg:
+% teto 17.3 fica ~1 deg abaixo do estol do gemeo (~18.5); piso 4.3 da
+% gamma de descida. (Ancoras antigas do .acf pre-Fase B: thr0 0.55,
+% de0 +2, pitch0 2, Xe8 2 — validas so p/ o backup _preFaseB.)
 h_ref  = XP_msl0;                 % refs/bias no ponto de engate (b=0)
 he     = XP_msl0;
 VT_ref = Ve;                      % 12 m/s — ponto de projeto

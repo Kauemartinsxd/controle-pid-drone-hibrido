@@ -85,12 +85,14 @@ end
 %   - clamp teto +3  : theta_ref max = 5 deg — protecao de energia
 %     (acima de ~7 deg o arrasto deste .acf supera o empuxo; teto 6
 %      permite overshoot ate o estol da asa)
-XP_thr0   = 0.6;                 % throttle inicial do engate
-XP_de0    = Ue(2)/deg2rad(25);   % profundor de trim (mat.) normalizado
-XP_pitch0 = 2;                   % atitude de trim do X-Plane [deg]
-TrimInput = [0.49; Ue(2); 0; 0];
-Xe(8) = deg2rad(2);
-theta_ref_clamp = [-0.1745  deg2rad(3)];
+% ANCORAS DO GEMEO v1 (2026-08-30): trim do .acf equivalente = trim do
+% projeto (alpha/theta 14.4, de +7, thr 0.43) — ver EQUIVALENCIA_ACF.md
+XP_thr0   = 0.43;                % throttle de trim do gemeo
+XP_de0    = Ue(2)/deg2rad(25);   % profundor de trim (mat. = gemeo!) norm.
+XP_pitch0 = 14;                  % atitude de trim [deg]
+TrimInput = [0.43; Ue(2); 0; 0];
+Xe(8) = deg2rad(14.3);
+theta_ref_clamp = [-0.1745  deg2rad(3)];   % theta_ref [4.3, 17.3] (estol ~18.5)
 if ~isnan(XP_Xe8_deg)
     Xe(8) = deg2rad(XP_Xe8_deg);
     XP_pitch0 = XP_Xe8_deg;                       % teleporta ja na atitude alvo
