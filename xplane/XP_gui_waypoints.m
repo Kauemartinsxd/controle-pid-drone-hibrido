@@ -29,8 +29,9 @@ function XP_gui_waypoints()
     modoNE   = false;           % false = proa de engate; true = NE
 
     %% ========== Figura ==========
+    % sem cores fixas: a GUI segue o tema do MATLAB (claro OU escuro)
     fig = uifigure('Name', 'Missao DH no X-Plane — waypoints (PID dissertacao)', ...
-        'Position', [80 80 1000 650], 'Color', [0.95 0.95 0.95]);
+        'Position', [80 80 1000 650]);
 
     ax = uiaxes(fig, 'Position', [20 20 580 600]);
     ax.XGrid = 'on'; ax.YGrid = 'on'; ax.Box = 'on'; ax.FontSize = 11;
@@ -50,7 +51,7 @@ function XP_gui_waypoints()
         'ValueChangedFcn', @frameChanged);
 
     tbl = uitable(fig, 'Position', [panelX 360 panelW 205], ...
-        'ColumnWidth', {30, 78, 78, 70, 62}, ...
+        'ColumnWidth', {26, 84, 84, 62, 50}, ...
         'ColumnEditable', [false true true true true], ...
         'CellEditCallback', @tableEdited);
 
@@ -92,12 +93,14 @@ function XP_gui_waypoints()
 
     lblStatus = uilabel(fig, 'Position', [panelX 52 panelW 34], ...
         'Text', 'Pronto. Clique no mapa para adicionar waypoints.', ...
-        'FontSize', 10, 'WordWrap', 'on', 'FontColor', [0.3 0.3 0.3]);
+        'FontSize', 10, 'WordWrap', 'on');
+    corNeutra = lblStatus.FontColor;           % cor default do tema atual
+    corInfo = [0.40 0.60 1.00]; corOk = [0.25 0.75 0.35]; corErro = [0.90 0.30 0.30];
 
     uilabel(fig, 'Position', [panelX 6 panelW 44], ...
         'Text', ['Engate na ORIGEM (marcador verde); a guiagem parte mirando o WP1. ' ...
         'Recarregue o aviao no X-Plane antes de cada voo (motor ~90-150 s por reload).'], ...
-        'FontSize', 9, 'WordWrap', 'on', 'FontColor', [0.5 0.5 0.5]);
+        'FontSize', 9, 'WordWrap', 'on');
 
     updateTable();
     updateMap();
@@ -118,7 +121,7 @@ function XP_gui_waypoints()
         updateMap();
         lblStatus.Text = sprintf('WP%d: %s=%.0f  %s=%.0f  alt=%.0f  vel=%.0f', ...
             size(wp_data,1), nomeY(), pt(2), nomeX(), pt(1), fldAlt.Value, fldVel.Value);
-        lblStatus.FontColor = [0.3 0.3 0.3];
+        lblStatus.FontColor = corNeutra;
     end
 
     function removeLastWP(~, ~)
@@ -126,6 +129,7 @@ function XP_gui_waypoints()
             wp_data(end, :) = [];
             updateTable(); updateMap();
             lblStatus.Text = 'Ultimo waypoint removido.';
+            lblStatus.FontColor = corNeutra;
         end
     end
 
@@ -133,6 +137,7 @@ function XP_gui_waypoints()
         wp_data = zeros(0,4); traj = [];
         updateTable(); updateMap();
         lblStatus.Text = 'Waypoints limpos.';
+        lblStatus.FontColor = corNeutra;
     end
 
     function loadG2(~, ~)
@@ -148,6 +153,7 @@ function XP_gui_waypoints()
         traj = [];
         updateTable(); updateMap();
         lblStatus.Text = 'Missao G2 carregada (quadrado 500x500 m, 12 m/s).';
+        lblStatus.FontColor = corNeutra;
     end
 
     function tableEdited(~, event)
@@ -178,7 +184,7 @@ function XP_gui_waypoints()
         tc = linspace(0, 2*pi, 100);
 
         if ~isempty(traj)
-            plot(ax, traj(:,1), traj(:,2), 'b-', 'LineWidth', 1.2);
+            plot(ax, traj(:,1), traj(:,2), '-', 'Color', [0.35 0.65 1.0], 'LineWidth', 1.2);
         end
         if n > 0
             plot(ax, [0; wp_data(:,2)], [0; wp_data(:,1)], '--', ...
@@ -214,7 +220,7 @@ function XP_gui_waypoints()
     function runMission(~, ~)
         if isempty(wp_data)
             lblStatus.Text = 'Adicione pelo menos 1 waypoint.';
-            lblStatus.FontColor = [0.8 0 0];
+            lblStatus.FontColor = corErro;
             return;
         end
         sel = uiconfirm(fig, ...
@@ -225,7 +231,7 @@ function XP_gui_waypoints()
         if ~strcmp(sel, 'Sim, voar'), return; end
 
         lblStatus.Text = 'Voando no X-Plane... (acompanhe o console do MATLAB)';
-        lblStatus.FontColor = [0 0 0.6];
+        lblStatus.FontColor = corInfo;
         btnVoar.Enable = 'off'; drawnow;
 
         try
@@ -269,10 +275,10 @@ function XP_gui_waypoints()
                     voo.wp_idx(end), nWP);
             catch, end
             lblStatus.Text = txt;
-            lblStatus.FontColor = [0 0.5 0];
+            lblStatus.FontColor = corOk;
         catch ME
             lblStatus.Text = sprintf('Erro: %s', ME.message);
-            lblStatus.FontColor = [0.8 0 0];
+            lblStatus.FontColor = corErro;
             fprintf('Erro na missao:\n%s\n', getReport(ME));
         end
         btnVoar.Enable = 'on';
