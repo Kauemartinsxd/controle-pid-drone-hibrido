@@ -4,7 +4,7 @@ function y = xp_read_dh(cmd, t_sim)
 % Adaptado de ins_read_xplane.m (Julio Machado, PIPER-1-6) para o
 % conjunto minimo de sinais do controle do DH em modo asa-fixa.
 %
-% Output y (13x1):
+% Output y (14x1):
 %   y(1)  = VT       velocidade aerodinamica [m/s]
 %   y(2)  = p        taxa de rolamento [rad/s]
 %   y(3)  = q        taxa de arfagem [rad/s]
@@ -18,6 +18,7 @@ function y = xp_read_dh(cmd, t_sim)
 %   y(11) = xN       posicao Norte RELATIVA ao engate [m]
 %   y(12) = xE       posicao Leste RELATIVA ao engate [m]
 %   y(13) = psi_abs  proa ABSOLUTA [rad, [0,2pi) como o X-Plane reporta]
+%   y(14) = alpha    angulo de ataque [rad] (estado dos holds do LQRY)
 %
 % Posicao NE (guiagem por waypoints): convencao OpenGL do XP9
 % (padrao do ins_read_xplane do Julio): local_x = LESTE, local_z = SUL
@@ -55,7 +56,7 @@ function y = xp_read_dh(cmd, t_sim)
 
     persistent psi_acc psi_prev y_good wall_clock n_call xz0;
 
-    if isempty(y_good), y_good = zeros(13,1); end
+    if isempty(y_good), y_good = zeros(14,1); end
     y = y_good;
 
     %% Conexao (socket compartilhado com xp_send_dh)
@@ -66,7 +67,7 @@ function y = xp_read_dh(cmd, t_sim)
         psi_acc = [];
         psi_prev = [];
         xz0 = [];                    % re-ancora a posicao NE no engate
-        y_good = zeros(13,1);
+        y_good = zeros(14,1);
         global XP_IC;
         if isstruct(XP_IC)
             try
@@ -214,7 +215,7 @@ function y = xp_read_dh(cmd, t_sim)
     y = [raw(1); raw(2); raw(3); raw(4); ...
          deg2rad(raw(5)); deg2rad(raw(6)); psi_acc; ...
          raw(8); deg2rad(raw(9)); raw(10); ...
-         xN; xE; psi_meas];
+         xN; xE; psi_meas; deg2rad(raw(13))];
     y_good = y;
 
     % DEBUG: primeiros N samples do engate
@@ -267,7 +268,8 @@ function y = xp_read_dh(cmd, t_sim)
                 'sim/flightmodel/position/beta', ...          % 9: sideslip [deg]
                 'sim/time/total_flight_time_sec', ...         % 10: t [s]
                 'sim/flightmodel/position/local_x', ...       % 11: OpenGL x = LESTE [m]
-                'sim/flightmodel/position/local_z'};          % 12: OpenGL z = SUL [m]
+                'sim/flightmodel/position/local_z', ...       % 12: OpenGL z = SUL [m]
+                'sim/flightmodel/position/alpha'};            % 13: AoA [deg]
             raw = double(getDREFs(drefs, GlobalSocket));
         catch
             raw = [];
