@@ -1,6 +1,28 @@
 # Equivalência .acf ↔ drone real (modelo da Ana)
 
-## STATUS 2026-08-30 — FASE B iterações 1–2 FEITAS: gêmeo ~85–90%
+## ✅ CONGELADO 2026-08-30 — GÊMEO v1 (backup: `DH-Lon-REV-03_gemeo_v1_20260830.acf`)
+
+Configuração final (após iterações 1–4): asa incidência 0°, aerofólio
+`DH asa equiv.afl` (intercept 0.30, slope 0.064, lin range 16, max 1.45,
+cd-min 0.020, dα10 **0.044**; cópia de segurança no repo:
+`xplane/DH_asa_equiv_gemeo_v1.afl.bak`), h-stab cordas **0.31/0.31 ft**
+com incidence **−6°**, aileron chord ratio **0.27**, CG default
+**+0.07 ft** (aft limit 0.20), power 0.80 hp, FADEC RPM-limit on.
+
+**TRIM FINAL medido (12 m/s, sink +0.01)**: α **14,50°** (alvo 14,4 —
+erro 0,1°), δe **+6,99°** (alvo +7,6 — erro 0,6°), θ 14,27°, thr 0,43.
+Resíduos documentados: ωn arfagem 8,5 vs 6,3 rad/s (+35%; ζ 0,71 vs
+0,54); rolagem −20%; lei de hélice ≠ empuxo linear (thr de trim 0,43 vs
+0,284 com T_max casado). Todo o resto: ver tabela abaixo (α×VT ±0,5°,
+CLα 2,87 vs 2,88, dutch roll na faixa, espiral instável em ambos).
+
+⚠️ PENDENTE (próxima sessão): recalibrar as âncoras de missão p/ o
+gêmeo (Xe(8)≈14°, TrimInput=[0,43; +7°], pitch0 14, clamp a definir em
+voo) e rodar o 1º SIL×X-Plane lado a lado (mesmas manobras nos dois).
+
+---
+
+## (histórico) FASE B iterações 1–2: gêmeo ~85–90%
 
 Edições aplicadas (com o Kaue; backup pré-Fase B:
 `DH-Lon-REV-03_backup_preFaseB_20260830.acf`):
