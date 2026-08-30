@@ -30,6 +30,27 @@ contra o LQRY que comanda θ 28°+ sem conhecer o estol. Em planta com
 não-linearidade dura, saturações bem postas pesam mais que a lei de
 controle em si.
 
+### Experimento de confirmação: clamp de θ_ref NO LQRY → INÓCUO
+
+Adicionado `Sat_thetaref_envelope` (mesmos limites do PID, [4,3°;17,3°],
+var `XP_clamp_lqry`) entre o hold H e o hold θ do LQRY, ganhos
+intocados. G2 no gêmeo COM clamp
+(`voos/XP_missao_20260830_155351_*_clamp.*`): **mesmo placar** (2/4,
+departure na perna do WP3), θ ainda a +24° (vs 29° sem clamp — efeito
+apenas parcial). **Causa estrutural**: no LQRY o comando é
+`δe = Gs·[VT α q θ δe] + Gi·∫(θ−θ_ref)` — o clamp de referência limita
+só o termo integral; a realimentação direta de estados contorna o
+limite e leva o avião além do estol mesmo assim. No PID em cascata, a
+malha interna só enxerga o erro da referência limitada → o clamp é
+parede absoluta. Proteção equivalente no LQRY exigiria
+*alpha-protection no comando* (saturar δe em função do α medido),
+i.e., alterar a estrutura do controlador.
+
+**Refinamento final da conclusão**: proteção de envelope é trivial e
+efetiva na arquitetura em CASCATA; é semi-permeável num regulador de
+estados plano — a arquitetura, não apenas os ganhos, define a
+capacidade de confinar o voo ao envelope seguro.
+
 ## ADENDO — versão ATUALIZADA do Mirko (lqry_mirko_atualizado, 18-jun-2026)
 
 A versão nova (gain scheduling 3×3 Ve×He via var `i`; PsiHold
