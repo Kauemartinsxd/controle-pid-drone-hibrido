@@ -1,5 +1,44 @@
 # LQRY no X-Plane — experimento e resultado (2026-08-30)
 
+## ADENDO 4 — Auditoria a pedido do Kaue: "funciona no NL" vale só p/ degraus ≤5–15°
+
+Verificação completa contra o documento de setup do Mirko
+(`lqry_mirko_atualizado/Nova pasta/Novo(a) Documento de Texto.txt`:
+i=5, refVel=15.2, refs=5, PsiHold, AltHold, VelHold):
+
+1. **Ganhos conferidos**: os 8 conjuntos usados em TODOS os voos
+   (salvos em `voo.cfg` de cada .mat) são bit a bit idênticos aos
+   `Ganho_hold_*.mat` atuais da pasta (diff = 0). Trim `Ue` idem.
+   Não há ganho desatualizado no harness.
+2. **SIL reproduzido**: com a config exata do documento, o SIL dele
+   converge (VT/H/ψ nos refs) — "funciona no NL" confirmado NAS
+   AMPLITUDES DO DOCUMENTO: doublets de ±5°/±5 m/+0,35 m/s.
+3. **Na nossa velocidade (i=2, 12 m/s)**: converge com os doublets de
+   5, mas θ excursiona a **+25,7°** e VT cai a **9,8 m/s** — o modelo
+   matemático atravessa porque NÃO TEM estol (gêmeo/real: 18,5°) nem
+   limite de superfície (única saturação da planta SIL: throttle
+   [0,1]; profundor/aileron/leme ILIMITADOS).
+4. **Degraus de proa em amplitude de missão, no PRÓPRIO SIL** (modelo
+   recarregado antes de cada run — trocar `i` sem recarregar mistura
+   planta velha compilada e dá falso NaN):
+
+   | Degrau de proa | i=5 (15 m/s, planta do doc) | i=2 (12 m/s, nossa) |
+   |---|---|---|
+   | 5°  | OK (φ ±18°) | OK (φ ±17°; θ até +25,7° nos doublets long.) |
+   | 15° | OK, mas φ chega a **−53°** | **DIVERGE (NaN)** |
+   | 30° | **DIVERGE (NaN)** | DIVERGE |
+   | 90° (exigido pela missão G2, 4x) | **DIVERGE (NaN)** | DIVERGE |
+
+**Conclusão da auditoria**: não existe contradição "funciona no NL,
+falha no X-Plane". Nas amplitudes de MISSÃO (curvas de ~90°), o LQRY
+**não funciona nem no modelo não linear da própria planta de projeto**
+— o PsiHold tem envelope estável de ±15° a 15 m/s e ±5–10° a 12 m/s.
+O X-Plane foi na verdade MAIS benigno que o SIL: com as superfícies
+saturando em ±25° a resposta fica limitada (oscila, captura 2/4) em
+vez de integrar até NaN. As validações em SIL eram demonstrações de
+pequenos sinais na vizinhança do trim — necessárias, mas não
+suficientes para a tarefa de guiagem por waypoints.
+
 ## ADENDO 3 — GÊMEO v1.1 (dinâmica casada): a falha fica ISOLADA no windup
 
 Com a inércia de arfagem calibrada (gêmeo v1.1: ωn 6,25 vs alvo 6,3 —
