@@ -64,7 +64,7 @@ addpath(fullfile(raizM,'Dados_mat_SIL'));
 addpath(xpDir); addpath(julioX);
 import XPlaneConnect.*
 
-clearvars -except cfg_user raizM xpDir julioX
+clearvars -except cfg_user raizM xpDir julioX XP_att_alt XP_reftheta
 clear global XP_IC
 clear xp_read_dh xp_send_dh
 global GlobalSocket
@@ -83,9 +83,17 @@ load('Dados_Trim.mat');        % Ue (7x1), Xe (14x1) do Mirko
 Ts = 1/100;
 VT_Throttle = 1;    % throttle <- hold VT
 att_alt     = 0;    % elevator <- cascata hold H -> hold theta
-phi_psi     = 0;    % aileron  <- heading hold (psi)
+phi_psi     = 1;    % aileron  <- BANK HOLD (unico modo lateral estavel do
+                    % LQRY: o heading hold phi_psi=0 diverge ate no SIL
+                    % original com phi(0)=3 deg — testado 2026-08-30).
+                    % A guiagem comanda phi_ref (bank-to-turn no chart).
 refPhi = 0; reftheta = 0; refAlt = 0; refPsi = 0;
 refVel = 12;        % = Ve do projeto (steps do Mirko: Xe(1) -> refVel em t=5)
+% overrides p/ testes de diagnostico (definir ANTES de rodar; opcionais):
+if evalin('base',"exist('XP_att_alt','var')"),   att_alt  = evalin('base','XP_att_alt');   end
+if evalin('base',"exist('XP_reftheta','var')"),  reftheta = evalin('base','XP_reftheta');  end
+K_bank_guia  = 0.1975;        % = V/(g*tau_psi), tau_psi=6 s — igual K_heading do PID
+phi_max_guia = deg2rad(20);   % saturacao de phi_ref da guiagem
 
 %% 4) PRE-FLIGHT (mesmo do PID)
 r0 = double(getDREFs({'sim/flightmodel/position/elevation', ...
@@ -125,13 +133,14 @@ alpha0    = deg2rad(5);                 % AoA tipico do .acf a 12 m/s
 theta0    = deg2rad(XP_pitch0);
 x4        = [12; alpha0; 0; theta0];    % [VT alpha q theta] no engate
 
+% (ganhos dos .mat do Mirko podem vir como single — Simulink exige double)
 % IC do integrador do hold VT: thr%(0) = Gs*x4 + Gint*IC = thr0*100
-XP_IC_int_speed = (XP_thr0*100 - GstateLong_speed*x4) / GintLong_speed;
+XP_IC_int_speed = double((XP_thr0*100 - GstateLong_speed*x4) / GintLong_speed);
 % IC do integrador do hold theta (5o estado = o proprio comando em deg):
 %   de = Gs(1:4)*x4 + Gs(5)*de + Gint*IC  =>  IC = (de*(1-Gs5) - Gs(1:4)*x4)/Gint
-XP_IC_int_theta = (XP_de0_dg*(1 - GstateLong(5)) - GstateLong(1:4)*x4) / GintLong;
+XP_IC_int_theta = double((XP_de0_dg*(1 - GstateLong(5)) - GstateLong(1:4)*x4) / GintLong);
 % IC do integrador do hold H: theta_ref(0) [rad] = Gs_alt*[x4; dH=0] + Gint*IC = theta0
-XP_IC_int_alt   = (theta0 - GstateLong_Alt*[x4; 0]) / GintLong_Alt;
+XP_IC_int_alt   = double((theta0 - GstateLong_Alt*[x4; 0]) / GintLong_Alt);
 fprintf('ICs pre-carregados: int_speed %.1f | int_theta %.2f | int_alt %.2f\n', ...
     XP_IC_int_speed, XP_IC_int_theta, XP_IC_int_alt);
 
@@ -186,7 +195,12 @@ voo = struct();
 voo.quando     = datestr(now, 'yyyy-mm-dd HH:MM:SS');
 voo.Y          = squeeze(out.Y_xp);      % 14 x T (ver xp_read_dh)
 voo.U          = out.U_xp;               % T x 4: [thr de da dr]
-voo.t          = out.tout(:);
+% U e' logado no passo continuo (0.01): decima p/ o eixo de Y (0.05)
+fatU = max(1, round((size(voo.U,1)-1)/(size(voo.Y,2)-1)));
+voo.U = voo.U(1:fatU:end, :);
+% Y/U sao logados a Ts=0.05 (charts discretos dentro da Planta), tout no
+% passo do solver (0.01) — eixo de tempo coerente com Y:
+voo.t          = (0:size(voo.Y,2)-1)'*0.05;
 voo.t_xplane   = out.t_xplane_log(:);
 voo.wp_idx     = out.wp_idx_log(:);
 voo.dist_wp    = out.dist_log(:);
@@ -226,4 +240,9 @@ for i = 1:size(WPs,1)
     fprintf('WP%d (N %+7.1f, E %+7.1f): dist min %6.1f m  %s\n', i, WPs(i,1), WPs(i,2), dmin, rotulos{hit+1});
 end
 fprintf('wp_idx final: %d de %d\n', voo.wp_idx(end), size(WPs,1));
-plot_XP_missao(voo, vooFile);
+try
+    plot_XP_missao(voo, vooFile);
+catch ME_plot
+    close all force;   % nao deixar janelas presas se o plot falhar
+    warning('plot_XP_missao falhou: %s', ME_plot.message);
+end
