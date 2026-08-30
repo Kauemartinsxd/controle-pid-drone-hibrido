@@ -1,5 +1,35 @@
 # LQRY no X-Plane — experimento e resultado (2026-08-30)
 
+## ADENDO FINAL — LQRY no GÊMEO v1 (planta equivalente ao projeto)
+
+Com o .acf transformado em gêmeo do drone real (EQUIVALENCIA_ACF.md:
+α de trim 14,50 vs 14,44; CLα idêntico), o LQRY v2 foi re-voado com
+i=2 (a planta nominal, que agora corresponde ao avião) e âncoras/ICs
+do trim de projeto (`voos/XP_missao_20260830_1538*_LQRY2_gemeo_*`):
+
+- **t1 (1 WP)**: CAPTUROU (37,5 m) — primeira captura do LQRY na
+  campanha. Sem explosão; mas ciclo-limite de arfagem: o loop de α
+  amplifica o transiente de engate, pede θ até 29° (α 32°) e o gêmeo
+  ESTOLA a 18,5° (não-linearidade ausente no projeto) → oscila α 10–30°.
+- **G2 (4 WPs)**: **2/4 capturas** (WP1 62 m, WP2 54 m, incluindo a
+  1ª curva de 90°); na perna do WP3 o ciclo-limite tocou o estol uma
+  vez demais → departure (tumbling) → missão perdida.
+
+### Tabela-síntese do experimento completo
+
+| Controlador | .acf divergente | Gêmeo (= planta de projeto) |
+|---|---|---|
+| PID cascata (com theta_ref_clamp) | 4/4, nominal | 4/4, nominal |
+| LQRY (sem proteção de envelope) | explode ~6 s, 0/4 | 2/4, ciclo-limite no estol, departure |
+
+**Conclusão consolidada**: a equivalência da planta recupera a
+funcionalidade do LQRY (de "explode" para "voa e captura"), mas a
+diferença decisiva entre capturar e CUMPRIR a missão é a proteção de
+envelope: o clamp de θ_ref do PID (teto 17,3°, 1° abaixo do estol)
+contra o LQRY que comanda θ 28°+ sem conhecer o estol. Em planta com
+não-linearidade dura, saturações bem postas pesam mais que a lei de
+controle em si.
+
 ## ADENDO — versão ATUALIZADA do Mirko (lqry_mirko_atualizado, 18-jun-2026)
 
 A versão nova (gain scheduling 3×3 Ve×He via var `i`; PsiHold

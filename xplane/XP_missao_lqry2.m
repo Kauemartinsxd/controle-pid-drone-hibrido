@@ -30,7 +30,10 @@ if ~exist('XP_R_accept','var')  || isempty(XP_R_accept),  XP_R_accept = 80; end
 if ~exist('XP_WPs_frame','var'), XP_WPs_frame = []; end
 if ~exist('XP_WPs_NE','var'),    XP_WPs_NE    = []; end
 if ~exist('XP_TimeXP','var'),    XP_TimeXP    = []; end
-if ~exist('XP_i_planta','var')  || isempty(XP_i_planta),  XP_i_planta = 8; end
+% GEMEO v1 (2026-08-30): o .acf agora equivale a planta nominal do
+% projeto — i=2 (V12_H600) vale para os DOIS eixos (o scheduling por
+% eixo i=8/i_lat=2 era o paliativo para o .acf divergente antigo).
+if ~exist('XP_i_planta','var')  || isempty(XP_i_planta),  XP_i_planta = 2; end
 if ~exist('XP_i_lat','var')     || isempty(XP_i_lat),     XP_i_lat = 2;    end
 if ~exist('XP_phi_psi','var')   || isempty(XP_phi_psi),   XP_phi_psi = 0;  end
 if ~exist('XP_tag','var') || isempty(XP_tag), XP_tag = 'LQRY2'; end
@@ -116,11 +119,12 @@ end
 fprintf('XP_missao_lqry2: pre-flight OK (proa %.0f deg, phi_psi=%d).\n', psi_engate, phi_psi);
 
 %% 5) Ancoras de engate + ICs (com os ganhos{i} escolhidos)
-XP_thr0   = 0.55;
-XP_de0_dg = 2.0;
-XP_pitch0 = 2.0;
+% ancoras do GEMEO v1: trim = ponto de projeto (EQUIVALENCIA_ACF.md)
+XP_thr0   = 0.43;
+XP_de0_dg = 7.0;
+XP_pitch0 = 14.0;
 XP_h_ref0 = XP_msl0;
-alpha0    = deg2rad(5);
+alpha0    = deg2rad(14.4);
 theta0    = deg2rad(XP_pitch0);
 x4        = [12; alpha0; 0; theta0];
 GsS = double(GstateLong_speed{i}); GiS = double(GintLong_speed{i});
