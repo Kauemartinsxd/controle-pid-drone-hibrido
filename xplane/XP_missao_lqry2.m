@@ -56,7 +56,7 @@ julioX = fullfile(fileparts(fileparts(xpDir)), 'trabalho_julio', ...
 addpath(raizN); addpath(xpDir); addpath(julioX);
 import XPlaneConnect.*
 
-clearvars -except cfg_user raizN xpDir julioX
+clearvars -except cfg_user raizN xpDir julioX XP_att_alt XP_reftheta XP_clamp_lqry
 clear global XP_IC
 clear xp_read_dh xp_send_dh
 global GlobalSocket
@@ -89,6 +89,13 @@ refPhi = 0; reftheta = 0; refAlt = 0; refPsi = 0;
 refVel = 12;
 K_bank_guia  = 0.1975;           % so usado se phi_psi=1 (bank-to-turn)
 phi_max_guia = deg2rad(20);
+% PROTECAO DE ENVELOPE (experimento 2026-08-30): clamp no theta_ref do
+% LQRY — MESMOS limites efetivos do PID (teto 1 deg abaixo do estol do
+% gemeo). Ganhos intocados; testa a hipotese "a diferenca decisiva e' a
+% protecao de envelope". Desligar: XP_clamp_lqry = [-pi pi].
+if ~evalin('base',"exist('XP_clamp_lqry','var')")
+    XP_clamp_lqry = deg2rad([4.3 17.3]);
+end
 
 %% 4) PRE-FLIGHT
 r0 = double(getDREFs({'sim/flightmodel/position/elevation', ...
@@ -208,6 +215,7 @@ voo.cfg = struct('controlador','LQRY2 (lqry_mirko_atualizado, 18-jun-2026)', ...
     'GstateLat',double(GstateLat{i}),'Gintlat',double(Gintlat{i}), ...
     'GstateLat_psi',double(GstateLat_psi{i}),'Gintlat_psi',double(Gintlat_psi{i}), ...
     'ICs',[XP_IC_int_speed XP_IC_int_theta XP_IC_int_alt], ...
+    'clamp_envelope',XP_clamp_lqry, ...
     'Ue',Plantas(i).Ue, 'Xe',Plantas(i).Xe);
 vooFile = fullfile(voosDir, ['XP_missao_' datestr(now,'yyyymmdd_HHMMSS') '_' cfg_user.tag '.mat']);
 save(vooFile, 'voo');
