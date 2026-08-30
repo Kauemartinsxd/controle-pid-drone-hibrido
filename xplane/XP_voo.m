@@ -30,7 +30,10 @@ if ~exist('XP_msl0','var')   || isempty(XP_msl0),   XP_msl0   = 600; end
 if ~exist('XP_VT0','var')    || isempty(XP_VT0),    XP_VT0    = 12;  end
 if ~exist('XP_TimeXP','var') || isempty(XP_TimeXP), XP_TimeXP = 60;  end
 if ~exist('XP_VT_ref','var') || isempty(XP_VT_ref), XP_VT_ref = NaN; end  % NaN = Ve (default)
-setpref('XP_DH','cfg',[XP_msl0 XP_VT0 XP_TimeXP XP_VT_ref]);   % sobrevive ao clear
+% overrides de ANCORA p/ campanhas de equivalencia (.acf mudando de trim):
+if ~exist('XP_Xe8_deg','var')     || isempty(XP_Xe8_deg),     XP_Xe8_deg = NaN; end      % centro de theta_ref
+if ~exist('XP_clamp_hi_deg','var')|| isempty(XP_clamp_hi_deg),XP_clamp_hi_deg = NaN; end % teto do clamp
+setpref('XP_DH','cfg',[XP_msl0 XP_VT0 XP_TimeXP XP_VT_ref XP_Xe8_deg XP_clamp_hi_deg]);  % sobrevive ao clear
 
 %% 1) Workspace completo (ganhos, socket, refs) — faz clear/bdclose
 run(fullfile(fileparts(mfilename('fullpath')), 'XP_inicializacao.m'));
@@ -38,6 +41,8 @@ run(fullfile(fileparts(mfilename('fullpath')), 'XP_inicializacao.m'));
 cfg = getpref('XP_DH','cfg');
 XP_msl0 = cfg(1); XP_VT0 = cfg(2); TimeXP = cfg(3);
 XP_VT_ref = NaN; if numel(cfg) >= 4, XP_VT_ref = cfg(4); end
+XP_Xe8_deg = NaN; XP_clamp_hi_deg = NaN;
+if numel(cfg) >= 6, XP_Xe8_deg = cfg(5); XP_clamp_hi_deg = cfg(6); end
 rmpref('XP_DH','cfg');
 
 %% 2) PRE-FLIGHT CHECK: aeronave inteira, nivelada no solo, X-Plane rodando
@@ -86,6 +91,11 @@ XP_pitch0 = 2;                   % atitude de trim do X-Plane [deg]
 TrimInput = [0.49; Ue(2); 0; 0];
 Xe(8) = deg2rad(2);
 theta_ref_clamp = [-0.1745  deg2rad(3)];
+if ~isnan(XP_Xe8_deg)
+    Xe(8) = deg2rad(XP_Xe8_deg);
+    XP_pitch0 = XP_Xe8_deg;                       % teleporta ja na atitude alvo
+end
+if ~isnan(XP_clamp_hi_deg), theta_ref_clamp(2) = deg2rad(XP_clamp_hi_deg); end
 h_ref  = XP_msl0;               % altitude MSL alvo
 he     = XP_msl0;               % bias dos PIDs b=0 no ponto de voo
 VT_ref = Ve;                    % 12 m/s — ponto de projeto
