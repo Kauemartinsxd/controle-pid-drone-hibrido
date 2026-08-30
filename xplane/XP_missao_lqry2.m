@@ -37,15 +37,20 @@ if ~exist('XP_i_planta','var')  || isempty(XP_i_planta),  XP_i_planta = 2; end
 if ~exist('XP_i_lat','var')     || isempty(XP_i_lat),     XP_i_lat = 2;    end
 if ~exist('XP_phi_psi','var')   || isempty(XP_phi_psi),   XP_phi_psi = 0;  end
 if ~exist('XP_tag','var') || isempty(XP_tag), XP_tag = 'LQRY2'; end
+% velocidade da missao (refVel, WPs e engate). A 15 m/s (i=5) o trim e'
+% alpha ~8 -> margem de estol ~10 deg (vs 4 deg a 12 m/s) — envelope
+% nativo do projeto do Mirko (script dele usava refVel 15.2).
+if ~exist('XP_VT_missao','var') || isempty(XP_VT_missao), XP_VT_missao = 12; end
+XP_VT0 = XP_VT_missao;
 if isempty(XP_WPs_frame) && isempty(XP_WPs_NE)
-    XP_WPs_frame = [ 500    0  XP_msl0  12;
-                     500  500  XP_msl0  12;
-                       0  500  XP_msl0  12;
-                       0    0  XP_msl0  12];
+    XP_WPs_frame = [ 500    0  XP_msl0  XP_VT_missao;
+                     500  500  XP_msl0  XP_VT_missao;
+                       0  500  XP_msl0  XP_VT_missao;
+                       0    0  XP_msl0  XP_VT_missao];
 end
 cfg_user = struct('msl0',XP_msl0,'VT0',XP_VT0,'R',XP_R_accept, ...
     'WPf',XP_WPs_frame,'WPne',XP_WPs_NE,'T',XP_TimeXP,'tag',XP_tag, ...
-    'i',XP_i_planta,'ilat',XP_i_lat,'phipsi',XP_phi_psi);
+    'i',XP_i_planta,'ilat',XP_i_lat,'phipsi',XP_phi_psi,'VTm',XP_VT_missao);
 
 %% 1) Paths limpos (ganhos novos + xplane + XPC; nada do PID/planta velha)
 restoredefaultpath; rehash toolboxcache;
@@ -56,7 +61,7 @@ julioX = fullfile(fileparts(fileparts(xpDir)), 'trabalho_julio', ...
 addpath(raizN); addpath(xpDir); addpath(julioX);
 import XPlaneConnect.*
 
-clearvars -except cfg_user raizN xpDir julioX XP_att_alt XP_reftheta XP_clamp_lqry
+clearvars -except cfg_user raizN xpDir julioX XP_att_alt XP_reftheta XP_clamp_lqry XP_de0_override XP_thr0_override
 clear global XP_IC
 clear xp_read_dh xp_send_dh
 global GlobalSocket
@@ -86,7 +91,7 @@ VT_Throttle = 1;
 att_alt     = 0;                 % hold H (cascata p/ theta)
 phi_psi     = cfg_user.phipsi;   % 0 = PsiHold (novo, validado) | 1 = bank hold
 refPhi = 0; reftheta = 0; refAlt = 0; refPsi = 0;
-refVel = 12;
+refVel = cfg_user.VTm;
 K_bank_guia  = 0.1975;           % so usado se phi_psi=1 (bank-to-turn)
 phi_max_guia = deg2rad(20);
 % PROTECAO DE ENVELOPE (experimento 2026-08-30): clamp no theta_ref do
@@ -94,7 +99,7 @@ phi_max_guia = deg2rad(20);
 % gemeo). Ganhos intocados; testa a hipotese "a diferenca decisiva e' a
 % protecao de envelope". Desligar: XP_clamp_lqry = [-pi pi].
 if ~evalin('base',"exist('XP_clamp_lqry','var')")
-    XP_clamp_lqry = deg2rad([4.3 17.3]);
+    XP_clamp_lqry = deg2rad([0 17.3]);   % teto 1 deg abaixo do estol; piso 0 p/ descidas
 end
 
 %% 4) PRE-FLIGHT
@@ -126,14 +131,25 @@ end
 fprintf('XP_missao_lqry2: pre-flight OK (proa %.0f deg, phi_psi=%d).\n', psi_engate, phi_psi);
 
 %% 5) Ancoras de engate + ICs (com os ganhos{i} escolhidos)
-% ancoras do GEMEO v1: trim = ponto de projeto (EQUIVALENCIA_ACF.md)
-XP_thr0   = 0.43;
-XP_de0_dg = 7.0;
-XP_pitch0 = 14.0;
+% ancoras do GEMEO v1 derivadas do TRIM DA PLANTA AGENDADA (alpha) com
+% CORRECAO do trim de comando p/ o trim REAL do gemeo (o casamento de
+% de/thr com a planta vale no ponto 12 m/s onde o CG foi calibrado; em
+% outras VTs o gradiente de de difere — medido na polar):
+alpha0    = atan2(double(Plantas(i).Xe(3)), double(Plantas(i).Xe(1)));
+XP_thr0   = double(Plantas(i).Ue(1));
+XP_de0_dg = rad2deg(double(Plantas(i).Ue(2)));
+if ~exist('XP_de0_override','var') || isempty(XP_de0_override)
+else, XP_de0_dg = XP_de0_override; end
+if ~exist('XP_thr0_override','var') || isempty(XP_thr0_override)
+else, XP_thr0 = XP_thr0_override; end
+XP_pitch0 = rad2deg(alpha0);          % nivelado: theta = alpha
 XP_h_ref0 = XP_msl0;
-alpha0    = deg2rad(14.4);
-theta0    = deg2rad(XP_pitch0);
-x4        = [12; alpha0; 0; theta0];
+theta0    = alpha0;
+x4        = [cfg_user.VTm; alpha0; 0; theta0];
+% o trim SOMADO na Planta_XP acompanha as ancoras reais:
+XP_U_trim4 = [XP_thr0; deg2rad(XP_de0_dg); 0; 0];
+fprintf('ancoras (planta %d + trim real): alpha/theta %.1f deg | de %+.2f deg | thr %.3f\n', ...
+    i, rad2deg(alpha0), XP_de0_dg, XP_thr0);
 GsS = double(GstateLong_speed{i}); GiS = double(GintLong_speed{i});
 GsT = double(GstateLong{i});       GiT = double(GintLong{i});
 GsA = double(GstateLong_Alt{i});   GiA = double(GintLong_Alt{i});
@@ -168,11 +184,11 @@ for k = 2:size(WPs_user,1)
     WPs(end+1,:) = WPs_user(k,:); %#ok<SAGROW>
 end
 R_accept = cfg_user.R;
-h_ref0 = XP_h_ref0; VT_ref0 = 12;
+h_ref0 = XP_h_ref0; VT_ref0 = cfg_user.VTm;
 per = norm(WPs(1,1:2));
 for k = 2:size(WPs,1), per = per + norm(WPs(k,1:2)-WPs(k-1,1:2)); end
 TimeXP = cfg_user.T;
-if isempty(TimeXP), TimeXP = ceil(per/12*1.5 + 15); end
+if isempty(TimeXP), TimeXP = ceil(per/cfg_user.VTm*1.5 + 15); end
 fprintf('XP_missao_lqry2: %d WPs, perimetro %.0f m, TimeXP %.0f s.\n', size(WPs,1), per, TimeXP);
 
 %% 7) Compila e ARMA
