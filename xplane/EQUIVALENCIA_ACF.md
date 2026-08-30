@@ -1,6 +1,48 @@
 # Equivalência .acf ↔ drone real (modelo da Ana)
 
-## ✅ CONGELADO 2026-08-30 — GÊMEO v1 (backup: `DH-Lon-REV-03_gemeo_v1_20260830.acf`)
+## ✅ GÊMEO v1.1 (2026-08-30) — inércia de arfagem CALIBRADA (backup: `DH-Lon-REV-03_gemeo_v1_1_20260830.acf`)
+
+O resíduo dominante do v1 (ωn arfagem +35%) foi eliminado calibrando o
+**raio de giração de pitch** no Plane Maker (Weight & Balance → "use
+your own radii of gyration"), o único parâmetro do gêmeo que nunca
+tinha sido calibrado (ficava no chute geométrico do Plane Maker).
+
+**Resultado final: ωn = 6,25 rad/s (alvo 6,3 — erro 0,8%), ζ = 0,61
+(alvo 0,54; resto é amortecimento de sustentação ∝1/m, insensível a
+Iyy).** Config: raios de giração pitch **1,47 ft** / yaw 0,86 / roll
+0,53 (yaw/roll = valores automáticos originais, preservados).
+
+Método (4 pontos, doublets XP_ident_theta + fit_Gq, tudo MOTORIZADO):
+| raio pitch [ft] | ωn [rad/s] | ζ |
+|---|---|---|
+| 0,94 | 8,33 | 0,68 |
+| 1,19 | 7,57 (2 medições: 7,67/7,48) | 0,64/0,66 |
+| 1,47 | **6,25** | **0,61** |
+| 1,64 | 5,54 | 0,61 |
+| 3,00 | 2,38 | 0,72 |
+Curva empírica quase linear em R (não 1/R puro: satura em R pequeno —
+parte da banda vem da cadeia atuador/20 Hz/aero).
+
+Descobertas de harness no caminho:
+1. **Drefs de inércia seguem os eixos GRÁFICOS do X-Plane** (x=direita,
+   y=cima, z=trás): `acf_Jxx_unitmass` = PITCH, `Jyy` = YAW, `Jzz` =
+   ROLL. (Conferido: só o Jxx mudou ao editar o campo de pitch.)
+2. **O ωn 8,5 do v1 foi medido PLANANDO** (motor morto — o dataset
+   151658 afunda em todas as corridas): motorizado, o v1 real era
+   ~8,3–8,5 tb, mas a comparação glide×powered mascarou a 1ª iteração.
+   Identificações de arfagem DEVEM ser feitas com motor vivo (reload
+   fresco) — hélice sopra a empenagem.
+3. A física do XP9 HONRA os raios customizados (teste discriminante
+   R=3,00 → ωn 2,38, avião-balsa) — ao contrário do CG, que não movia
+   ωn.
+
+Resíduos restantes do gêmeo v1.1: ζ 0,61 vs 0,54 (+13%), rolagem −20%,
+lei de hélice (thr trim 0,43 vs 0,284). Trim INALTERADO (inércia não
+mexe em estática): α 14,50 / δe +6,99 / thr 0,43.
+
+---
+
+## (superado pelo v1.1) CONGELADO 2026-08-30 — GÊMEO v1 (backup: `DH-Lon-REV-03_gemeo_v1_20260830.acf`)
 
 Configuração final (após iterações 1–4): asa incidência 0°, aerofólio
 `DH asa equiv.afl` (intercept 0.30, slope 0.064, lin range 16, max 1.45,
