@@ -101,6 +101,11 @@ phi_max_guia = deg2rad(20);
 if ~evalin('base',"exist('XP_clamp_lqry','var')")
     XP_clamp_lqry = deg2rad([0 17.3]);   % teto 1 deg abaixo do estol; piso 0 p/ descidas
 end
+% ALPHA-PROTECTION da plataforma (fly-by-wire na Planta_XP): acima de
+% alpha_prot o teto nose-up do profundor desce ao trim (rampa de 2 deg).
+% Unica protecao efetiva p/ regulador de estados (clamp de ref vaza).
+prot_on    = 1;
+alpha_prot = deg2rad(16);
 
 %% 4) PRE-FLIGHT
 r0 = double(getDREFs({'sim/flightmodel/position/elevation', ...
@@ -148,6 +153,7 @@ theta0    = alpha0;
 x4        = [cfg_user.VTm; alpha0; 0; theta0];
 % o trim SOMADO na Planta_XP acompanha as ancoras reais:
 XP_U_trim4 = [XP_thr0; deg2rad(XP_de0_dg); 0; 0];
+de_trim    = deg2rad(XP_de0_dg);     % teto nose-up da alpha_protection [rad]
 fprintf('ancoras (planta %d + trim real): alpha/theta %.1f deg | de %+.2f deg | thr %.3f\n', ...
     i, rad2deg(alpha0), XP_de0_dg, XP_thr0);
 GsS = double(GstateLong_speed{i}); GiS = double(GintLong_speed{i});
@@ -211,6 +217,9 @@ voo = struct();
 voo.quando     = datestr(now, 'yyyy-mm-dd HH:MM:SS');
 voo.Y          = squeeze(out.Y_xp);
 voo.U          = out.U_xp;
+if size(voo.U,1) == 4 && size(voo.U,2) > 4
+    voo.U = voo.U.';       % o chart alpha_protection loga 4xT -> T x 4
+end
 fatU = max(1, round((size(voo.U,1)-1)/(size(voo.Y,2)-1)));
 voo.U = voo.U(1:fatU:end, :);
 voo.t          = (0:size(voo.Y,2)-1)'*0.05;
@@ -232,6 +241,7 @@ voo.cfg = struct('controlador','LQRY2 (lqry_mirko_atualizado, 18-jun-2026)', ...
     'GstateLat_psi',double(GstateLat_psi{i}),'Gintlat_psi',double(Gintlat_psi{i}), ...
     'ICs',[XP_IC_int_speed XP_IC_int_theta XP_IC_int_alt], ...
     'clamp_envelope',XP_clamp_lqry, ...
+    'alpha_prot',[prot_on alpha_prot de_trim], ...
     'Ue',Plantas(i).Ue, 'Xe',Plantas(i).Xe);
 vooFile = fullfile(voosDir, ['XP_missao_' datestr(now,'yyyymmdd_HHMMSS') '_' cfg_user.tag '.mat']);
 save(vooFile, 'voo');

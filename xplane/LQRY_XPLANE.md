@@ -1,5 +1,48 @@
 # LQRY no X-Plane — experimento e resultado (2026-08-30)
 
+## ADENDO 2 — Alpha-protection na PLANTA: a falha MIGRA de camada
+
+Última tentativa de 4/4 sem tocar ganhos: proteção de envelope no
+COMANDO, implementada na `Planta_XP` (o "avião", estilo fly-by-wire) —
+chart `alpha_protection` entre o `Sum_trim` e o `send_xp`: quando o α
+MEDIDO excede 16°, o teto nose-up do δe desce em rampa (2° de α) até o
+δe de trim (+5,5°). Params `prot_on`/`alpha_prot`/`de_trim` no
+lançador.
+
+Resultado (`voos/XP_missao_20260830_163223_LQRY2_gemeo_G2_prot.*` +
+dry-run `_162519_*`):
+
+- **A proteção longitudinal FUNCIONA**: 335 amostras com α>16° e δe
+  cravado em +5,50° em TODAS — o LQRY **nunca mais estolou de
+  arfagem** (α confinado a 14–16° na fase controlada; sem os θ_ref
+  24–29° das rodadas anteriores).
+- **Mas a falha migrou para a camada seguinte**: com α contido, o hold
+  de velocidade (Gs(VT) = −78,8 %/(m/s), sem anti-windup) saturou o
+  throttle em 0 (comando −17%→−25% e afundando ~Gint) → sem empuxo,
+  voo em pré-estol crônico → **wing rock lateral** (φ ±40→±70° em
+  ~6 s, t=13–21 s) → departure pelo eixo LATERAL, que a proteção não
+  cobre. 0/4 nesta rodada.
+
+**Conclusão do arco completo**: não existe UMA prótese que leve o LQRY
+ao 4/4 — cada proteção adicionada expõe a deficiência estrutural
+seguinte (loop de α → windup do throttle → lateral em pré-estol). Um
+4/4 exigiria empilhar alpha-protection + anti-windup DENTRO do
+controlador + amortecimento lateral extra, i.e., re-engenharia do
+controlador — fora do escopo (ganhos/estrutura do Mirko intocáveis).
+**Melhor caso do LQRY permanece 2/4 a 12 m/s.** O contraste com o PID
+em cascata (4/4 com clamps triviais de referência) vira o argumento
+central: a arquitetura define onde e COMO se protege o envelope.
+
+### Placar consolidado (todas as rodadas, gêmeo v1)
+
+| Configuração | Capturas | Modo de falha |
+|---|---|---|
+| PID cascata, 12 m/s | **4/4** | — (nominal ~150 s + planeio guiado) |
+| LQRY 12 m/s | **2/4** (melhor caso) | ciclo-limite tocando estol → departure longitudinal |
+| LQRY 12 m/s + clamp θ_ref | 2/4 | idem (clamp vaza: só afeta o termo integral) |
+| LQRY 15 m/s (3 variantes) | 0/4 | vazamento do clamp cresce 0,6°→4,6° |
+| LQRY 12 m/s + alpha-protection na planta | 0/4 | **sem estol longitudinal**; windup do throttle → wing rock lateral |
+
 ## ADENDO FINAL — LQRY no GÊMEO v1 (planta equivalente ao projeto)
 
 Com o .acf transformado em gêmeo do drone real (EQUIVALENCIA_ACF.md:
