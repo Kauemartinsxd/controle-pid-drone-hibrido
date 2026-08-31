@@ -12,6 +12,11 @@ Modelo da planta + piloto automático em **PID cascata** para o drone híbrido (
 > (fontes LaTeX, figuras, dados e scripts de simulação). Pendências abertas em
 > [`arquivos/PENDENCIAS.md`](arquivos/PENDENCIAS.md).
 
+> ✈️ **Gêmeo digital no X-Plane 9:** o mesmo PID voa o DH no simulador, com o `.acf`
+> calibrado para equivaler ao modelo identificado — ver a seção
+> [X-Plane](#x-plane-gêmeo-digital-e-missões-por-waypoints-xplane) e o relatório
+> [`docs/Relatorio_gemeo_XPlane.pdf`](docs/Relatorio_gemeo_XPlane.pdf).
+
 ---
 
 ## Início rápido
@@ -79,6 +84,19 @@ controle-pid-drone-hibrido/
 │   ├── dyn_rigidbody_DH.m     derivadas (flag=1)
 │   ├── obs_rigidbody_DH.m     saídas (flag=3)
 │   └── trimagem_DH.m          trim via fsolve
+│
+├── xplane/                 ← gêmeo digital no X-Plane 9 (bancada de ensaio)
+│   ├── XP_gui_waypoints.m     ★ GUI de missão (mapa com pan/zoom + rastreio ao vivo)
+│   ├── XP_missao.m            missão por waypoints no X-Plane (guiagem LOS)
+│   ├── NL_missao.m            a MESMA missão na planta da Ana (sem X-Plane)
+│   ├── XP_voo.m               voo reto + degraus/doublets (manobras G4/G5)
+│   ├── xp_reload_acf.m        reload programático do .acf (opt-in XP_auto_reload)
+│   ├── G5_*.m / plot_G5.m     campanha de doublets SIL×X-Plane
+│   ├── modelo_XP_DH_*.slx     PID + guiagem + Planta_XP (UDP) / modelos GUIA
+│   ├── voos/                  .mat + PNGs de todos os voos e figuras SIL×XP
+│   ├── EQUIVALENCIA_ACF.md    calibração do gêmeo + campanhas G4/G5 (números)
+│   ├── PENDENCIA_MOTOR.md     motor elétrico do XP9 (energia ~130 s por reload)
+│   └── ROTEIRO_DEMO.md        roteiro da demonstração ao vivo
 │
 ├── arquivos/               ← artigo IEEE Access (PID × LQRy de ganho fixo)
 │   ├── main.tex / main.pdf    draft do artigo
@@ -289,6 +307,36 @@ PID_out (delta) ─►(+)─► Sat ─► canal absoluto da S-Function
 ## Validação
 
 Linear × não-linear: para perturbações pequenas em torno do trim a divergência é pequena; para manobras grandes os modelos divergem como esperado (não-linearidades aerodinâmicas + acoplamentos cinemáticos). As figuras estão em `arquivos/figs/` (`fig_nl_lin_*.png`).
+
+---
+
+## X-Plane: gêmeo digital e missões por waypoints (`xplane/`)
+
+O `.acf` do DH no X-Plane 9 foi **calibrado como gêmeo** do modelo identificado
+(trim α 14,50° vs 14,44°; CLα 2,87 vs 2,88 /rad; curto período ωn 6,25 vs
+6,3 rad/s) e **validado voando as mesmas manobras nos dois mundos** com o mesmo
+controlador e ganhos — campanha G5: RMS de altitude **6,95 m (SIL) vs 6,96 m
+(X-Plane)**. Relatório completo (método, antes/depois, figuras):
+[`docs/Relatorio_gemeo_XPlane.pdf`](docs/Relatorio_gemeo_XPlane.pdf); números e
+histórico de calibração: [`xplane/EQUIVALENCIA_ACF.md`](xplane/EQUIVALENCIA_ACF.md).
+
+```matlab
+% Demo (X-Plane 9 aberto com o DH carregado):
+addpath('xplane')
+XP_gui_waypoints     % GUI: clique waypoints (ou "Carregar circuito OVAL") e VOAR
+```
+
+- **Guiagem** LOS por waypoints (algoritmo do PIPER-1-6 do Julio, reimplementado)
+  fabricando referências para a **mesma cascata PID deste repo** (ganhos intocados);
+  só a caixa "planta" muda — X-Plane via UDP/XPlaneConnect a 20 Hz.
+- **Missão padrão:** circuito oval de 6 WPs (~126 s), dimensionado para a energia
+  do motor elétrico do XP9 (~130 s de voo motorizado por reload — diagnóstico
+  completo em [`xplane/PENDENCIA_MOTOR.md`](xplane/PENDENCIA_MOTOR.md)). A
+  simulação **encerra sozinha 5 s após capturar o último waypoint**.
+- **Antes de cada voo:** `File → Open Aircraft` no X-Plane (religa o motor) — ou
+  `XP_auto_reload = true` para o reload programático (`xp_reload_acf.m`).
+- **Sem X-Plane:** `NL_missao` voa a mesma missão na planta da Ana em segundos
+  (plano B da demo e comparação SIL×XP automática após cada voo).
 
 ---
 
