@@ -1,5 +1,40 @@
 # LQRY no X-Plane — experimento e resultado (2026-08-30)
 
+## ADENDO 6 — Por que o SIL fica estável: margem menor que 25 ms
+
+Pergunta do Kaue: "como as simulações NL no Simulink funcionam e
+deixam a aeronave estável?" Resposta em 4 partes + 1 experimento:
+
+1. Nascem NO equilíbrio exato (estados = trim, integradores
+   pré-carregados) — nada precisa convergir, só não divergir;
+2. Manobras minúsculas (doublets de ±5°/±5 m) — estabilidade LOCAL,
+   que é o que o LQR promete;
+3. Perturbação ZERO (sem vento/ruído/atraso/erro de trim) — sistema
+   marginal parado fica parado, e no gráfico parece robusto;
+4. O modelo perdoa excursões (sem estol, sem limite de superfície).
+
+**Experimento do atraso** (cópia do SIL + Transport Delay no comando,
+ganhos/planta/refs intocados; i=2, manobras do doc, modo normal):
+
+| Atraso de laço | Resultado |
+|---|---|
+| 1 ms | converge (idêntico ao original) |
+| **25 ms** | **DIVERGE (NaN)** |
+| 50 ms | DIVERGE |
+| 75 ms (≈ laço real 20 Hz + UDP) | DIVERGE |
+
+A margem de estabilidade do LQRY a 12 m/s é menor que 25 ms de
+latência — 1/3 do laço de qualquer implementação real. O SIL fica
+estável porque tem atraso zero. (Modelo do teste:
+`scratchpad/CL_NL_DH_delay_test.slx`, temporário.)
+
+**Primeira sobreposição G4 (SIL × X-Plane, mesmo controlador, voo
+reto, 12 m/s)**: `voos/G4_LQRY_SILxXP_voo_reto.png` — SIL liso e
+estável (inclusive no doublet de VT); X-Plane com φ oscilando desde
+t=0, departure em 12,5 s, mergulho. Lado NL salvo em
+`voos/SIL_LQRY2_i2_manobras_doc.mat` (refs: VT doublet t=10–20
+[11,62→14,62]; H doublet t=40/60/80 [595↔605]; ψ t=90).
+
 ## ADENDO 5 — Teste da "missão mansa": REFUTADA — departure em VOO RETO
 
 Hipótese do Kaue pós-auditoria: missão dentro do envelope pequeno
