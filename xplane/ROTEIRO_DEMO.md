@@ -1,0 +1,74 @@
+# Roteiro de demonstração — guiagem por waypoints do DH no X-Plane
+
+## O que dizer sobre a origem (créditos)
+
+- **Guiagem**: algoritmo LOS de waypoints do trabalho do Julio
+  (PIPER-1-6) — linha de visada ao WP atual, círculo de aceitação,
+  sequenciamento, hold no último WP. Reimplementado como chart
+  (`Guidance_Star`) e adaptado ao DH: referências no referencial da
+  proa de engate, interpolação de Δh>20 m, alt/vel por waypoint,
+  deltas entrando antes dos pré-filtros da cascata.
+- **Controle**: 100% a cascata PID da dissertação (ganhos intocados).
+  A guiagem só fabrica referências.
+- **Planta**: X-Plane 9 com o .acf "gêmeo v1.1" — calibrado para
+  equivaler ao modelo identificado da Ana (trim α 14,50 vs 14,44;
+  CLα idêntico; ωn arfagem 6,25 vs 6,3). Ver EQUIVALENCIA_ACF.md.
+- **Interface**: XPlaneConnect UDP (padrão do harness do Julio),
+  20 Hz, tempo do X-Plane como referência.
+
+## Antes da demo (5 min)
+
+1. Abrir o X-Plane 9 → `File → Open Aircraft` → `DH-Lon-REV-03`
+   (Radio Control). Conferir que o avião aparece NA PISTA.
+2. Abrir o MATLAB (o path já sobe pelo startup normal; se precisar:
+   `addpath('...\controle-pid-drone-hibrido\xplane')`).
+3. `XP_gui_waypoints` → abre a GUI de missão.
+
+## Demo ao vivo (o prato principal, ~6 min)
+
+1. Na GUI: mostrar o mapa, clicar 3–4 waypoints (ou botão
+   **"Carregar G2"** = quadrado de 500 m oficial).
+2. **Recarregar o avião no X-Plane** (`File → Open Aircraft`) —
+   falar da bateria do motor elétrico do XP9 (~90–150 s por reload;
+   por isso missões ≤ ~130 s ou o final vira planeio guiado).
+3. **VOAR NO X-PLANE** → confirmar o diálogo. Deixar o X-Plane
+   visível num canto: o avião teleporta, engata e voa a missão
+   sozinho, em tempo real (1:1).
+4. Ao terminar: trajetória azul sobreposta ao plano na GUI,
+   resumo de capturas no console, figuras + PNGs salvos em
+   `xplane/voos/`.
+
+Se a professora quiser ver de novo: reload + VOAR (1 clique cada).
+
+## Figuras de apoio (já prontas em xplane/voos)
+
+| Figura | História que conta |
+|---|---|
+| `XP_missao_20260829_225253_G2_traj.png` | Missão G2 do PID: 4/4 capturas, fase nominal |
+| `G4_PID_SILxXP_manobras.png` | **G4**: mesmas manobras no modelo NL e no X-Plane — malha de altitude com métricas idênticas (OS −5,1 vs −5,3%; ts 35,0 vs 35,0 s) |
+| `G4_LQRY_SILxXP_voo_reto.png` | Contraste LQRY: SIL liso × X-Plane departure em 12,5 s |
+| Tabelas do `EQUIVALENCIA_ACF.md` | Como o .acf virou gêmeo do drone real (trim/polar/curto período) |
+| `LQRY_XPLANE.md` | O arco completo do LQRY (6 adendos): por que 2/4 é o teto |
+
+## Mensagens-chave (se perguntarem)
+
+- PID: 4/4 na missão com os ganhos da dissertação, sem retune; e
+  reproduz o SIL com fidelidade de métrica (G4).
+- LQRY: funciona como regulador de pequenos sinais na planta de
+  projeto (reproduzimos as demos do Mirko); não é implantável para a
+  missão — envelope de proa ±15°, margem de atraso <25 ms (o laço
+  real tem 50–75 ms), sem anti-windup. Falha até em voo reto no
+  X-Plane. A fronteira foi MEDIDA, não especulada.
+- O gêmeo transforma o X-Plane em bancada de ensaio válida: mesma
+  manobra, mesmos ganhos, métricas casadas.
+
+## Se algo der errado
+
+- **Avião não responde / hélice parada**: `File → Open Aircraft` de
+  novo (latch do motor elétrico do XP9). RPM no solo não vale como
+  teste (hélice fica enterrada no spawn) — olhar a hélice girando.
+- **"tempo do X-Plane CONGELADO"**: tela de crash aberta → Reset
+  Flight no X-Plane e rodar de novo.
+- **Voo virou planeio no meio**: bateria acabou (normal >130 s) —
+  reload e missão mais curta.
+- Erro vermelho na GUI: ler o console do MATLAB (mensagem completa).
