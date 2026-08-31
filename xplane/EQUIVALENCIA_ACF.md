@@ -53,6 +53,33 @@ de rolagem −20%), micro-ciclo-limite de θ ±1° (cadeia atuador/20 Hz), e
 droop de VT nos ~5 s finais (fade do motor). O par com/sem vento é
 didático p/ apresentação: mesma dinâmica, texturas diferentes.
 
+### Experimentos "ANTES" no .acf original (2026-08-31, backup preFaseB)
+
+Para o relatório (`docs/Relatorio_gemeo_XPlane.docx/pdf`), os ensaios
+foram REFEITOS no `DH-Lon-REV-03_backup_preFaseB_20260830.acf` (aero
+pré-calibração, motor 0,80 hp já editado), atmosfera calma:
+
+1. **Ident de arfagem refeita** (`XP_ident_theta` com overrides novos
+   `XPI_pitch0/thr_op/de_op` = 2/0,5/2): sobreamortecido, fit ωn 15,0 /
+   ζ 1,67 (Fase A tinha dado 9,8/1,1 noutro ponto — em sobreamortecido
+   ωn/ζ são mal-identificáveis isolados; o polo dominante bate: ~5–6
+   rad/s sem oscilação). Dados `voos/XP_ident_theta_20260831_125617.mat`.
+   ⚠️ fit precisa de CAP em ωn (≤25 rad/s) — sem cap o fminsearch foge
+   p/ 120 rad/s ajustando ruído além de Nyquist.
+   Figura 3 vias (Ana exata pelo submodelo α–q × original × gêmeo):
+   `voos/EQUIV_doublet_malha_aberta_3vias.png` (scratchpad
+   fit_Gq_3vias.m; Ana exata = 6,43/0,55 — o fit com janela 0,9 s sai
+   enviesado p/ 5,4 pela fugóide).
+2. **dblh em malha fechada no original** (âncoras douradas dele via
+   overrides novos `XP_anc_thr0/trim_thr/trim_de_deg` + Xe8=2/clamp 3):
+   **manobra IMPOSSÍVEL** — h máx 600,2 (não sobe), θ pregado no teto
+   +5° por ~100 s, afunda até 588,7 e não recupera; ess da subida
+   −14,6 m; RMS h 9,23 vs 6,95. Física: α_trim≈5° ⇒ γ=θ−α≈0 com o
+   MESMO teto de proteção que no gêmeo (α 14,4) dá γ≈+3°. Voo
+   `voos/XP_voo_20260831_130632.mat`, figura
+   `voos/G5_dblh_SILxXP_original.png` (plot_G5 ganhou 5º arg rotulo_xp
+   p/ legenda/título).
+
 Notas operacionais: (1) o XP_voo agora ABORTA no pre-flight se detectar
 reload que não pegou (AGL ≥3 m com VT <3 = wreck no morro, motor morto)
 — mas o caso de 2026-08-31 mostrou que o wreck pode estar em solo

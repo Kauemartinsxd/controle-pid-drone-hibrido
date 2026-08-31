@@ -35,12 +35,16 @@ global GlobalSocket
 try, closeUDP(GlobalSocket); catch, end
 GlobalSocket = openUDP('127.0.0.1', 49009, 0, 500);
 
-%% Ponto de operacao (regime do voo asa5, 2026-08-19)
+%% Ponto de operacao (default = GEMEO; p/ outro .acf defina antes de rodar:
+%%   XPI_pitch0 / XPI_thr_op / XPI_de_op — ex. original pre-Fase B: 2 / 0.5 / 2)
 MSL0    = 600;
 VT0     = 12;
 pitch0  = 14;             % [deg]
 thr_op  = 0.50;
 de_op   = 5.0;           % [deg] profundor fisico no ponto de operacao (iter-2)
+if exist('XPI_pitch0','var') && ~isempty(XPI_pitch0), pitch0 = XPI_pitch0; end
+if exist('XPI_thr_op','var') && ~isempty(XPI_thr_op), thr_op = XPI_thr_op; end
+if exist('XPI_de_op','var')  && ~isempty(XPI_de_op),  de_op  = XPI_de_op;  end
 
 steps   = [0 +2 -2 +3 -3];   % [deg] degraus (0 = baseline da deriva)
 T_set   = 1.2;            % [s] settle antes do re-zero

@@ -1,4 +1,4 @@
-function plot_G5(id, xpmat, sufixo, rotulo)
+function plot_G5(id, xpmat, sufixo, rotulo, rotulo_xp)
 % plot_G5 — figura comparada SIL x X-Plane da campanha G5 (doublets)
 % no MESMO estilo da G4 (5 paineis: h, VT, psi, phi, theta) + metricas
 % por fase do doublet no console.
@@ -13,6 +13,7 @@ function plot_G5(id, xpmat, sufixo, rotulo)
 % Salva voos/G5_<id>_SILxXP<sufixo>.png.
 if nargin < 3 || isempty(sufixo), sufixo = ''; end
 if nargin < 4 || isempty(rotulo), rotulo = ''; end
+if nargin < 5 || isempty(rotulo_xp), rotulo_xp = 'X-Plane (gêmeo v1.1)'; end
 
 here = fileparts(mfilename('fullpath'));
 vd   = fullfile(here, 'voos');
@@ -90,8 +91,8 @@ for k = 1:5
     plot(ax, xp.t, pans{k,2}, '-', 'Color', cX, 'LineWidth', 1.1);
     ylabel(ax, pans{k,4}, 'Color','k'); xlim(ax, [0 m.T]);
     if k==1
-        title(ax, ['G5 — PID cascata, SIL vs X-Plane (gêmeo v1.1): ' m.titulo rotulo], 'Color','k');
-        lg = legend(ax, {'referência','SIL (modelo da Ana)','X-Plane (gêmeo v1.1)'}, 'Location','southeast');
+        title(ax, ['G5 — PID cascata, SIL vs ' rotulo_xp ': ' m.titulo rotulo], 'Color','k');
+        lg = legend(ax, {'referência','SIL (modelo da Ana)',rotulo_xp}, 'Location','southeast');
         set(lg,'Color','w','TextColor','k','EdgeColor',[0.5 0.5 0.5]);
     end
     if k==5, xlabel(ax,'t [s]','Color','k'); end
