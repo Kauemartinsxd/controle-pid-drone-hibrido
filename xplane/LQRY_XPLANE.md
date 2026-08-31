@@ -28,6 +28,16 @@ latência — 1/3 do laço de qualquer implementação real. O SIL fica
 estável porque tem atraso zero. (Modelo do teste:
 `scratchpad/CL_NL_DH_delay_test.slx`, temporário.)
 
+**Complemento — "e nem voo reto nivelado?"**: com 25 ms e TODAS as
+refs no trim (zero manobra), o modelo matemático não diverge em 150 s
+mas entra em CICLO-LIMITE permanente de arfagem (θ 8,6–18,0° em torno
+do trim 14,4° sem nenhuma perturbação); um único erro de proa de 2°
+(o que todo engate real tem) vira oscilação de φ ±14° (amplificação
+7×). O degradê completo: sem atraso = nivelado perfeito; 25 ms =
+ciclo-limite; mundo real (50–75 ms + spool + saturações + estol) =
+oscilação crescente e departure em ~12 s. Não é a missão que é
+difícil — é a margem que é fina demais para qualquer implementação.
+
 **Primeira sobreposição G4 (SIL × X-Plane, mesmo controlador, voo
 reto, 12 m/s)**: `voos/G4_LQRY_SILxXP_voo_reto.png` — SIL liso e
 estável (inclusive no doublet de VT); X-Plane com φ oscilando desde
