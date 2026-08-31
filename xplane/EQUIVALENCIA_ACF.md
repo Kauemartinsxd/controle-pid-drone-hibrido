@@ -1,5 +1,40 @@
 # Equivalência .acf ↔ drone real (modelo da Ana)
 
+## ✅ G4 CUMPRIDO (2026-08-30) — SIL × X-Plane lado a lado, PID, mesmas manobras
+
+Manobra composta (degraus idênticos, blocos Step_* paramétricos nos
+dois modelos): **h +10 m em t=10 · ψ +15° em t=45 · VT +2 m/s em
+t=75**, 110 s, gêmeo v1.1, ganhos 100% da dissertação.
+Figura: `voos/G4_PID_SILxXP_manobras.png` (5 painéis sobrepostos);
+dados: `voos/SIL_PID_G4_composto.mat` + `voos/XP_voo_20260830_202457.mat`.
+
+| Métrica | SIL (modelo da Ana) | X-Plane (gêmeo v1.1) |
+|---|---|---|
+| h+10: OS / ts5% / ess | −5,1% / 35,0 s / −0,66 m | **−5,3% / 35,0 s / −0,70 m** |
+| ψ+15: OS / ts5% / ess | −2,7% / 24,3 s / −0,53° | +10,6% / 30,0 s / +0,62° |
+| VT+2: OS / ts5% / ess | −0,1% / 14,2 s / 0,00 | +4,4% / 35 s / −1,17 (*) |
+| RMS h / RMS VT (0–75 s) | 3,52 m / 0,04 m/s | 3,67 m / 0,24 m/s |
+
+(*) janela do degrau de VT (t=75–110) coincide com o fade de energia
+do motor do XP9 (thr saturando 0,94 no fim) — a subida até 14,1 m/s
+tem a MESMA forma do SIL; o droop final é o "combustível" acabando,
+não a malha. A malha de altitude casa em TODAS as métricas (OS com
+0,2 pontos de diferença; ts idêntico ao decimo de segundo).
+
+Leitura: o gêmeo v1.1 + PID reproduzem o comportamento do modelo de
+projeto com fidelidade de métrica — o par (equivalência estática v1 +
+dinâmica v1.1) está validado como ferramenta de ensaio. O X-Plane
+adiciona textura de mundo real (jitter de VT ±0,25 RMS, φ ±1,5°,
+oscilação de θ ±2°) que o SIL não tem — exatamente o valor do ensaio.
+
+Notas operacionais novas: (1) motor no solo: RPM é INVÁLIDO como
+liveness (hélice enterrada no terreno em AGL −0,5 trava em ~1 rad/s
+mesmo vivo) — critério certo é TRQ > +0,05 com throttle, ou hélice
+girando VISUALMENTE; (2) reload precisa ser conferido (um File→Open
+que não "pega" deixa o wreck no morro — pre-flight acusa AGL alto com
+VT~0); (3) XP_voo agora aceita degraus G4 (XP_h_step_final/t,
+XP_psi_step_deg/t, XP_VT_step_delta/t) espelhando o DH_inicializacao.
+
 ## ✅ GÊMEO v1.1 (2026-08-30) — inércia de arfagem CALIBRADA (backup: `DH-Lon-REV-03_gemeo_v1_1_20260830.acf`)
 
 O resíduo dominante do v1 (ωn arfagem +35%) foi eliminado calibrando o

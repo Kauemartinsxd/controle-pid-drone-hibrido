@@ -33,7 +33,17 @@ if ~exist('XP_VT_ref','var') || isempty(XP_VT_ref), XP_VT_ref = NaN; end  % NaN 
 % overrides de ANCORA p/ campanhas de equivalencia (.acf mudando de trim):
 if ~exist('XP_Xe8_deg','var')     || isempty(XP_Xe8_deg),     XP_Xe8_deg = NaN; end      % centro de theta_ref
 if ~exist('XP_clamp_hi_deg','var')|| isempty(XP_clamp_hi_deg),XP_clamp_hi_deg = NaN; end % teto do clamp
-setpref('XP_DH','cfg',[XP_msl0 XP_VT0 XP_TimeXP XP_VT_ref XP_Xe8_deg XP_clamp_hi_deg]);  % sobrevive ao clear
+% MANOBRAS G4 (degraus identicos aos do SIL — blocos Step_* do modelo,
+% mesmos parametros do DH_inicializacao; defaults INERTES):
+if ~exist('XP_h_step_final','var') || isempty(XP_h_step_final), XP_h_step_final = 0; end
+if ~exist('XP_h_step_t','var')     || isempty(XP_h_step_t),     XP_h_step_t = 10;    end
+if ~exist('XP_psi_step_deg','var') || isempty(XP_psi_step_deg), XP_psi_step_deg = 0; end
+if ~exist('XP_psi_step_t','var')   || isempty(XP_psi_step_t),   XP_psi_step_t = 5;   end
+if ~exist('XP_VT_step_delta','var')|| isempty(XP_VT_step_delta),XP_VT_step_delta = 0;end
+if ~exist('XP_VT_step_t','var')    || isempty(XP_VT_step_t),    XP_VT_step_t = 5;    end
+setpref('XP_DH','cfg',[XP_msl0 XP_VT0 XP_TimeXP XP_VT_ref XP_Xe8_deg XP_clamp_hi_deg ...
+    XP_h_step_final XP_h_step_t XP_psi_step_deg XP_psi_step_t ...
+    XP_VT_step_delta XP_VT_step_t]);  % sobrevive ao clear
 
 %% 1) Workspace completo (ganhos, socket, refs) — faz clear/bdclose
 run(fullfile(fileparts(mfilename('fullpath')), 'XP_inicializacao.m'));
@@ -43,6 +53,11 @@ XP_msl0 = cfg(1); XP_VT0 = cfg(2); TimeXP = cfg(3);
 XP_VT_ref = NaN; if numel(cfg) >= 4, XP_VT_ref = cfg(4); end
 XP_Xe8_deg = NaN; XP_clamp_hi_deg = NaN;
 if numel(cfg) >= 6, XP_Xe8_deg = cfg(5); XP_clamp_hi_deg = cfg(6); end
+if numel(cfg) >= 12   % manobras G4 (aplicadas sobre os params do DH_inicializacao)
+    h_step_final = cfg(7);            h_step_t  = cfg(8);
+    psi_ref_final = deg2rad(cfg(9));  psi_ref_t = cfg(10);
+    VT_step_delta = cfg(11);          VT_step_t = cfg(12);
+end
 rmpref('XP_DH','cfg');
 
 %% 2) PRE-FLIGHT CHECK: aeronave inteira, nivelada no solo, X-Plane rodando
@@ -131,6 +146,8 @@ if isprop(out,'theta_ref_log') || isfield(out,'theta_ref_log')
     voo.theta_ref = out.theta_ref_log;   % saida do C_alt (pos-clamp)
 end
 voo.cfg = struct('XP_msl0',XP_msl0, 'XP_VT0',XP_VT0, 'TimeXP',TimeXP, ...
+    'h_step',[h_step_final h_step_t], 'psi_step',[rad2deg(psi_ref_final) psi_ref_t], ...
+    'VT_step',[VT_step_delta VT_step_t], ...
     'h_ref',h_ref, 'he',he, 'VT_ref',VT_ref, 'TrimInput',TrimInput, ...
     'C_theta',C_theta, 'C_vel',C_vel, 'C_alt',C_alt, 'C_phi',C_phi, ...
     'Kq',Kq, 'Kp',Kp, 'Kr',Kr, 'K_heading',K_heading, ...
