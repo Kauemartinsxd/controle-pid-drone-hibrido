@@ -62,6 +62,30 @@ Se a professora quiser ver de novo: reload + VOAR (1 clique cada).
 - O gêmeo transforma o X-Plane em bancada de ensaio válida: mesma
   manobra, mesmos ganhos, métricas casadas.
 
+## Quais scripts rodam (na ordem, ao apertar VOAR)
+
+```
+XP_gui_waypoints.m          GUI: coleta WPs -> variaveis XP_* -> chama o lancador
+  └─ XP_missao.m            lancador: pre-flight, WPs->NE, ancoras, teleporte, sim, salva
+       ├─ XP_inicializacao.m   ambiente XP: socket UDP + ...
+       │    └─ DH_inicializacao.m   TRIM da Ana + GANHOS do PID (o MESMO script do SIL)
+       ├─ modelo_XP_DH_GUIA.slx    controlador PID + Guidance_Star (LOS) + Planta_XP
+       │    ├─ xp_read_dh.m        sensor: 14 canais UDP + teleporte-engate + pacing 1:1
+       │    ├─ xp_send_dh.m        atuador: [thr de da dr] c/ limites reais do .acf
+       │    └─ XPlaneConnect (lib do Julio)   getDREFs/sendCTRL/sendPOSI
+       └─ plot_XP_missao.m        trajetoria + series + PNGs
+```
+
+Espelho SIL (G4): `DH_inicializacao` → `manobras/manobra_*.m` →
+`sim('modelo_NL_DH_CL')` (planta = equacoes da Ana) → `plot_NL_DH`.
+**Entre SIL e X-Plane so a caixa "planta" muda** — controlador e
+ganhos identicos por construcao (mesmo DH_inicializacao).
+
+Variantes: `XP_voo.m` (voo sem guiagem + degraus G4 de h/ψ/VT);
+`XP_missao_lqry2.m` (LQRY do Mirko: paths isolados, Ganho_hold_*.mat,
+modelo_XP_LQRY2_GUIA.slx — mesma Planta_XP, controlador trocado);
+`XP_ident_theta.m` (sonda de identificacao usada p/ calibrar o gemeo).
+
 ## Se algo der errado
 
 - **Avião não responde / hélice parada**: `File → Open Aircraft` de
