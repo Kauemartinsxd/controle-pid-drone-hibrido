@@ -1,5 +1,42 @@
 # Motor elétrico do DH no X-Plane 9 — diagnóstico e operação (2026-08-29)
 
+## ✅ RESOLVIDO (2026-08-31): reload AUTOMÁTICO — `xp_reload_acf.m`
+
+A pendência da endurance está encerrada por AUTOMAÇÃO do reload (a
+"bateria infinita" verdadeira não existe no XP9 — ver investigação):
+
+**Investigação (3 sondas em voo, thr 1.0, ~200 s cada):**
+1. NÃO é combustível: manter `m_fuel1` cheio por dref (0,03–0,05 kg o
+   voo todo; o write pega mas clampa no tanque residual) → motor morre
+   igual (TRQ 0,27→0 em ~170 s). `XP_sonda_bateria2.mat`.
+2. NÃO é a bateria elétrica do avião: tensão parada em ~24,0 V o voo
+   inteiro (−0,03 V), e injetar GPU+APU+gerador (gpu_on/gpu_amps etc.)
+   não muda NADA no decaimento. `XP_sonda_bateria3.mat`. (O dref
+   `battery_charge_watt_hr` nem existe no XP9 — explica o watt-hours
+   do Plane Maker não ter efeito.)
+3. O estoque é INTERNO do modelo de motor elétrico do XP9, não exposto
+   por dref; a potência decai ~linearmente até 0 em ~90–180 s. Só o
+   File → Open Aircraft rearma.
+4. UDP legado (porta 49000): `ACFN` (não "VEHN" — doc do XP9 está
+   desatualizada) precisa de corpo de 156 bytes (int p + path[150] +
+   2 pad) e é ACEITO, mas troca o modelo SEM reiniciar o voo e SEM
+   rearmar a energia. `MOUS`/`CHAR` não alcançam os diálogos da UI
+   (são do painel). `MENU "600"` FUNCIONA: abre o Open Aircraft
+   (números de menu em Resources/menus/English/X-Plane.txt).
+
+**Solução (`xp_reload_acf.m`):** MENU 600 por UDP + 2 cliques de mouse
+REAIS (java.awt.Robot) no diálogo — linha `DH-Lon-REV-03.acf` e botão
+Open, coordenadas relativas ao centro do client (diálogo centrado,
+tamanho fixo; client rect via user32/PowerShell) — e verificação:
+t_xp resetou + avião no solo + **TRQ > +0,05 com throttle** (motor
+VIVO). Integrado como **OPT-IN** (`XP_auto_reload=true` antes do
+lançador — decisão do Kaue 2026-08-31: o padrão continua o reload
+MANUAL; a automação serve p/ campanhas sem operador). Requisito: janela do
+X-Plane visível; se um arquivo novo ordenar antes de `DH-Lon-REV-03.acf`
+na pasta, o clique erra a linha — a verificação acusa.
+
+---
+
 > Substitui o diagnóstico de 2026-08-20 (que culpava hélice sobre-passo e
 > "tanque vazio" — ambos FALSOS). Consolidado após a campanha de
 > 2026-08-29 com o motor caracterizado em voo.

@@ -25,6 +25,14 @@
 % solo), SEM tela de crash (se acidentou: Reset Flight antes).
 % =============================================================
 
+%% Reload automatico do .acf — OPT-IN (decisao do Kaue 2026-08-31: o
+%% padrao e' reload MANUAL via File->Open Aircraft; XP_auto_reload=true
+%% liga a automacao xp_reload_acf p/ campanhas sem operador).
+if exist('XP_auto_reload','var') && ~isempty(XP_auto_reload) && XP_auto_reload
+    addpath(fileparts(mfilename('fullpath')));
+    xp_reload_acf;
+end
+
 %% Config do usuario (preservada atraves do clear do DH_inicializacao)
 if ~exist('XP_msl0','var')   || isempty(XP_msl0),   XP_msl0   = 600; end
 if ~exist('XP_VT0','var')    || isempty(XP_VT0),    XP_VT0    = 12;  end
@@ -33,6 +41,11 @@ if ~exist('XP_VT_ref','var') || isempty(XP_VT_ref), XP_VT_ref = NaN; end  % NaN 
 % overrides de ANCORA p/ campanhas de equivalencia (.acf mudando de trim):
 if ~exist('XP_Xe8_deg','var')     || isempty(XP_Xe8_deg),     XP_Xe8_deg = NaN; end      % centro de theta_ref
 if ~exist('XP_clamp_hi_deg','var')|| isempty(XP_clamp_hi_deg),XP_clamp_hi_deg = NaN; end % teto do clamp
+% ancoras de atuador p/ .acf com trim DIFERENTE do gemeo (ex.: original
+% pre-Fase B: thr0 0.55, TrimInput [0.50; +2 deg] — config dourada 08-19):
+if ~exist('XP_anc_thr0','var')        || isempty(XP_anc_thr0),        XP_anc_thr0 = NaN; end        % throttle do teleporte
+if ~exist('XP_anc_trim_thr','var')    || isempty(XP_anc_trim_thr),    XP_anc_trim_thr = NaN; end    % TrimInput(1)
+if ~exist('XP_anc_trim_de_deg','var') || isempty(XP_anc_trim_de_deg), XP_anc_trim_de_deg = NaN; end % TrimInput(2) e de0 [deg fis.]
 % MANOBRAS G4 (degraus identicos aos do SIL — blocos Step_* do modelo,
 % mesmos parametros do DH_inicializacao; defaults INERTES):
 if ~exist('XP_h_step_final','var') || isempty(XP_h_step_final), XP_h_step_final = 0; end
@@ -50,7 +63,8 @@ if ~exist('XP_psi_step_t3','var') || isempty(XP_psi_step_t3), XP_psi_step_t3 = 1
 setpref('XP_DH','cfg',[XP_msl0 XP_VT0 XP_TimeXP XP_VT_ref XP_Xe8_deg XP_clamp_hi_deg ...
     XP_h_step_final XP_h_step_t XP_psi_step_deg XP_psi_step_t ...
     XP_VT_step_delta XP_VT_step_t ...
-    XP_h_step_t2 XP_h_step_t3 XP_psi_step_t2 XP_psi_step_t3]);  % sobrevive ao clear
+    XP_h_step_t2 XP_h_step_t3 XP_psi_step_t2 XP_psi_step_t3 ...
+    XP_anc_thr0 XP_anc_trim_thr XP_anc_trim_de_deg]);  % sobrevive ao clear
 
 %% 1) Workspace completo (ganhos, socket, refs) — faz clear/bdclose
 run(fullfile(fileparts(mfilename('fullpath')), 'XP_inicializacao.m'));
@@ -68,6 +82,10 @@ end
 if numel(cfg) >= 16   % doublets G5 (t2/t3 dos blocos Step_*2/3; 1e9 = inerte)
     h_step_t2  = cfg(13);  h_step_t3  = cfg(14);
     psi_ref_t2 = cfg(15);  psi_ref_t3 = cfg(16);
+end
+XP_anc_thr0 = NaN; XP_anc_trim_thr = NaN; XP_anc_trim_de_deg = NaN;
+if numel(cfg) >= 19   % ancoras de atuador p/ .acf de trim diferente
+    XP_anc_thr0 = cfg(17); XP_anc_trim_thr = cfg(18); XP_anc_trim_de_deg = cfg(19);
 end
 rmpref('XP_DH','cfg');
 
@@ -133,6 +151,12 @@ if ~isnan(XP_Xe8_deg)
     XP_pitch0 = XP_Xe8_deg;                       % teleporta ja na atitude alvo
 end
 if ~isnan(XP_clamp_hi_deg), theta_ref_clamp(2) = deg2rad(XP_clamp_hi_deg); end
+if ~isnan(XP_anc_thr0),     XP_thr0 = XP_anc_thr0; end
+if ~isnan(XP_anc_trim_thr), TrimInput(1) = XP_anc_trim_thr; end
+if ~isnan(XP_anc_trim_de_deg)
+    TrimInput(2) = deg2rad(XP_anc_trim_de_deg);
+    XP_de0 = deg2rad(XP_anc_trim_de_deg)/deg2rad(25);
+end
 h_ref  = XP_msl0;               % altitude MSL alvo
 he     = XP_msl0;               % bias dos PIDs b=0 no ponto de voo
 VT_ref = Ve;                    % 12 m/s — ponto de projeto
