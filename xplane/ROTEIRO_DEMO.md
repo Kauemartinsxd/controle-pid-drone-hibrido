@@ -86,6 +86,18 @@ Variantes: `XP_voo.m` (voo sem guiagem + degraus G4 de h/ψ/VT);
 modelo_XP_LQRY2_GUIA.slx — mesma Planta_XP, controlador trocado);
 `XP_ident_theta.m` (sonda de identificacao usada p/ calibrar o gemeo).
 
+## Plano B — missão SEM X-Plane (se o simulador não colaborar)
+
+```matlab
+NL_missao        % G2 na planta da Ana (modelo_NL_DH_GUIA) — roda em segundos
+```
+
+Mesma guiagem, mesmo controlador, mesmos plots (`plot_XP_missao`) —
+só a planta muda (sfunction_DH em vez do X-Plane). Validado: 4/4 com
+capturas a 8–17 m. Aceita `NL_WPs`/`NL_R_accept`/`NL_TimeXP` como o
+XP_missao. Também serve de comparação didática ao vivo: "a mesma
+missão nos dois mundos".
+
 ## Se algo der errado
 
 - **Avião não responde / hélice parada**: `File → Open Aircraft` de
