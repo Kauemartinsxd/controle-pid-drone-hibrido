@@ -54,7 +54,8 @@ function y = xp_read_dh(cmd, t_sim)
     global GlobalSocket;
     import XPlaneConnect.*;
 
-    persistent psi_acc psi_prev y_good wall_clock n_call xz0;
+    persistent psi_acc psi_prev y_good wall_clock n_call xz0 psi_eng0;
+    global XP_LIVE   % [xN xE psi_engate psi_atual t_xp] p/ rastreio ao vivo (GUI)
 
     if isempty(y_good), y_good = zeros(14,1); end
     y = y_good;
@@ -198,6 +199,7 @@ function y = xp_read_dh(cmd, t_sim)
     if isempty(psi_acc)
         psi_acc  = 0;                           % 1a amostra: proa relativa = 0
         psi_prev = psi_meas;
+        psi_eng0 = psi_meas;                    % proa de engate (frame do mapa)
     else
         dpsi = psi_meas - psi_prev;
         dpsi = mod(dpsi + pi, 2*pi) - pi;       % delta em (-pi, pi]
@@ -217,6 +219,7 @@ function y = xp_read_dh(cmd, t_sim)
          raw(8); deg2rad(raw(9)); raw(10); ...
          xN; xE; psi_meas; deg2rad(raw(13))];
     y_good = y;
+    XP_LIVE = [xN, xE, psi_eng0, psi_meas, raw(10)];   % rastreio ao vivo (GUI)
 
     % DEBUG: primeiros N samples do engate
     if n_call <= 20

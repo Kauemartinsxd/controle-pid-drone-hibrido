@@ -10,7 +10,7 @@
 % funciona sem mudanca). Engate = origem, proa 0, h 600, VT 12.
 %
 % Uso:
-%   NL_missao                  % G2 default (quadrado 500x500 m)
+%   NL_missao                  % default: circuito oval 280x160 m (= XP_missao)
 % Config opcional (defina antes):
 %   NL_WPs      [Nx4]  [a_frente(m) a_direita(m) hMSL(m) vel(m/s)]
 %                      (no SIL frame do engate == NE)
@@ -20,14 +20,17 @@
 % =============================================================
 
 %% Config (preservada atraves do clear do DH_inicializacao)
-if ~exist('NL_R_accept','var') || isempty(NL_R_accept), NL_R_accept = 80; end
+if ~exist('NL_R_accept','var') || isempty(NL_R_accept), NL_R_accept = 60; end  % 60 p/ o oval de 6 WPs (80 ate 2026-08-31)
 if ~exist('NL_WPs','var'),    NL_WPs = []; end
 if ~exist('NL_TimeXP','var'), NL_TimeXP = []; end
 if ~exist('NL_tag','var'),    NL_tag = 'SILmissao'; end
 if isempty(NL_WPs)
-    NL_WPs = [ 500    0  600  12;
-               500  500  600  12;
-                 0  500  600  12;
+    % espelho do default do XP_missao (oval 6 WPs: cabe nos ~130 s de motor)
+    NL_WPs = [ 160    0  600  12;
+               260  100  600  12;
+               160  200  600  12;
+                 0  200  600  12;
+              -100  100  600  12;
                  0    0  600  12];
 end
 setpref('XP_DH','nlmissao', struct('R',NL_R_accept,'WP',NL_WPs,'T',NL_TimeXP,'tag',NL_tag));
@@ -59,11 +62,13 @@ for i = 2:size(WPs_user,1)
     WPs(end+1,:) = WPs_user(i,:); %#ok<SAGROW>
 end
 R_accept = cfgm.R;
+N_WPs = size(WPs,1);   % p/ o corte de fim de missao no modelo (Cond_fim_missao)
+WPfim_N = WPs(end,1);  WPfim_E = WPs(end,2);   % ultimo WP (dist independente do dist_mon)
 h_ref  = he;  VT_ref = Ve;
 h_ref0 = h_ref; VT_ref0 = VT_ref;          % base dos deltas do Guidance_Star
 % step de validacao de theta do modelo GUIA (INERTE aqui)
 theta_test_t = 1e9; theta_test_init = 0; theta_test_final = 0;
-seg = [WPs(1,1:2); WPs(:,1:2)];
+seg = [0 0; WPs(:,1:2)];        % engate (origem) -> WP1 -> ... (= XP_missao)
 per = sum(sqrt(sum(diff(seg).^2,2)));
 TimeXP = cfgm.T;
 if isempty(TimeXP), TimeXP = ceil(per/12*1.5 + 15); end

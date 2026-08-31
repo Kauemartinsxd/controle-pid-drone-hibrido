@@ -27,13 +27,18 @@
 ## Demo ao vivo (o prato principal, ~6 min)
 
 1. Na GUI: mostrar o mapa, clicar 3–4 waypoints (ou botão
-   **"Carregar G2"** = quadrado de 500 m oficial).
-2. **Recarregar o avião no X-Plane** (`File → Open Aircraft`) —
-   falar da bateria do motor elétrico do XP9 (~90–150 s por reload;
-   por isso missões ≤ ~130 s ou o final vira planeio guiado).
-3. **VOAR NO X-PLANE** → confirmar o diálogo. Deixar o X-Plane
-   visível num canto: o avião teleporta, engata e voa a missão
-   sozinho, em tempo real (1:1).
+   **"Carregar circuito OVAL"** = estádio de 6 WPs (retas 160 m + pontas
+   de raio 100, R_accept 60), ~126 s — dimensionado em 2026-08-31 para
+   caber nos ~130 s de motor por reload e validado no SIL com 6/6
+   capturas; o quadrado histórico de 500 m das campanhas de agosto dava
+   265 s e terminava em planeio guiado).
+2. **VOAR NO X-PLANE** → confirmar o diálogo. O avião é RECARREGADO
+   automaticamente (xp_reload_acf: menu por UDP + cliques
+   programáticos — mencionar a bateria de ~90–150 s do motor elétrico
+   do XP9 e que a automação substituiu o File → Open Aircraft manual;
+   por isso missões ≤ ~130 s ou o final vira planeio guiado). Deixar o
+   X-Plane visível: o avião teleporta, engata e voa a missão sozinho,
+   em tempo real (1:1).
 4. Ao terminar: trajetória azul sobreposta ao plano na GUI,
    resumo de capturas no console, figuras + PNGs salvos em
    `xplane/voos/`.

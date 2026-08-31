@@ -18,7 +18,7 @@
 % sink 1.7 m/s ate o chao).
 %
 % Uso basico:
-%   XP_missao                  % quadrado 500x500 m na proa de engate (G2)
+%   XP_missao                  % circuito oval 280x160 m na proa de engate
 %
 % Config opcional (defina antes; tudo com default):
 %   XP_WPs_frame [Nx4]  WPs no referencial da PROA DE ENGATE:
@@ -33,14 +33,26 @@
 %   XP_theta_test_t/_final  degrau de theta_ref p/ validacao (inerte)
 %   XP_tag       [char] sufixo do nome do .mat salvo
 %
-% Fim de missao: segura o ultimo WP ate o tempo esgotar (= Julio).
+% Fim de missao (2026-08-31): a simulacao ENCERRA sozinha 5 s apos o
+% aviao entrar no circulo do ULTIMO WP (blocos Cond_fim_missao -> latch
+% -> integrador -> Stop nos modelos GUIA; dist calculada de xN/xE e
+% WPfim_N/E — independente do dist_mon, que atrasa 1 amostra na troca
+% de WP). TimeXP segue como teto de seguranca se o WP nao for atingido.
 % Pos-voo: salva xplane/voos/XP_missao_*.mat e gera plot_XP_missao.
 % =============================================================
+
+%% Reload automatico do .acf — OPT-IN (decisao do Kaue 2026-08-31: o
+%% padrao e' reload MANUAL via File->Open Aircraft; XP_auto_reload=true
+%% liga a automacao xp_reload_acf p/ campanhas sem operador).
+if exist('XP_auto_reload','var') && ~isempty(XP_auto_reload) && XP_auto_reload
+    addpath(fileparts(mfilename('fullpath')));
+    xp_reload_acf;
+end
 
 %% Config do usuario (preservada atraves do clear do DH_inicializacao)
 if ~exist('XP_msl0','var')      || isempty(XP_msl0),      XP_msl0 = 600;   end
 if ~exist('XP_VT0','var')       || isempty(XP_VT0),       XP_VT0  = 12;    end
-if ~exist('XP_R_accept','var')  || isempty(XP_R_accept),  XP_R_accept = 80; end
+if ~exist('XP_R_accept','var')  || isempty(XP_R_accept),  XP_R_accept = 60; end  % 60 p/ o oval de 6 WPs (80 ate 2026-08-31)
 if ~exist('XP_WPs_frame','var'), XP_WPs_frame = []; end
 if ~exist('XP_WPs_NE','var'),    XP_WPs_NE    = []; end
 if ~exist('XP_TimeXP','var'),    XP_TimeXP    = []; end
@@ -49,10 +61,18 @@ if ~exist('XP_theta_test_t','var')     || isempty(XP_theta_test_t),     XP_theta
 if ~exist('XP_theta_test_final','var') || isempty(XP_theta_test_final), XP_theta_test_final = 0; end
 if ~exist('XP_tag','var'),       XP_tag = ''; end
 if isempty(XP_WPs_frame) && isempty(XP_WPs_NE)
-    % default = teste G2: quadrado 500x500 m em h constante, CW pela direita
-    XP_WPs_frame = [ 500    0  XP_msl0  12;
-                     500  500  XP_msl0  12;
-                       0  500  XP_msl0  12;
+    % default = circuito OVAL "stadium" de 6 WPs: retas de 160 m + pontas
+    % semicirculares de raio 100 (folgado vs raio natural ~83 m a 12 m/s),
+    % WP no apice. Perimetro 884 m -> ~126 s, cabe nos ~130 s de motor por
+    % reload (2026-08-31; o quadrado historico de 500 m dava 265 s e virava
+    % planeio na metade — voos de ago/2026 em voos/). R_accept default 60
+    % (espacamento minimo 141 m > 2R; validado no SIL: R50/pontas de 80
+    % perdia WP3 por 2 m).
+    XP_WPs_frame = [ 160    0  XP_msl0  12;
+                     260  100  XP_msl0  12;
+                     160  200  XP_msl0  12;
+                       0  200  XP_msl0  12;
+                    -100  100  XP_msl0  12;
                        0    0  XP_msl0  12];
 end
 setpref('XP_DH','missao', struct('msl0',XP_msl0,'VT0',XP_VT0,'R',XP_R_accept, ...
@@ -160,6 +180,8 @@ for i = 2:size(WPs_user,1)
     WPs(end+1,:) = WPs_user(i,:); %#ok<SAGROW>
 end
 R_accept = XP_R_accept;
+N_WPs = size(WPs,1);   % p/ o corte de fim de missao no modelo (Cond_fim_missao)
+WPfim_N = WPs(end,1);  WPfim_E = WPs(end,2);   % ultimo WP (dist independente do dist_mon)
 h_ref0 = h_ref; VT_ref0 = VT_ref;          % base dos deltas do Guidance_Star
 theta_test_t = cfgm.tht; theta_test_init = 0; theta_test_final = cfgm.thf;
 
