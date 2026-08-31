@@ -48,6 +48,7 @@ Se a professora quiser ver de novo: reload + VOAR (1 clique cada).
 | `G4_PID_SILxXP_manobras.png` | **G4**: mesmas manobras no modelo NL e no X-Plane — malha de altitude com métricas idênticas (OS −5,1 vs −5,3%; ts 35,0 vs 35,0 s) |
 | `G4_LQRY_SILxXP_voo_reto.png` | Contraste LQRY: SIL liso × X-Plane departure em 12,5 s |
 | `EQUIV_antes_depois.png` | **A prova do gêmeo em 1 slide**: erro de cada grandeza vs modelo da Ana, ANTES (cinza) × DEPOIS (verde) do Plane Maker — α 65%→0,4%, CLα 60%→0,3%, ωn 56%→0,8% |
+| `EQUIV_doublet_malha_aberta.png` | **Mesmo doublet em malha aberta, CI nula**: G_q da Ana × G_q identificada em voo — mesma forma e timing (ωn 6,4×6,3; ζ 0,55×0,61); amplitude −29% = resíduo de eficácia do profundor. (Malha aberta crua não vale: DH instável, trajetórias divergem — por isso via identificação.) |
 | Tabelas do `EQUIVALENCIA_ACF.md` | Os números completos por trás da figura (trim/polar/curto período) |
 | `LQRY_XPLANE.md` | O arco completo do LQRY (6 adendos): por que 2/4 é o teto |
 
