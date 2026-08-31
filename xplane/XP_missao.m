@@ -236,3 +236,25 @@ for i = 1:nWP
 end
 fprintf('wp_idx final: %d de %d | Figuras: plot_XP_missao\n', voo.wp_idx(end), nWP);
 plot_XP_missao(voo, vooFile);
+
+%% 9) MESMA missao no modelo NL da Ana (comparacao automatica SILxXP)
+% Os WPs (em NE do engate) voltam ao referencial da PROA DE ENGATE —
+% que e' o proprio NE do SIL (engate na origem com psi=0).
+try
+    cpsi2 = cosd(voo.psi_engate); spsi2 = sind(voo.psi_engate);
+    wpF = voo.WPs_user;
+    wpF(:,1:2) = [ voo.WPs_user(:,1)*cpsi2 + voo.WPs_user(:,2)*spsi2, ...
+                   voo.WPs_user(:,2)*cpsi2 - voo.WPs_user(:,1)*spsi2 ];
+    NL_WPs = wpF; NL_R_accept = voo.R_accept; NL_TimeXP = voo.cfg.TimeXP;
+    NL_tag = 'autoNL';
+    vooFileXP = vooFile;                       % sobrevive? NL_missao faz clear —
+    setpref('XP_DH','xpcomp', vooFileXP);      % preserva via pref
+    fprintf('\n===== Repetindo a missao no modelo NL (sem X-Plane)... =====\n');
+    run(fullfile(fileparts(mfilename('fullpath')), 'NL_missao.m'));
+    vooNL = voo;                               % voo do NL (workspace pos-NL_missao)
+    vooFileXP = getpref('XP_DH','xpcomp'); rmpref('XP_DH','xpcomp');
+    dXP = load(vooFileXP); voo = dXP.voo;      % restaura o voo XP como 'voo'
+    plot_missao_comparada(voo, vooNL, vooFileXP);
+catch e_cmp
+    fprintf('comparacao NL automatica falhou (%s) — voo X-Plane salvo normalmente.\n', e_cmp.message);
+end
