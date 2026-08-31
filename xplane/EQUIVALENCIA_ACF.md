@@ -1,5 +1,68 @@
 # Equivalência .acf ↔ drone real (modelo da Ana)
 
+## ✅ G5 CUMPRIDO (2026-08-31) — campanha de DOUBLETS SIL × X-Plane, PID, 3 manobras
+
+Três manobras com doublets (0→+A→−A→0), 110 s cada, mesma definição
+consumida pelos dois mundos por construção (`G5_manobras_def.m` →
+`G5_sil.m` / `G5_xp.m`; figura+métricas: `plot_G5.m`, estilo e
+convenção de métricas idênticos ao G4). Gêmeo v1.1, ganhos 100% da
+dissertação. Figuras: `voos/G5_{dblh,dblpsi,missao}_SILxXP.png`.
+
+| Manobra | Destaque | SIL | X-Plane |
+|---|---|---|---|
+| `dblh` — doublet h ±10 m (10/45/80 s) | **RMS h** | **6,95 m** | **6,96 m** |
+| | OS/ts/ess por fase | −5,1..−7,8% / 30–35 s | −3,9..−8,6% / 30–35 s (ts iguais ao s) |
+| `dblpsi` — doublet ψ ±15° (10/45/80 s) | **RMS ψ** | **8,39°** | **8,52°** |
+| | acoplamento em h (RMS) | 0,00 m | 0,33 m |
+| | OS de ψ por fase | −1,6..−2,4% | +3,7..+9,9% (resíduo lateral do gêmeo) |
+| `missao` — perfil comprimido ψ ±5° (20/50/80) + h ±5 m (35/65/95) | **RMS h** | **3,40 m** | **3,41 m** |
+| | RMS ψ | 2,78° | 3,41° |
+| | OS do retorno de h (janela curta 15 s) | −33,0% | −31,4% (MESMO artefato nos dois) |
+
+Dados: `voos/SIL_PID_G5_{dblh,dblpsi,missao}.mat` +
+`voos/XP_voo_20260831_{105518,110004,110330}.mat` (nesta ordem).
+
+Leitura: a malha longitudinal do par gêmeo+PID é indistinguível do SIL
+em RMS (diferenças de 0,01 m em DUAS manobras independentes); a malha
+de proa reproduz forma e timing com OS um pouco maior no XP (coerente
+com o resíduo de rolagem −20% documentado no v1.1). Até os artefatos
+de janela curta saem iguais nos dois mundos.
+
+### Variante ATMOSFERA CALMA (mesmo dia) — vento/turbulência zerados na UI
+
+Clima zerado em Environment → Weather (3 camadas: vento 0 kt, shear 0,
+turbulence 0; térmicas coverage 0%; sonda por dref confirmou vento
+0/0/0 kt). Mesmas 3 manobras; figuras `voos/G5_*_SILxXP_calmo.png`,
+voos `XP_voo_20260831_{111428,111723,112012}.mat`.
+
+| Manobra | Métrica | SIL | XP calmo | (XP c/ vento) |
+|---|---|---|---|---|
+| dblh | RMS h | 6,95 m | 6,98 m | 6,96 m |
+| dblh | ess h−10 | 1,29 m | **1,29 m** | 1,39 m |
+| dblpsi | OS ψ por fase | −1,7/−1,6/−2,4% | **−4,0/−0,2/−3,8%** | +9,9/+3,7/+22% |
+| missao | OS ret. h (janela 15 s) | −33,0% | **−33,0%** (ts 15,0=15,0) | −31,4% |
+| missao | RMS h | 3,40 m | 3,42 m | 3,41 m |
+
+Leitura: (a) o "cabelo" e o OS extra de ψ dos voos anteriores eram
+ATMOSFERA, não planta — sem vento, ψ e φ sentam sobre o SIL da 2ª curva
+em diante (dblpsi) e o artefato de janela curta dá IDÊNTICO (−33,0 =
+−33,0); (b) resíduos remanescentes, todos explicados: transiente de
+engate excita a fugóide do gêmeo (~7 s, decai até ~45 s; o SIL parte do
+trim exato e não a excita), 1ª curva de ψ um pouco mais lenta (resíduo
+de rolagem −20%), micro-ciclo-limite de θ ±1° (cadeia atuador/20 Hz), e
+droop de VT nos ~5 s finais (fade do motor). O par com/sem vento é
+didático p/ apresentação: mesma dinâmica, texturas diferentes.
+
+Notas operacionais: (1) o XP_voo agora ABORTA no pre-flight se detectar
+reload que não pegou (AGL ≥3 m com VT <3 = wreck no morro, motor morto)
+— mas o caso de 2026-08-31 mostrou que o wreck pode estar em solo
+"normal" e o critério definitivo segue sendo a hélice girando
+VISUALMENTE (1º voo do dia saiu planeio 600→191 m e foi renomeado
+`INVALIDO_planeio_XP_voo_20260831_105203.mat`); (2) XP_voo ganhou
+doublets: `XP_h_step_t2/t3`, `XP_psi_step_t2/t3` (blocos Step_*2/3 já
+existiam no modelo XP, espelhando o NL); (3) plot_G5 aceita
+sufixo/rótulo p/ variantes (`plot_G5(id,[],'_calmo',' — sem vento...')`).
+
 ## ✅ G4 CUMPRIDO (2026-08-30) — SIL × X-Plane lado a lado, PID, mesmas manobras
 
 Manobra composta (degraus idênticos, blocos Step_* paramétricos nos

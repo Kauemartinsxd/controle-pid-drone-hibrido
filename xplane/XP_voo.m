@@ -41,9 +41,16 @@ if ~exist('XP_psi_step_deg','var') || isempty(XP_psi_step_deg), XP_psi_step_deg 
 if ~exist('XP_psi_step_t','var')   || isempty(XP_psi_step_t),   XP_psi_step_t = 5;   end
 if ~exist('XP_VT_step_delta','var')|| isempty(XP_VT_step_delta),XP_VT_step_delta = 0;end
 if ~exist('XP_VT_step_t','var')    || isempty(XP_VT_step_t),    XP_VT_step_t = 5;    end
+% DOUBLETS (G5): t2/t3 dos canais h e psi (blocos Step_*2/3 do modelo,
+% mesmos parametros do DH_inicializacao; 1e9 = INERTE = degrau simples):
+if ~exist('XP_h_step_t2','var')   || isempty(XP_h_step_t2),   XP_h_step_t2 = 1e9;   end
+if ~exist('XP_h_step_t3','var')   || isempty(XP_h_step_t3),   XP_h_step_t3 = 1e9;   end
+if ~exist('XP_psi_step_t2','var') || isempty(XP_psi_step_t2), XP_psi_step_t2 = 1e9; end
+if ~exist('XP_psi_step_t3','var') || isempty(XP_psi_step_t3), XP_psi_step_t3 = 1e9; end
 setpref('XP_DH','cfg',[XP_msl0 XP_VT0 XP_TimeXP XP_VT_ref XP_Xe8_deg XP_clamp_hi_deg ...
     XP_h_step_final XP_h_step_t XP_psi_step_deg XP_psi_step_t ...
-    XP_VT_step_delta XP_VT_step_t]);  % sobrevive ao clear
+    XP_VT_step_delta XP_VT_step_t ...
+    XP_h_step_t2 XP_h_step_t3 XP_psi_step_t2 XP_psi_step_t3]);  % sobrevive ao clear
 
 %% 1) Workspace completo (ganhos, socket, refs) — faz clear/bdclose
 run(fullfile(fileparts(mfilename('fullpath')), 'XP_inicializacao.m'));
@@ -57,6 +64,10 @@ if numel(cfg) >= 12   % manobras G4 (aplicadas sobre os params do DH_inicializac
     h_step_final = cfg(7);            h_step_t  = cfg(8);
     psi_ref_final = deg2rad(cfg(9));  psi_ref_t = cfg(10);
     VT_step_delta = cfg(11);          VT_step_t = cfg(12);
+end
+if numel(cfg) >= 16   % doublets G5 (t2/t3 dos blocos Step_*2/3; 1e9 = inerte)
+    h_step_t2  = cfg(13);  h_step_t3  = cfg(14);
+    psi_ref_t2 = cfg(15);  psi_ref_t3 = cfg(16);
 end
 rmpref('XP_DH','cfg');
 
@@ -77,7 +88,16 @@ if t2 <= r0(6)
 end
 % O teleporte-no-engate normaliza posicao/atitude/velocidade/taxas a
 % partir de QUALQUER estado com fisica rodando (mesma logica do
-% XP_missao, 2026-08-20) — o pre-flight so bloqueia simulador travado.
+% XP_missao, 2026-08-20) — o pre-flight bloqueia simulador travado e
+% reload que nao pegou.
+if r0(2) >= 3 && r0(5) < 3
+    % AGL alto com VT ~0 = wreck parado no morro: o File->Open Aircraft
+    % nao pegou e o motor esta morto (voo sairia como planeio invalido —
+    % visto em 2026-08-30 e 2026-08-31).
+    error(['XP_voo: AGL %.1f m com VT %.1f m/s — reload que NAO pegou ' ...
+        '(wreck no morro, motor morto). Faca File -> Open Aircraft de novo ' ...
+        'e confira o aviao NA PISTA com a helice girando.'], r0(2), r0(5));
+end
 if ~(r0(2) < 3 && r0(5) < 3)
     fprintf(['XP_voo: engatando A PARTIR DE VOO (AGL=%.1f m, VT=%.1f m/s, ' ...
         'phi=%.1f deg) — o teleporte normaliza o estado.\n'], r0(2), r0(5), r0(4));
@@ -148,6 +168,7 @@ end
 voo.cfg = struct('XP_msl0',XP_msl0, 'XP_VT0',XP_VT0, 'TimeXP',TimeXP, ...
     'h_step',[h_step_final h_step_t], 'psi_step',[rad2deg(psi_ref_final) psi_ref_t], ...
     'VT_step',[VT_step_delta VT_step_t], ...
+    'h_dbl_t23',[h_step_t2 h_step_t3], 'psi_dbl_t23',[psi_ref_t2 psi_ref_t3], ...
     'h_ref',h_ref, 'he',he, 'VT_ref',VT_ref, 'TrimInput',TrimInput, ...
     'C_theta',C_theta, 'C_vel',C_vel, 'C_alt',C_alt, 'C_phi',C_phi, ...
     'Kq',Kq, 'Kp',Kp, 'Kr',Kr, 'K_heading',K_heading, ...
