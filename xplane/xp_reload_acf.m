@@ -110,6 +110,31 @@ if a(1) <= 0.05
     error('xp_reload_acf: aviao recarregou mas motor MORTO (TRQ %.3f) — reload nao pegou; rode de novo.', a(1));
 end
 fprintf('xp_reload_acf: OK — aviao na rampa, motor VIVO (TRQ %.2f), bateria cheia.\n', a(1));
+% ---- 5) ASSINATURA DA AERONAVE (2026-09-02): o clique abre uma LINHA FIXA do
+% dialogo; com varios DH-Lon-REV-03*.acf na pasta ja carregou o ORIGINAL de
+% 19/08 por uma campanha inteira sem ninguem perceber (TRQ 0.35, cursos 15,
+% m 3.175 kg, raios auto). Confere J_unitmass/massa/curso contra o gemeo
+% v1.2; global XP_ACF_SIG = 'off' desliga; XP_ACF_SIG = struct(...) redefine.
+global XP_ACF_SIG
+if isempty(XP_ACF_SIG)   % default = gemeo v1.2; XP_ACF_SIG = 'off' desliga
+    XP_ACF_SIG = struct('J', [0.2008 0.2008 0.0786], 'm', 2.223, 'elev', 25, 'nome', 'gemeo v1.2 (md5 5b808d0b)');
+end
+if isstruct(XP_ACF_SIG)
+    sg = zeros(1,5);
+    for k_ = 1:5
+        dn = {'sim/aircraft/weight/acf_Jxx_unitmass','sim/aircraft/weight/acf_Jyy_unitmass', ...
+              'sim/aircraft/weight/acf_Jzz_unitmass','sim/flightmodel/weight/m_total','sim/aircraft/controls/acf_elev_up'};
+        q_ = getDREFs(dn(k_), GlobalSocket); if iscell(q_), q_ = q_{1}; end; sg(k_) = double(q_(1));
+    end
+    okJ = all(abs(sg(1:3) - XP_ACF_SIG.J) < 0.01); okm = abs(sg(4) - XP_ACF_SIG.m) < 0.05; oke = abs(sg(5) - XP_ACF_SIG.elev) < 0.5;
+    if ~(okJ && okm && oke)
+        error(['xp_reload_acf: AERONAVE ERRADA carregada! lido J=[%.4f %.4f %.4f] m=%.3f elev=%.0f; ' ...
+               'esperado %s J=[%.4f %.4f %.4f] m=%.3f elev=%.0f. O clique abriu outra linha do dialogo: ' ...
+               'iguale TODOS os DH-Lon-REV-03*.acf da pasta ao ativo (XP_sync_acf_clones).'], ...
+               sg(1), sg(2), sg(3), sg(4), sg(5), XP_ACF_SIG.nome, XP_ACF_SIG.J, XP_ACF_SIG.m, XP_ACF_SIG.elev);
+    end
+    fprintf('xp_reload_acf: assinatura OK = %s (J %.3f/%.3f/%.3f, m %.2f kg, elev %.0f deg).\n', XP_ACF_SIG.nome, sg(1), sg(2), sg(3), sg(4), sg(5));
+end
 end
 
 function clica(p)

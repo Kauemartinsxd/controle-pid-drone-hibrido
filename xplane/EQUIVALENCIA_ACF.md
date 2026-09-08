@@ -1,6 +1,6 @@
 # Equivalência .acf ↔ drone real (modelo da Ana)
 
-## ✅ G5 CUMPRIDO (2026-08-31) — campanha de DOUBLETS SIL × X-Plane, PID, 3 manobras
+## G5 CUMPRIDO (2026-08-31) — campanha de DOUBLETS SIL × X-Plane, PID, 3 manobras
 
 Três manobras com doublets (0→+A→−A→0), 110 s cada, mesma definição
 consumida pelos dois mundos por construção (`G5_manobras_def.m` →
@@ -64,7 +64,7 @@ pré-calibração, motor 0,80 hp já editado), atmosfera calma:
    ζ 1,67 (Fase A tinha dado 9,8/1,1 noutro ponto — em sobreamortecido
    ωn/ζ são mal-identificáveis isolados; o polo dominante bate: ~5–6
    rad/s sem oscilação). Dados `voos/XP_ident_theta_20260831_125617.mat`.
-   ⚠️ fit precisa de CAP em ωn (≤25 rad/s) — sem cap o fminsearch foge
+   ATENÇÃO: fit precisa de CAP em ωn (≤25 rad/s) — sem cap o fminsearch foge
    p/ 120 rad/s ajustando ruído além de Nyquist.
    Figura 3 vias (Ana exata pelo submodelo α–q × original × gêmeo):
    `voos/EQUIV_doublet_malha_aberta_3vias.png` (scratchpad
@@ -90,7 +90,30 @@ doublets: `XP_h_step_t2/t3`, `XP_psi_step_t2/t3` (blocos Step_*2/3 já
 existiam no modelo XP, espelhando o NL); (3) plot_G5 aceita
 sufixo/rótulo p/ variantes (`plot_G5(id,[],'_calmo',' — sem vento...')`).
 
-## ✅ G4 CUMPRIDO (2026-08-30) — SIL × X-Plane lado a lado, PID, mesmas manobras
+### Figura "estilo Sato" (2026-09-01) — degrau de profundor, 3 vias, DADOS DE VOO
+
+`plot_degrau_3vias_sato.m` → `voos/EQUIV_sato_degrau_3vias.png`: mesma
+manobra (degrau de +2° em malha aberta) sobreposta painel a painel
+(δe absoluto / Δq / Δθ / ΔVT) nos três mundos, no formato das figuras
+de validação da dissertação do Sato — mas com dados de VOO reais nas
+duas vias X-Plane (não as G_q ajustadas): modelo da Ana (trim exato
+por fminsearch — fsolve/Optimization Toolbox NÃO existe nesta máquina
+— resíduo 1e-27: α 14,44/δe +7,62/thr 0,284) × .acf original
+(ident 20260831_125617) × gêmeo v1.1 (ident 20260830_170637).
+Respostas X-Plane pela combinação ANTISSIMÉTRICA (run(+2)−run(−2))/2 —
+cancela deriva/fugóide de modo comum; janela 1,5 s (validade do curto
+período). Painel de δe absoluto carrega a estática (níveis 2/5/7,6°).
+Resíduo visível e honesto: amplitude de q do gêmeo ~30% menor que a do
+modelo (o fit conjunto casou os POLOS ωn/ζ, não o numerador/ganho —
+mesma família do resíduo de autoridade δe 4,8 vs 5,5).
+
+Mapeamento da varredura de raio de pitch CONFIRMADO por re-fit
+(método XP_retune_Ctheta, janela 0–0,9 s, reproduziu a tabela do v1.1
+na íntegra): 164842=R0,94 (8,33/0,68) · 165445=R3,00 (2,38/0,72) ·
+165800=R1,19a (7,67/0,64) · 170105=R1,19b (7,48/0,66) ·
+170359=R1,64 (5,54/0,61) · **170637=R1,47 = GÊMEO v1.1 (6,25/0,61)**.
+
+## G4 CUMPRIDO (2026-08-30) — SIL × X-Plane lado a lado, PID, mesmas manobras
 
 Manobra composta (degraus idênticos, blocos Step_* paramétricos nos
 dois modelos): **h +10 m em t=10 · ψ +15° em t=45 · VT +2 m/s em
@@ -125,7 +148,7 @@ que não "pega" deixa o wreck no morro — pre-flight acusa AGL alto com
 VT~0); (3) XP_voo agora aceita degraus G4 (XP_h_step_final/t,
 XP_psi_step_deg/t, XP_VT_step_delta/t) espelhando o DH_inicializacao.
 
-## ✅ GÊMEO v1.1 (2026-08-30) — inércia de arfagem CALIBRADA (backup: `DH-Lon-REV-03_gemeo_v1_1_20260830.acf`)
+## GÊMEO v1.1 (2026-08-30) — inércia de arfagem CALIBRADA (backup: `DH-Lon-REV-03_gemeo_v1_1_20260830.acf`)
 
 O resíduo dominante do v1 (ωn arfagem +35%) foi eliminado calibrando o
 **raio de giração de pitch** no Plane Maker (Weight & Balance → "use
@@ -183,7 +206,7 @@ Resíduos documentados: ωn arfagem 8,5 vs 6,3 rad/s (+35%; ζ 0,71 vs
 0,284 com T_max casado). Todo o resto: ver tabela abaixo (α×VT ±0,5°,
 CLα 2,87 vs 2,88, dutch roll na faixa, espiral instável em ambos).
 
-⚠️ PENDENTE (próxima sessão): recalibrar as âncoras de missão p/ o
+ATENÇÃO: PENDENTE (próxima sessão): recalibrar as âncoras de missão p/ o
 gêmeo (Xe(8)≈14°, TrimInput=[0,43; +7°], pitch0 14, clamp a definir em
 voo) e rodar o 1º SIL×X-Plane lado a lado (mesmas manobras nos dois).
 
@@ -205,11 +228,11 @@ Resultado medido (trim nivelado sink 0.00, polar 6 pontos, ident de
 arfagem, sondas laterais — voos de 2026-08-30 ~14:30–15:00):
 | métrica | Ana | .acf iter-2 |
 |---|---|---|
-| α trim 12 m/s | 14,4° | **14,9°** ✅ |
-| CLα | 2,88/rad | **2,87** ✅ |
-| α(VT) na polar | — | ±0,5° ✅ |
+| α trim 12 m/s | 14,4° | **14,9°** (ok) |
+| CLα | 2,88/rad | **2,87** (ok) |
+| α(VT) na polar | — | ±0,5° (ok) |
 | sink(VT) | 2,1–3,2 | 2,55–3,04 (+12%) |
-| curto período | 6,3 rad/s / ζ0,54 | 9,5 / **ζ0,61** ✅ζ |
+| curto período | 6,3 rad/s / ζ0,54 | 9,5 / **ζ0,61** (ζ ok) |
 | δe trim | +7,6° | +9,7° |
 | p_ss/δa | −8,5 | −6,9 (−19%) |
 | dutch roll | 5,0 / 0,41 | ~5,6–8,9 / 0,35 |
@@ -262,20 +285,20 @@ L/D_acf ≈ 6,4–6,6 vs L/D_Ana ≈ 4,1–5,7 (o .acf plana MELHOR = arrasta me
 | Modo | Ana (linearização 12 m/s) | .acf (identificado em voo) |
 |---|---|---|
 | Curto período | ωn 6,3 rad/s, ζ 0,54 | ωn ≈9,8 rad/s, ζ ≈1,1 (superamortecido) |
-| Autoridade δe (pico q/δe) | ~5,5 rad/s /rad | ~4,8 rad/s /rad ✅ |
+| Autoridade δe (pico q/δe) | ~5,5 rad/s /rad | ~4,8 rad/s /rad (ok) |
 | Fugóide | ωn 1,12, ζ 0,085 | não medido formalmente |
-| Rolagem: τ | 0,09 s | ≲0,1 s ✅ |
+| Rolagem: τ | 0,09 s | ≲0,1 s (ok) |
 | Rolagem: p_ss/δa | −8,5 rad/s /rad | −5,0 (fator 1,7 menor) |
 | Dutch roll | ωn 5,04, ζ 0,41 | ωn ≈2,3, ζ ≈0,33 |
-| Espiral | instável (+0,23) | instável (deriva de φ observada) ✅ |
+| Espiral | instável (+0,23) | instável (deriva de φ observada) (ok) |
 | Limite de α | sem estol no modelo (voa a 14–22°) | estola ≈9–10° |
 
 ### Massa/propulsão
 | | Ana | .acf |
 |---|---|---|
-| Massa | 2,2 kg | 2,2 kg ✅ |
-| T_max a 12 m/s | 14 N (F=14·δt, linear) | ~14–16 N (0,80 hp) ✅ |
-| Lei thr→T | linear | hélice (não-linear; thr de trim difere) ⚠️ |
+| Massa | 2,2 kg | 2,2 kg (ok) |
+| T_max a 12 m/s | 14 N (F=14·δt, linear) | ~14–16 N (0,80 hp) (ok) |
+| Lei thr→T | linear | hélice (não-linear; thr de trim difere) (atenção) |
 
 ## 2. Diagnóstico-síntese
 

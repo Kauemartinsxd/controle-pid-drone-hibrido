@@ -36,7 +36,7 @@ motor p/ h constante nos 265 s inteiros (hipótese fuel não testada).
   vs 14,9% do original nesta planta). **Por decisão do Kaue, o trabalho
   oficial voa com os ganhos da dissertação**; o retune só entra com
   `XP_use_Ctheta_XP = true` no `XP_missao`.
-- **Campanha**: G1 ✓ (captura a 7,8 m). **G2-planeio ✓** (2026-08-19 23:16,
+- **Campanha**: G1 (ok) (captura a 7,8 m). **G2-planeio (ok)** (2026-08-19 23:16,
   `voos/XP_missao_20260819_231632_G2_planeio.*`): quadrado 500×500 m
   rotacionado pela proa de engate, **4/4 capturas (26,6/10,4/27,7/0,0 m),
   φ max 22,5° < 25°, sync 0,994, ganhos originais** — trajetória passa

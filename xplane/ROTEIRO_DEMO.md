@@ -115,3 +115,34 @@ missão nos dois mundos".
 - **Voo virou planeio no meio**: bateria acabou (normal >130 s) —
   reload e missão mais curta.
 - Erro vermelho na GUI: ler o console do MATLAB (mensagem completa).
+
+## Adendo 2026-09-01 — circuito AGRESSIVO (botão novo na GUI)
+
+Segundo botão ao lado do OVAL: **"Circuito AGRESSIVO (6 WPs)"** = quadrado de
+160 m com curvas de 90°, degraus de altitude de ±20 m e velocidade alternando
+12 ↔ 15 m/s entre waypoints (1,5 voltas, 960 m, R_accept 70, teto 120 s; o voo
+termina ~93 s). Lançador por script: `XP_missao_agressiva.m`. Serve para
+mostrar onde o X-Plane e o modelo NL DIFEREM (o oval, manso, quase não os
+separa): voo de 20:14 → 6/6 nos dois mundos, mas X-Plane h 576..614 m e
+θ até 30° contra 600..616 m e 18° no NL; V_T 11,1..15,5 contra 12,0..15,0.
+Lição da 1ª tentativa (legs 140 m / R 40): o raio de curva a 15 m/s (~70 m)
+passa 55–65 m do canto → WP2 perdido nos dois mundos, e no X-Plane o PID cai
+na armadilha de energia (V_T > ref ⇒ throttle 0; h < ref ⇒ δe no batente;
+sink ~2 m/s) — usar R_accept ≥ 60 com legs ≥ 160 m.
+
+## Adendo 2026-09-01 (noite) — missões da apresentação a 15 m/s
+
+Decisão do Kaue: apresentar e voar a 15 m/s (folga de α: 10° contra 4° a 12 m/s).
+Engate continua a 12 m/s (trim do controlador e do modelo NL); a 1ª perna acelera.
+- **OVAL (botão da GUI)** agora = geometria ×1,6: retas 256 m + pontas R160,
+  R_accept 100, 1417 m, teto 130 s. X-Plane 6/6 em 95 s (h 595..603, V_T 11,9..15,8,
+  φ máx 13,8°), NL 6/6 (h 600..601,5). A ×1,3 com R 80 o X-Plane perdeu o WP3
+  por 86 m (o NL passa a 71 m): o X-Plane curva ~10–15 m mais largo que o NL.
+- **AGRESSIVO (botão da GUI, `XP_missao_agressiva.m`)** v2 = quadrado 260 m,
+  V 18 nas subidas e 15 nas descidas, h 600/620, R_accept 110, 1 volta. X-Plane
+  4/4 em 74 s (h 595,5..617, θ 27,6°, α 17,8°), NL 4/4 (h 600..617,5, α 14,5°).
+- α máximo dos voos a 15 m/s ocorre no ENGATE (t≈4–5 s, acelerando de 12 com
+  θ ~27°): 19,3° no oval e 17,8° no agressivo — transiente breve; em cruzeiro
+  a folga é grande. Motor aguentou 120 s a manete média 0,70.
+Voos: `XP_missao_20260901_210753_OVAL15b`, `XP_missao_20260901_205852_AGR15`
+(+ `NL_missao_*_autoNL` correspondentes e `*_compNL.png`).

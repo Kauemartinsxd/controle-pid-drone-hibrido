@@ -58,6 +58,12 @@ function status = xp_send_dh(u)
                 rad2deg(max_elev), rad2deg(max_ail), rad2deg(max_rudd));
         end
 
+        % OFFSET DE TRIM REAL (2026-09-02): encontrado pelo aquecimento do
+        % xp_read_dh (XP_IC.warmup) — diferenca entre o trim da planta real
+        % e as ancoras do modelo. Vazio = comportamento original.
+        global XP_TRIM_DELTA
+        if ~isempty(XP_TRIM_DELTA), u = u(:) + XP_TRIM_DELTA(:); end
+
         throttle = max(0, min(1, u(1)));
         elevator = max(-1, min(1, u(2) / max_elev));
         % AILERON INVERTIDO: no modelo DH Cl_da < 0 (da positivo rola p/

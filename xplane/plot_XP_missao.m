@@ -65,7 +65,7 @@ function plot_XP_missao(voo, vooFile)
     plot(t, Y(1,:), 'Color', corAzul, 'LineWidth', 1.1); hold on;
     if isfield(voo.cfg, 'VT_ref'), yline(voo.cfg.VT_ref, 'r--'); end
     grid on; ylabel('V_T [m/s]');
-    title('Missao por waypoints — cascata PID (ganhos da dissertacao)');
+    if isfield(voo, 'cfg') && isfield(voo.cfg, 'controlador'), title(['Missao por waypoints - ' voo.cfg.controlador], 'Interpreter', 'none'); else, title('Missao por waypoints - cascata PID (ganhos da dissertacao)'); end
     subplot(5,1,2);
     plot(t, Y(8,:), 'Color', corAzul, 'LineWidth', 1.1); hold on;
     stairs(t_wp, WPs(max(round(voo.wp_idx(:)),1), 3), 'r--');

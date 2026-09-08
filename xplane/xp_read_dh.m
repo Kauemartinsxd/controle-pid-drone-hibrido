@@ -159,6 +159,85 @@ function y = xp_read_dh(cmd, t_sim)
                 sendDREF('sim/flightmodel/position/Prad', 0, GlobalSocket);
                 sendDREF('sim/flightmodel/position/Qrad', 0, GlobalSocket);
                 sendDREF('sim/flightmodel/position/Rrad', 0, GlobalSocket);
+
+                % AQUECIMENTO (2026-09-02, LQRY_XPLANE.md ADENDO 10): o
+                % teleporte derruba o RPM do motor (spool ~20 s) e o LQRY
+                % engatava ~1 s depois com deficit de empuxo -> throttle
+                % satura -> windup -> departure. Com XP_IC.warmup > 0, um
+                % trim classico (de<-theta, thr<-VT, asas niveladas; o do
+                % VR_replay_xp) segura a aeronave ate o motor entrar em
+                % regime e a velocidade/razao de subida convergirem; o trim
+                % ENCONTRADO vira offset (XP_TRIM_DELTA, somado no
+                % xp_send_dh) sobre as ancoras do modelo => engate
+                % bumpless na planta REAL, sem tocar no controlador.
+                if isfield(XP_IC, 'warmup') && XP_IC.warmup > 0
+                    global XP_TRIM_DELTA XP_TRIM_FOUND
+                    Tw = XP_IC.warmup; DTw = 0.05; th_ref0 = deg2rad(pitch0);
+                    % Pareamento "atras da curva de potencia" (alpha_trim 8-14 deg):
+                    % MANETE segura altitude/razao de subida; THETA segura a
+                    % velocidade. (manete<-V, testado 2026-09-02 12:43, trocou
+                    % altitude por velocidade: thr->0, sink -1,9 m/s, engate a 534 m.)
+                    Kq = 0.50; Kth = 0.80; Kith = 0.25; Kp = 0.40; Kphi = 0.60;
+                    Kt_h = 0.004; Kt_hd = 0.10; Kt_i = 0.02;   % manete <- (h, hdot), integral em hdot
+                    Kv_th = deg2rad(1.5);                       % theta_ref <- (VT - VT0) [rad por m/s]
+                    de_n = de0; ith = 0; thr = XP_IC.thr0; ithr = 0; h_ant = NaN; hdot_f = 0;
+                    tw0 = tic; tprev = 0; nconv = 0; conv = false; TRW = zeros(0, 7);
+                    % manete por JANELAS (motor do XP9 tem tau ~3,5 s medido:
+                    % lei continua oscilava): a cada Tw_win s corrige a manete
+                    % pela razao de subida media da janela (secante).
+                    Tw_win = 8; Kw = 0.10; t_win = 0; hd_acc = 0; hd_n = 0; n_win = 0;
+                    ivt = 0; Kv_i = deg2rad(0.3);          % integral lenta de theta_ref <- VT
+                    % modo SIMPLES (XP_IC.warm_simple): manete FIXA na ancora e
+                    % theta_ref = pitch0 por Tw s — so' para o motor sair do
+                    % spool pos-teleporte (RPM tau 3,5 s, t95 5,3 s medidos)
+                    % sem gastar a energia do eletrico (~130 s) procurando trim.
+                    simple = isfield(XP_IC, 'warm_simple') && XP_IC.warm_simple;
+                    while toc(tw0) < Tw
+                        rw = try_read();
+                        if isempty(rw), pause(DTw); continue; end
+                        t = toc(tw0); dt = max(t - tprev, 1e-3); tprev = t;
+                        if ~isnan(h_ant), hdot_f = 0.9*hdot_f + 0.1*(rw(8) - h_ant)/dt; end
+                        h_ant = rw(8);
+                        hdot_ref = max(-1.0, min(1.0, 0.05*(target_msl - rw(8))));
+                        if t - t_win > 2, hd_acc = hd_acc + hdot_f; hd_n = hd_n + 1; end   % media da janela (descarta 2 s de transitorio)
+                        if ~simple && t - t_win >= Tw_win
+                            hd_w = hd_acc/max(hd_n,1); n_win = n_win + 1;
+                            thr  = max(0, min(1, thr + Kw*(hdot_ref - hd_w)));
+                            fprintf('xp_read_dh: aquecimento janela %d: hdot %+.2f (ref %+.2f) VT %.1f h %.0f theta %.1f -> thr %.3f\n', n_win, hd_w, hdot_ref, rw(1), rw(8), rw(6), thr);
+                            if n_win >= 2 && abs(hd_w - hdot_ref) < 0.3 && abs(rw(1) - XP_IC.VT0) < 0.4 && abs(rw(8) - target_msl) < 8
+                                conv = true; break;
+                            end
+                            t_win = t; hd_acc = 0; hd_n = 0;
+                        end
+                        ivt = max(-deg2rad(5), min(deg2rad(5), ivt + Kv_i*(rw(1) - XP_IC.VT0)*dt));
+                        th_ref = th_ref0 + max(-deg2rad(8), min(deg2rad(8), Kv_th*(rw(1) - XP_IC.VT0) + ivt));
+                        if simple, th_ref = th_ref0; thr = XP_IC.thr0; end
+                        eth = deg2rad(rw(6)) - th_ref; eph = deg2rad(rw(5));
+                        ith  = max(-0.5, min(0.5, ith + Kith*(-eth)*dt));
+                        de_n = max(-1, min(1, ith - Kq*rw(3) - Kth*eth));
+                        da_n = max(-1, min(1, -Kp*rw(2) - Kphi*eph));
+                        sendCTRL([de_n, da_n, 0, thr, -998, -998], 0, GlobalSocket);
+                        TRW(end+1, :) = [t, de_n, thr, rw(1), hdot_f, rw(8), rw(6)]; %#ok<AGROW>
+                        resto = size(TRW,1)*DTw - toc(tw0); if resto > 0, pause(resto); end
+                    end
+                    ult = TRW(TRW(:,1) > toc(tw0) - 2, :);
+                    lim_e = deg2rad(15);
+                    try
+                        lims = double(getDREFs({'sim/aircraft/controls/acf_elev_up'}, GlobalSocket));
+                        if lims(1) > 5 && lims(1) < 60, lim_e = deg2rad(lims(1)); end
+                    catch
+                    end
+                    de_f_rad = mean(ult(:,2))*lim_e;       % normalizado pelo curso REAL -> rad
+                    de0_rad  = de0*deg2rad(25);            % XP_IC.de0 vem normalizado por 25 deg (lancador)
+                    XP_TRIM_FOUND = struct('thr', mean(ult(:,3)), 'de_deg', rad2deg(de_f_rad), ...
+                        'VT', mean(ult(:,4)), 'hdot', mean(ult(:,5)), 'h', mean(ult(:,6)), ...
+                        'theta_deg', mean(ult(:,7)), 'conv', conv, 'T', toc(tw0), 'log', TRW);
+                    XP_TRIM_DELTA = [XP_TRIM_FOUND.thr - XP_IC.thr0; de_f_rad - de0_rad; 0; 0];
+                    if conv, s_conv = 'convergiu'; else, s_conv = 'NAO convergiu'; end
+                    fprintf('xp_read_dh: AQUECIMENTO %.1f s (%s) — trim real: thr %.3f (ancora %.3f), de %+.2f deg (ancora %+.2f), VT %.1f, hdot %+.2f, theta %.1f deg, h %.0f.\n', ...
+                        XP_TRIM_FOUND.T, s_conv, XP_TRIM_FOUND.thr, XP_IC.thr0, ...
+                        XP_TRIM_FOUND.de_deg, rad2deg(de0_rad), XP_TRIM_FOUND.VT, XP_TRIM_FOUND.hdot, XP_TRIM_FOUND.theta_deg, XP_TRIM_FOUND.h);
+                end
             catch ME
                 disp(['xp_read_dh: falha no teleporte - ' ME.message]);
             end
@@ -214,9 +293,18 @@ function y = xp_read_dh(cmd, t_sim)
     xE =  (raw(11) - xz0(1));
     xN = -(raw(12) - xz0(2));
 
+    % SINAL DE BETA (2026-09-02, sonda de leme em voo): leme XPC +0.5 ->
+    % r +3,4 deg/s, dpsi +7 deg (nariz p/ DIREITA) e beta do X-Plane +4,7 deg.
+    % No modelo (beta = asin(v/VT)) nariz p/ direita da' v<0 => beta<0.
+    % O dref 'beta' do XP9 e' portanto o NEGATIVO da convencao do modelo.
+    % O PID nao usa beta (so' log); o LQRY realimenta beta com o MAIOR
+    % ganho da linha lateral (-4,7) => com o sinal errado vira
+    % realimentacao POSITIVA de derrapagem (wing rock em voo reto).
+    global XP_beta_sign
+    if isempty(XP_beta_sign), XP_beta_sign = -1; end   % -1 = corrigido; +1 = comportamento antigo
     y = [raw(1); raw(2); raw(3); raw(4); ...
          deg2rad(raw(5)); deg2rad(raw(6)); psi_acc; ...
-         raw(8); deg2rad(raw(9)); raw(10); ...
+         raw(8); XP_beta_sign*deg2rad(raw(9)); raw(10); ...
          xN; xE; psi_meas; deg2rad(raw(13))];
     y_good = y;
     XP_LIVE = [xN, xE, psi_eng0, psi_meas, raw(10)];   % rastreio ao vivo (GUI)

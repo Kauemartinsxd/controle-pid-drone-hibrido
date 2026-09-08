@@ -53,6 +53,14 @@ function XP_gui_waypoints()
     uibutton(fig, 'Position', [30 26 110 24], 'Text', 'Ajustar vista', ...
         'Tooltip', 'Volta ao enquadramento automatico dos waypoints', ...
         'ButtonPushedFcn', @(~,~) resetVista());
+    % controlador que voa a missao (2026-09-03): PID da dissertacao (XP_missao) ou
+    % LQRy v3 = LQRy do Mirko re-sintetizado p/ os atuadores reais (lqry_v3/XP_missao_lqry3)
+    uilabel(fig, 'Position', [155 26 80 24], 'Text', 'Controlador:', 'FontSize', 10);
+    ddCtrl = uidropdown(fig, 'Position', [235 26 300 24], ...
+        'Items', {'PID cascata (dissertacao)', 'LQRy v3 (ganhos re-sintetizados)', 'LQRy original (ganhos do Mirko)'}, ...
+        'ItemsData', {'PID', 'LQRY3', 'LQRY_ORIG'}, 'Value', 'PID', 'FontSize', 10, ...
+        'Tooltip', ['PID = XP_missao / NL_missao | LQRy = lqry_v3/XP_missao_lqry3 / NL_missao_lqry3 (Caso 4: ' ...
+                    'Velocity Hold + psi Hold + H Hold; planta 12/15/18 m/s pela mediana das velocidades dos WPs)']);
 
     %% ========== Painel lateral ==========
     panelX = 620; panelW = 360;
@@ -70,8 +78,10 @@ function XP_gui_waypoints()
         'ButtonPushedFcn', @removeLastWP);
     uibutton(fig, 'Position', [panelX+180 320 170 30], 'Text', 'Limpar tudo', ...
         'ButtonPushedFcn', @clearWPs);
-    uibutton(fig, 'Position', [panelX 285 panelW 26], 'Text', 'Carregar circuito OVAL (6 WPs)', ...
+    uibutton(fig, 'Position', [panelX 285 175 26], 'Text', 'Circuito OVAL (6 WPs)', ...
         'ButtonPushedFcn', @loadG2);
+    uibutton(fig, 'Position', [panelX+185 285 175 26], 'Text', 'Circuito AGRESSIVO (6 WPs)', ...
+        'ButtonPushedFcn', @loadAgressivo);
 
     yPos = 245;
     uilabel(fig, 'Position', [panelX yPos 165 22], 'Text', 'Altitude do proximo WP:', 'FontSize', 11);
@@ -82,7 +92,7 @@ function XP_gui_waypoints()
     yPos = yPos - 30;
     uilabel(fig, 'Position', [panelX yPos 165 22], 'Text', 'Velocidade do proximo WP:', 'FontSize', 11);
     fldVel = uieditfield(fig, 'numeric', 'Position', [panelX+170 yPos 80 22], ...
-        'Value', 12, 'Limits', [8 20]);
+        'Value', 15, 'Limits', [8 20]);
     uilabel(fig, 'Position', [panelX+255 yPos 40 22], 'Text', 'm/s');
 
     yPos = yPos - 30;
@@ -97,10 +107,17 @@ function XP_gui_waypoints()
         'Value', 0, 'Limits', [0 1200], 'ValueChangedFcn', @(~,~) updateDuracao());
     uilabel(fig, 'Position', [panelX+255 yPos 30 22], 'Text', 's');
 
-    btnVoar = uibutton(fig, 'Position', [panelX 90 panelW 46], ...
-        'Text', 'VOAR NO X-PLANE', 'FontSize', 16, 'FontWeight', 'bold', ...
+    btnVoar = uibutton(fig, 'Position', [panelX 90 215 46], ...
+        'Text', 'VOAR NO X-PLANE', 'FontSize', 15, 'FontWeight', 'bold', ...
         'BackgroundColor', [0.2 0.6 0.2], 'FontColor', 'white', ...
         'ButtonPushedFcn', @runMission);
+    % mesma missao, mesmo controlador (do dropdown), na planta NL da Ana — sem X-Plane
+    % (PID: NL_missao.m | LQRy: lqry_v3/NL_missao_lqry3.m, Caso 4 com guiagem LOS)
+    btnNL = uibutton(fig, 'Position', [panelX+225 90 135 46], ...
+        'Text', {'SIMULAR', 'NO NL'}, 'FontSize', 12, 'FontWeight', 'bold', ...
+        'BackgroundColor', [0.25 0.45 0.75], 'FontColor', 'white', ...
+        'Tooltip', 'Roda a missao no modelo nao linear da Ana (segundos), sem X-Plane', ...
+        'ButtonPushedFcn', @runNL);
 
     lblStatus = uilabel(fig, 'Position', [panelX 52 panelW 34], ...
         'Text', ['Pronto. Clique marca waypoint; ARRASTE para mover o mapa; ' ...
@@ -226,16 +243,40 @@ function XP_gui_waypoints()
         % minimo entre WPs 141 m > 2R: circulos sem sobreposicao).
         % Perimetro 884 m -> ~126 s, cabe nos ~130 s de motor por reload.
         % (validado no SIL 2026-08-31: R80/pontas justas perdia WP3 por 2 m)
-        wp_data = [160    0  600  12;
-                   260  100  600  12;
-                   160  200  600  12;
-                     0  200  600  12;
-                  -100  100  600  12;
-                     0    0  600  12];
-        fldRaccept.Value = 60;
+        % 2026-09-01: versao a 15 m/s (geometria x1,6: retas 256 m + pontas R160;
+        % R_accept 100; 1417 m, ~95 s no X-Plane, 6/6). A x1,3 (R 80) o X-Plane
+        % perdia o WP3 por 86 m. Engate continua a 12 m/s (XP_VT0).
+        wp_data = [256    0  600  15;
+                   416  160  600  15;
+                   256  320  600  15;
+                     0  320  600  15;
+                  -160  160  600  15;
+                     0    0  600  15];
+        fldRaccept.Value = 100;
+        fldTime.Value = 130;      % teto (o voo termina 5 s apos o ultimo WP)
         traj = [];
         updateTable(); updateMap();
-        lblStatus.Text = 'Circuito OVAL carregado (6 WPs, retas 160 m + pontas R100; R_accept 60).';
+        lblStatus.Text = 'Circuito OVAL carregado (6 WPs a 15 m/s, retas 256 m + pontas R160; R_accept 100).';
+        lblStatus.FontColor = corNeutra;
+    end
+
+    function loadAgressivo(~, ~)
+        % Circuito AGRESSIVO (2026-09-01, XP_missao_agressiva.m): quadrado de
+        % 160 m com curvas de 90 graus, degraus de h de +-20 m e V alternando
+        % 12/15 m/s entre WPs; 1,5 voltas, perimetro 960 m (~93 s no X-Plane),
+        % R_accept 70 (2R = 140 < 160). Excita os tres eixos ao mesmo tempo.
+        % 2026-09-01 (v2, 15/18 m/s): quadrado de 260 m, curvas de 90 graus, h 600/620,
+        % V 18 nas pernas de subida e 15 nas de descida; 1 volta (1040 m, ~75 s no
+        % X-Plane), R_accept 110 (2R = 220 < 260). Raio de curva a 18 m/s ~150 m.
+        wp_data = [260    0  620  18;
+                   260  260  600  15;
+                     0  260  620  18;
+                     0    0  600  15];
+        fldRaccept.Value = 110;
+        fldTime.Value = 110;      % teto (o voo termina 5 s apos o ultimo WP)
+        traj = [];
+        updateTable(); updateMap();
+        lblStatus.Text = 'Circuito AGRESSIVO carregado (quadrado 260 m, curvas de 90 graus, h 600/620, V 18/15; R_accept 110).';
         lblStatus.FontColor = corNeutra;
     end
 
@@ -326,6 +367,77 @@ function XP_gui_waypoints()
         hold(ax, 'off');
     end
 
+    function vt = vtPlanta()
+        % planta do gain scheduling do LQRy (12/15/18 m/s) e velocidade de engate: mediana
+        % das velocidades dos WPs, arredondada p/ a planta mais proxima (empate -> a mais
+        % baixa; agressivo 18/15/18/15 -> 15, como nos voos de validacao de 2026-09-03)
+        vmed = median(wp_data(:,4)); cand = [12 15 18];
+        [~, kv] = min(abs(cand - vmed) + 1e-6*cand); vt = cand(kv);
+    end
+
+    function g = ganhosLQRy()
+        if strcmp(ddCtrl.Value, 'LQRY_ORIG'), g = 'orig'; else, g = 'v3'; end
+    end
+
+    function s = tagLQRy()
+        if strcmp(ddCtrl.Value, 'LQRY_ORIG'), s = 'LQRYorig'; else, s = 'LQRY3'; end
+    end
+
+    function runNL(~, ~)
+        % mesma missao e mesmo controlador do dropdown, na planta NL da Ana (sem X-Plane)
+        if isempty(wp_data)
+            lblStatus.Text = 'Adicione pelo menos 1 waypoint.';
+            lblStatus.FontColor = corErro;
+            return;
+        end
+        lblStatus.Text = 'Simulando no modelo NL (sem X-Plane)... (acompanhe o console do MATLAB)';
+        lblStatus.FontColor = corInfo;
+        btnVoar.Enable = 'off'; btnNL.Enable = 'off'; drawnow;
+        try
+            if startsWith(ddCtrl.Value, 'LQRY')
+                v3Dir = fullfile(fileparts(xpDir), 'lqry_v3');
+                addpath(v3Dir);
+                evalin('base', 'clear NL3_*');                 % nada herdado de corridas anteriores
+                assignin('base', 'NL3_WPs', wp_data);          % frame do engate == NE no SIL
+                assignin('base', 'NL3_R_accept', fldRaccept.Value);
+                if fldTime.Value > 0, assignin('base', 'NL3_TimeXP', fldTime.Value);
+                else,                 assignin('base', 'NL3_TimeXP', []); end
+                assignin('base', 'NL3_ganhos', ganhosLQRy());
+                assignin('base', 'NL3_tag', ['GUI_NL_' tagLQRy()]);
+                assignin('base', 'NL3_VT', vtPlanta());
+                assignin('base', 'NL3_plot', true);
+                evalin('base', ['run(''' fullfile(v3Dir, 'NL_missao_lqry3.m') ''')']);
+            else
+                evalin('base', 'clear NL_WPs NL_R_accept NL_TimeXP NL_tag');
+                assignin('base', 'NL_WPs', wp_data);
+                assignin('base', 'NL_R_accept', fldRaccept.Value);
+                if fldTime.Value > 0, assignin('base', 'NL_TimeXP', fldTime.Value);
+                else,                 assignin('base', 'NL_TimeXP', []); end
+                assignin('base', 'NL_tag', 'GUI_NL');
+                evalin('base', ['run(''' fullfile(xpDir, 'NL_missao.m') ''')']);
+            end
+            % overlay: no SIL o engate e' a origem com proa 0 -> NE == frame do mapa
+            try
+                voo = evalin('base', 'voo');
+                traj = [voo.Y(12,:)', voo.Y(11,:)'];        % [a direita, a frente]
+            catch, traj = []; end
+            updateMap();
+            txt = 'Simulacao NL concluida. Resumo no console; .mat + PNGs em xplane/voos.';
+            try
+                nWP = size(voo.WPs,1);
+                txt = sprintf('NL concluido: guiagem avancou ate o WP %d de %d (capturas no console). PNGs em xplane/voos.', ...
+                    voo.wp_idx(end), nWP);
+            catch, end
+            lblStatus.Text = txt;
+            lblStatus.FontColor = corOk;
+        catch ME
+            lblStatus.Text = sprintf('Erro: %s', ME.message);
+            lblStatus.FontColor = corErro;
+            fprintf('Erro na simulacao NL:\n%s\n', getReport(ME));
+        end
+        btnVoar.Enable = 'on'; btnNL.Enable = 'on';
+    end
+
     function runMission(~, ~)
         if isempty(wp_data)
             lblStatus.Text = 'Adicione pelo menos 1 waypoint.';
@@ -341,7 +453,7 @@ function XP_gui_waypoints()
 
         lblStatus.Text = 'Voando no X-Plane... (acompanhe o console do MATLAB)';
         lblStatus.FontColor = corInfo;
-        btnVoar.Enable = 'off'; drawnow;
+        btnVoar.Enable = 'off'; btnNL.Enable = 'off'; drawnow;
 
         % rastreio ao vivo: o timer desenha nas janelas de pause do pacing
         global XP_LIVE
@@ -357,6 +469,22 @@ function XP_gui_waypoints()
         start(tLive);
 
         try
+            if startsWith(ddCtrl.Value, 'LQRY')
+                % LQRy: lancador proprio (lqry_v3/XP_missao_lqry3.m), mesmo formato de voo;
+                % ganhos v3 ou originais do Mirko conforme o dropdown
+                v3Dir = fullfile(fileparts(xpDir), 'lqry_v3');
+                addpath(v3Dir);
+                evalin('base', 'clear XP3_*');                 % nada herdado de corridas anteriores
+                assignin('base', 'XP3_WPs_frame', wp_data);
+                assignin('base', 'XP3_WPs_NE',    []);
+                assignin('base', 'XP3_R_accept', fldRaccept.Value);
+                if fldTime.Value > 0, assignin('base', 'XP3_TimeXP', fldTime.Value);
+                else,                 assignin('base', 'XP3_TimeXP', []); end
+                assignin('base', 'XP3_ganhos', ganhosLQRy());
+                assignin('base', 'XP3_tag', ['GUI_' tagLQRy()]);
+                assignin('base', 'XP3_VT', vtPlanta());
+                evalin('base', ['run(''' fullfile(v3Dir, 'XP_missao_lqry3.m') ''')']);
+            else
             % arma as variaveis do XP_missao no base (sobrevivem via setpref)
             assignin('base', 'XP_WPs_frame', wp_data);
             assignin('base', 'XP_WPs_NE',    []);
@@ -369,6 +497,7 @@ function XP_gui_waypoints()
             assignin('base', 'XP_tag', 'GUI');
 
             evalin('base', ['run(''' fullfile(xpDir, 'XP_missao.m') ''')']);
+            end
 
             % overlay da trajetoria voada (NE -> proa de engate)
             try
@@ -396,6 +525,6 @@ function XP_gui_waypoints()
         end
         try, stop(tLive); delete(tLive); catch, end
         tLive = [];
-        btnVoar.Enable = 'on';
+        btnVoar.Enable = 'on'; btnNL.Enable = 'on';
     end
 end

@@ -1,6 +1,6 @@
 # Motor elétrico do DH no X-Plane 9 — diagnóstico e operação (2026-08-29)
 
-## ✅ RESOLVIDO (2026-08-31): reload AUTOMÁTICO — `xp_reload_acf.m`
+## RESOLVIDO (2026-08-31): reload AUTOMÁTICO — `xp_reload_acf.m`
 
 A pendência da endurance está encerrada por AUTOMAÇÃO do reload (a
 "bateria infinita" verdadeira não existe no XP9 — ver investigação):
@@ -61,7 +61,7 @@ na pasta, o clique erra a linha — a verificação acusa.
    crash" — já DESLIGADO nos settings em 2026-08-29); (c) writes de
    drefs `sim/aircraft/*` (pmax etc.) com o sim rodando.
 2. **Religamento confiável: SÓ `File → Open Aircraft` na UI** (com
-   "Start each flight with engines running" marcado ✓). Via dref é
+   "Start each flight with engines running" marcado (ok)). Via dref é
    loteria: o power-cycle (battery_array_on/ENGN_running 0→1) religou
    UMA vez (hélice em windmill alto) e nas demais TRAVOU a hélice de
    vez (RPM 0 até em voo). NÃO tentar religar por dref.
@@ -84,7 +84,7 @@ capturas** (6,8/21,4/16,3/0,0 m), φ máx 19,6°, sync 0,997.
 
 1. **Power 1,60 → 0,80 hp** (Standard → Engines → Description,
    "maximum allowable power"): FEITO e validado — pmax lido 613 W,
-   empuxo em voo +9..+16,5 N (casou com o T_max=14 N do modelo). ✓
+   empuxo em voo +9..+16,5 N (casou com o T_max=14 N do modelo). (ok)
 2. **Battery 1.000 → 4.000 watt-hours** (Standard → Systems →
    Electrical → SOURCES): FEITO — **SEM efeito na endurance** (o motor
    elétrico do XP9 NÃO bebe desses watt-hours).
