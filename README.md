@@ -2,20 +2,29 @@
 
 Modelo da planta + piloto automático em **PID cascata** para o drone híbrido (DH) voando em modo asa-fixa.
 
-> 📽️ **Apresentação:** [`docs/Apresentacao_alinhamento_artigo.html`](docs/Apresentacao_alinhamento_artigo.html) —
+> **Apresentação:** [`docs/Apresentacao_alinhamento_artigo.html`](docs/Apresentacao_alinhamento_artigo.html) —
 > alinhamento do artigo (PID × LQRy do SIL ao HIL, com estudo de robustez). Há também uma versão
 > sem a slide de margens ([`docs/Apresentacao_alinhamento_artigo_sem_margens.html`](docs/Apresentacao_alinhamento_artigo_sem_margens.html)).
 > Arquivos HTML auto-contidos: baixe e abra no navegador (o GitHub não renderiza HTML no repositório).
 
-> 📄 **Artigo:** [`arquivos/`](arquivos/) contém o draft IEEE Access
+> **Artigo:** [`arquivos/`](arquivos/) contém o draft IEEE Access
 > *"Cascade PID Versus Output-Feedback LQR for the Fixed-Wing Mode of a Hybrid VTOL UAV"*
 > (fontes LaTeX, figuras, dados e scripts de simulação). Pendências abertas em
 > [`arquivos/PENDENCIAS.md`](arquivos/PENDENCIAS.md).
 
-> ✈️ **Gêmeo digital no X-Plane 9:** o mesmo PID voa o DH no simulador, com o `.acf`
-> calibrado para equivaler ao modelo identificado — ver a seção
-> [X-Plane](#x-plane-gêmeo-digital-e-missões-por-waypoints-xplane) e o relatório
-> [`docs/Relatorio_gemeo_XPlane.pdf`](docs/Relatorio_gemeo_XPlane.pdf).
+> **Gêmeo digital no X-Plane 9:** o mesmo PID voa o DH no simulador, com o `.acf`
+> calibrado para equivaler ao modelo identificado (gêmeo v1.2, validado contra voo real
+> de dez/2024) — ver a seção
+> [X-Plane](#x-plane-gêmeo-digital-e-missões-por-waypoints-xplane) e os relatórios
+> [`docs/Relatorio_gemeo_XPlane.pdf`](docs/Relatorio_gemeo_XPlane.pdf),
+> [`docs/Distincao_XPlane_vs_ModeloNL.pdf`](docs/Distincao_XPlane_vs_ModeloNL.pdf) e
+> [`docs/Fidelidade_Original_vs_Gemeo_v12.pdf`](docs/Fidelidade_Original_vs_Gemeo_v12.pdf).
+
+> **LQRy v3:** o LQRy do Mirko com a estrutura intacta e só os ganhos re-sintetizados
+> cumpre as missões OVAL (6/6) e AGRESSIVO (4/4) no modelo NL e no X-Plane — ver a seção
+> [LQRy v3](#lqry-v3-lqry_v3), [`lqry_v3/README.md`](lqry_v3/README.md) e o relatório
+> [`docs/Relatorio_LQRy_v3.pdf`](docs/Relatorio_LQRy_v3.pdf). O histórico completo da
+> investigação (adendos 1–14) está em [`xplane/LQRY_XPLANE.md`](xplane/LQRY_XPLANE.md).
 
 ---
 
@@ -53,8 +62,8 @@ plot_NL_DH
 
 ```
 controle-pid-drone-hibrido/
-├── DH_inicializacao.m      ★ Setup do workspace + paths (rode TODA sessão)
-├── plot_NL_DH.m            ★ Plot dos resultados (após uma sim)
+├── DH_inicializacao.m      Setup do workspace + paths (rode TODA sessão)
+├── plot_NL_DH.m            Plot dos resultados (após uma sim)
 ├── README.md
 │
 ├── manobras/               ← cenários prontos (rode DEPOIS do init)
@@ -86,17 +95,39 @@ controle-pid-drone-hibrido/
 │   └── trimagem_DH.m          trim via fsolve
 │
 ├── xplane/                 ← gêmeo digital no X-Plane 9 (bancada de ensaio)
-│   ├── XP_gui_waypoints.m     ★ GUI de missão (mapa com pan/zoom + rastreio ao vivo)
-│   ├── XP_missao.m            missão por waypoints no X-Plane (guiagem LOS)
+│   ├── XP_gui_waypoints.m     GUI de missão (mapa com pan/zoom, rastreio ao vivo,
+│   │                          dropdown Controlador: PID | LQRy v3)
+│   ├── XP_missao.m            missão por waypoints no X-Plane (guiagem LOS, PID)
 │   ├── NL_missao.m            a MESMA missão na planta da Ana (sem X-Plane)
 │   ├── XP_voo.m               voo reto + degraus/doublets (manobras G4/G5)
-│   ├── xp_reload_acf.m        reload programático do .acf (opt-in XP_auto_reload)
+│   ├── XP_doublets_lqry2.m    doublets com o LQRy original no X-Plane
+│   ├── xp_read_dh.m / xp_send_dh.m  I/O UDP (laço a 100 Hz, Ts=0,05 nos scripts)
+│   ├── xp_reload_acf.m        reload programático do .acf com verificação de
+│   │                          assinatura (opt-in XP_auto_reload)
+│   ├── XP_sync_acf_clones.m   mantém os clones do .acf idênticos ao gêmeo
 │   ├── G5_*.m / plot_G5.m     campanha de doublets SIL×X-Plane
+│   ├── VR_*.m                 validação contra voo real (logs ArduPilot dez/2024)
 │   ├── modelo_XP_DH_*.slx     PID + guiagem + Planta_XP (UDP) / modelos GUIA
+│   ├── modelo_XP_LQRY2_GUIA.slx  LQRy do Mirko + guiagem + Planta_XP
 │   ├── voos/                  .mat + PNGs de todos os voos e figuras SIL×XP
 │   ├── EQUIVALENCIA_ACF.md    calibração do gêmeo + campanhas G4/G5 (números)
+│   ├── VALIDACAO_VOO_REAL.md  gêmeo v1.2 vs .acf original vs voo real
+│   ├── LQRY_XPLANE.md         investigação do LQRy no X-Plane (adendos 1–14)
 │   ├── PENDENCIA_MOTOR.md     motor elétrico do XP9 (energia ~130 s por reload)
+│   ├── PLANO_GUIAGEM.md       plano/histórico da guiagem por waypoints
 │   └── ROTEIRO_DEMO.md        roteiro da demonstração ao vivo
+│
+├── lqry_v3/                ← LQRy do Mirko com ganhos re-sintetizados (estrutura intacta)
+│   ├── lqry_v3_projeto.m      síntese + verificação + relatório (ganhos/)
+│   ├── lqry_v3_sil_check.m    matriz SIL orig/v3 x Ana/Sato x atuador ideal/real
+│   ├── lqry_v3_casos_artigo.m casos da Tabela 11 / Fig. 38 do artigo
+│   ├── NL_missao_lqry3.m      missão por waypoints no NL
+│   ├── XP_missao_lqry3.m      missão por waypoints no X-Plane
+│   ├── modelo_NL_LQRY_GUIA.slx  gêmeo NL do modelo X-Plane do LQRy
+│   ├── ganhos/                Ganho_hold_*.mat (drop-in) + relatorio_projeto.txt
+│   ├── sil/, figs/            corridas e figuras
+│   ├── pacote_mirko_guiagem_NL/  pacote autocontido para o Mirko (+ .zip)
+│   └── README.md              método, resultados e como usar
 │
 ├── arquivos/               ← artigo IEEE Access (PID × LQRy de ganho fixo)
 │   ├── main.tex / main.pdf    draft do artigo
@@ -107,7 +138,13 @@ controle-pid-drone-hibrido/
 │   ├── dados_*.txt            métricas exportadas p/ as tabelas LaTeX
 │   └── PENDENCIAS.md          pontos abertos do draft (marcados com \pendente{})
 │
-└── docs/                   ← apresentações HTML auto-contidas (deck de alinhamento)
+└── docs/                   ← apresentações HTML auto-contidas e relatórios (PDF + DOCX)
+    ├── Apresentacao_alinhamento_artigo*.html   deck de alinhamento do artigo
+    ├── Apresentacao_modelo_XPlane*.html        decks do gêmeo X-Plane (PID e LQRy)
+    ├── Relatorio_gemeo_XPlane.pdf              calibração e validação do gêmeo
+    ├── Distincao_XPlane_vs_ModeloNL.pdf        .acf original != modelo da Ana (para a banca)
+    ├── Fidelidade_Original_vs_Gemeo_v12.pdf    voo real vs original vs gêmeo v1.2
+    └── Relatorio_LQRy_v3.pdf                   LQRy v3: método, SIL, NL e X-Plane
 ```
 
 ---
@@ -135,7 +172,7 @@ DH_inicializacao
 
 Carrega `linear/MATRIZES_DH.m`, define os ganhos do piloto automático, o modelo de servo/motor, o pré-filtro de referência e **configura os paths** (`manobras/`, `nao_linear/`, `linear/`, `utilitarios/`). Por isso as manobras e o `plot_NL_DH` ficam chamáveis pelo nome independente da pasta atual.
 
-> ⚠️ Por default todas as referências ficam **no trim** — sem manobra, o sistema fica em equilíbrio.
+> ATENÇÃO: Por default todas as referências ficam **no trim** — sem manobra, o sistema fica em equilíbrio.
 
 ### 3. Manobras prontas
 
@@ -320,10 +357,27 @@ controlador e ganhos — campanha G5: RMS de altitude **6,95 m (SIL) vs 6,96 m
 [`docs/Relatorio_gemeo_XPlane.pdf`](docs/Relatorio_gemeo_XPlane.pdf); números e
 histórico de calibração: [`xplane/EQUIVALENCIA_ACF.md`](xplane/EQUIVALENCIA_ACF.md).
 
+**Gêmeo v1.2 (2026-09-01, congelado):** o eixo látero-direcional foi calibrado
+contra os logs de voo real (ArduPilot, dez/2024, modo MANUAL): pico do dutch roll
+1,07 e frequência 0,54–0,93 Hz (real: 0,54–0,73), com a assinatura do `.acf`
+verificada a cada reload (`XP_ACF_SIG`). No eixo longitudinal o gêmeo bate o voo real
+onde o `.acf` original erra (trim de profundor neutro como o real, contra +6° do
+original). Detalhes em [`xplane/VALIDACAO_VOO_REAL.md`](xplane/VALIDACAO_VOO_REAL.md) e
+[`docs/Fidelidade_Original_vs_Gemeo_v12.pdf`](docs/Fidelidade_Original_vs_Gemeo_v12.pdf).
+Os relatórios de referência para a banca sobre por que o `.acf` original não é o modelo
+identificado estão em [`docs/Distincao_XPlane_vs_ModeloNL.pdf`](docs/Distincao_XPlane_vs_ModeloNL.pdf).
+
+O laço de controle com o X-Plane roda a **100 Hz** (`Ts = 0,05` nos scripts de I/O;
+margem de atraso a 15 m/s de 75–100 ms). O motor elétrico do XP9 tem constante de
+tempo medida de 3,5 s e efeito de potência na arfagem (Cm_thr ≈ 0,25); os dois foram
+reproduzidos no SIL para explicar o comportamento do LQRy original (adendos 10–12 de
+[`xplane/LQRY_XPLANE.md`](xplane/LQRY_XPLANE.md)).
+
 ```matlab
 % Demo (X-Plane 9 aberto com o DH carregado):
 addpath('xplane')
 XP_gui_waypoints     % GUI: clique waypoints (ou "Carregar circuito OVAL") e VOAR
+                     % dropdown "Controlador": PID | LQRy v3
 ```
 
 - **Guiagem** LOS por waypoints (algoritmo do PIPER-1-6 do Julio, reimplementado)
@@ -337,6 +391,34 @@ XP_gui_waypoints     % GUI: clique waypoints (ou "Carregar circuito OVAL") e VOA
   `XP_auto_reload = true` para o reload programático (`xp_reload_acf.m`).
 - **Sem X-Plane:** `NL_missao` voa a mesma missão na planta da Ana em segundos
   (plano B da demo e comparação SIL×XP automática após cada voo).
+
+---
+
+## LQRy v3 (`lqry_v3/`)
+
+O LQRy do Mirko (5 holds, gain scheduling 3×3, referência só pelo integrador) com a
+**estrutura intacta** e **só os ganhos** re-sintetizados: LQ com ação integral sobre as
+matrizes do `Dados_Trim.mat` e refino como realimentação de saída estática (formulação
+LQRy do artigo), com pesos de Bryson ancorados nos limites reais de superfície e manete.
+Os `Ganho_hold_*.mat` gerados são drop-in nos modelos originais.
+
+| Missão (GUI) | Ganhos originais | LQRy v3, NL (Ana) | LQRy v3, X-Plane (gêmeo v1.2) |
+|---|---|---|---|
+| OVAL (6 WPs, 15 m/s) | 2/6 no NL, 1/6 no X-Plane | 6/6 | 6/6 |
+| AGRESSIVO (4 WPs, 90°) | 2/4 no NL | 4/4 | 4/4 |
+
+O SIL do próprio Mirko mostra o mecanismo: os ganhos originais convergem com atuador
+ideal e divergem com motor de 3,5 s, batente de ±15° e efeito de potência; o v3 converge
+nos dois casos e também sobre a planta do Sato. Método, tabelas de ganhos, casos do
+artigo e uso em [`lqry_v3/README.md`](lqry_v3/README.md); relatório em
+[`docs/Relatorio_LQRy_v3.pdf`](docs/Relatorio_LQRy_v3.pdf).
+
+```matlab
+addpath('lqry_v3')
+lqry_v3_projeto        % regera ganhos/ + relatorio_projeto.txt
+NL_missao_lqry3        % oval no modelo NL
+XP_missao_lqry3        % oval no X-Plane
+```
 
 ---
 

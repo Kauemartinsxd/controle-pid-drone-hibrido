@@ -29,3 +29,6 @@ relatorio_PID/
 
 # Config local do agente (tooling)
 .satk/
+
+# Backups automaticos de modelo
+*.slx.bak
