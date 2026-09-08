@@ -57,9 +57,59 @@ end
 if ~exist('VR_ganho','var'), VR_ganho = struct('ail',1,'elev',1,'rudd',1); end
 if ~exist('VR_reload_cada','var'), VR_reload_cada = true; end
 
+% (2026-09-08) ESCALA DE CURSO: o PWM real normalizado (+-1 = +-VR_curso_real
+% graus FISICOS; +-15 confirmado pelo responsavel do DH) vai direto no
+% sendCTRL, cujo +-1 e' o CURSO DO .acf (25 deg no gemeo v1.2, 15 no
+% original). Sem esta escala o gemeo recebia 25/15 = 1,67x a deflexao real
+% em TODOS os eixos (campanhas de 2026-09-01: "aileron 2x quente", "leme
+% 1,07 apos Jyy", "profundor 0,75" — todos com 1,67x de entrada).
+% VR_curso_real = [] desliga a escala (mapeamento 1:1 antigo).
+if ~exist('VR_curso_real','var'), VR_curso_real = 15; end
+lims = double(getDREFs({'sim/aircraft/controls/acf_elev_up', ...
+    'sim/aircraft/controls/acf_ail1_up','sim/aircraft/controls/acf_rudd_lr'}, GlobalSocket));
+if numel(lims) < 3 || any(lims < 5) || any(lims > 60)
+    error('VR_replay_xp: cursos do .acf invalidos (%s) — X-Plane com aeronave carregada?', mat2str(lims, 3));
+end
+if isempty(VR_curso_real)
+    esc = struct('elev', 1, 'ail', 1, 'rudd', 1);
+else
+    esc = struct('elev', VR_curso_real/lims(1), 'ail', VR_curso_real/lims(2), 'rudd', VR_curso_real/lims(3));
+end
+fprintf('cursos do .acf: elev %.0f / ail %.0f / rudd %.0f deg; curso real %s deg -> escala %.3f / %.3f / %.3f\n', ...
+    lims(1), lims(2), lims(3), mat2str(VR_curso_real), esc.elev, esc.ail, esc.rudd);
+fprintf('sinais servo->XP: ail %+d elev %+d rudd %+d | ganhos extra: ail %.2f elev %.2f rudd %.2f\n', ...
+    sinais.ail, sinais.elev, sinais.rudd, VR_ganho.ail, VR_ganho.elev, VR_ganho.rudd);
+
+% arquivo da campanha definido JA' (salvamento incremental por segmento:
+% timeout do cliente MCP nao perde dados)
+fn = fullfile(voosDir, ['VR_replay_' datestr(now, 'yyyymmdd_HHMMSS') '.mat']);
+
 MSL0    = 600;      % campo ~600 m MSL (mesmo das campanhas anteriores)
-TRIM_T  = 45;       % s MAXIMOS de trim automatico (para antes se convergir)
-TRIM_MIN = 8;       % s minimos de trim antes de testar convergencia
+if ~exist('VR_trim_max','var') || isempty(VR_trim_max), VR_trim_max = 45; end
+TRIM_T  = VR_trim_max;   % s MAXIMOS de trim automatico (para antes se convergir); <= ~100 pelo estoque do motor
+% (2026-09-08) VR_trim_min: o teleporte derruba o RPM do motor (spool ~20 s) e
+% o SOPRO da helice sobre a empenagem muda a autoridade de profundor/leme; com
+% trim de 13-19 s o doublet caia com o motor em estados diferentes (pico de q
+% 0,92 vs 0,43 na mesma configuracao). Default 8 (historico); use >= 25 para
+% calibracao. O empuxo (POINT_thrust) e TRQ no fim do trim vao para R.
+if ~exist('VR_trim_min','var') || isempty(VR_trim_min), VR_trim_min = 8; end
+TRIM_MIN = VR_trim_min;   % s minimos de trim antes de testar convergencia
+% (2026-09-08 tarde) VR_trim_modo: 'hdot_thr' (default, historico: manete<-V
+% rapida, theta_ref<-hdot lenta) deixava o doublet cair com a manete ainda
+% subindo/caindo (empuxo 1,2..5,3 N na mesma condicao). 'classico' = manete
+% <- erro de hdot (integrador lento) e theta_ref <- erro de V (pitch for
+% speed), e a convergencia exige tambem MANETE ESTAVEL (excursao < 0,03 nos
+% ultimos 4 s) — empuxo reprodutivel = sopro reprodutivel na empenagem.
+if ~exist('VR_trim_modo','var') || isempty(VR_trim_modo), VR_trim_modo = 'hdot_thr'; end
+Ktv = 0.015;   % classico/thr_fixo: theta_ref [rad] por (m/s * s) de erro de V (V alta -> nariz sobe)
+Kpv = 0.010;   % thr_fixo: termo proporcional de theta_ref [rad por m/s]
+Kth = 0.03;    % classico: manete por (m/s * s) de erro de hdot
+% 'thr_fixo': manete CONSTANTE = VR_thr_fixo (mesmo RPM/sopro em toda corrida,
+% por construcao) e so theta_ref persegue V0 (pitch for speed); a razao de
+% subida resultante e' livre (gamma pequeno nao altera o curto periodo). O
+% 'classico' (manete<-hdot) divergiu no teste de 15:47 (manete foi a zero no
+% transiente pos-teleporte e nao voltou).
+if ~exist('VR_thr_fixo','var') || isempty(VR_thr_fixo), VR_thr_fixo = 0.42; end
 REPLAY_T = T_PRE + T_POS;
 DT      = 0.05;     % alvo 20 Hz
 
@@ -96,13 +146,33 @@ while ii <= numel(VR_lista)
 
   % motor fresco p/ este segmento (estoque ~130 s do eletrico do XP9)
   if VR_reload_cada
-    xp_reload_acf;
+    reload_robusto(3);
     try, closeUDP(GlobalSocket); catch, end
     GlobalSocket = openUDP('127.0.0.1', 49009, 0, 500);
     if exist('VR_J','var') && isstruct(VR_J)
       if isfield(VR_J,'Jyy'), sendDREF('sim/aircraft/weight/acf_Jyy_unitmass', VR_J.Jyy, GlobalSocket); end
       if isfield(VR_J,'Jzz'), sendDREF('sim/aircraft/weight/acf_Jzz_unitmass', VR_J.Jzz, GlobalSocket); end
       pause(0.1);
+    end
+    % (2026-09-08) VR_drefs: cell {nome, valor; ...} escrito APOS cada reload
+    % (reload reseta p/ o .acf) — calibracao em tempo de execucao de
+    % parametros do XP9 que sao writable e honrados pela fisica (ex.:
+    % acf_elev_crat/acf_rudd_crat/acf_ail1_crat = razao de corda das
+    % superficies, acf_dihed1 = diedro por parte, acf_Croot/Ctip). Valores
+    % vetoriais: escreve o vetor inteiro (leia antes e altere os indices).
+    if exist('VR_drefs','var') && iscell(VR_drefs) && ~isempty(VR_drefs)
+      for kd = 1:size(VR_drefs, 1)
+        sendDREF(VR_drefs{kd,1}, VR_drefs{kd,2}, GlobalSocket); pause(0.05);
+      end
+      pause(0.2);
+      for kd = 1:size(VR_drefs, 1)
+        try
+          qv = getDREFs(VR_drefs(kd,1), GlobalSocket); if iscell(qv), qv = qv{1}; end; qv = double(qv(:))';
+          if numel(qv) <= 4, fprintf('  dref %s = %s\n', VR_drefs{kd,1}, mat2str(qv, 4));
+          else, fprintf('  dref %s: %d valores, soma %.4g\n', VR_drefs{kd,1}, numel(qv), sum(qv)); end
+        catch
+        end
+      end
     end
   end
 
@@ -152,18 +222,40 @@ while ii <= numel(VR_lista)
     q  = raw(3); p = raw(2);
     if ~isnan(h_ant), hdot_f = 0.9*hdot_f + 0.1*(raw(8) - h_ant)/dt; end
     h_ant = raw(8);
-    % theta_ref lento persegue a razao de subida real; manete segura V
-    th_ref = max(deg2rad(-15), min(deg2rad(15), th_ref + Khd*(hdot0 - hdot_f)*dt));
-    eth = deg2rad(raw(6)) - th_ref;
+    if strcmp(VR_trim_modo, 'classico')
+      % pitch for speed + manete pela razao de subida (ambos integradores lentos)
+      th_ref = max(deg2rad(-15), min(deg2rad(15), th_ref + Ktv*(raw(1) - s.V0)*dt));
+      thr = max(0, min(1, thr + Kth*(hdot0 - hdot_f)*dt));
+    elseif strcmp(VR_trim_modo, 'thr_fixo')
+      % manete constante; theta_ref = integrador + proporcional no erro de V
+      ith_v = th_ref + Ktv*(raw(1) - s.V0)*dt;           % parte integral (guardada em th_ref)
+      th_ref = max(deg2rad(-15), min(deg2rad(15), ith_v));
+      thr = VR_thr_fixo;
+    else
+      % theta_ref lento persegue a razao de subida real; manete segura V
+      th_ref = max(deg2rad(-15), min(deg2rad(15), th_ref + Khd*(hdot0 - hdot_f)*dt));
+      thr = max(0, min(1, thr + Kv*(s.V0 - raw(1))*dt));
+    end
+    if strcmp(VR_trim_modo, 'thr_fixo')
+      eth = deg2rad(raw(6)) - (th_ref + Kpv*(raw(1) - s.V0));   % + proporcional em V
+    else
+      eth = deg2rad(raw(6)) - th_ref;
+    end
     eph = deg2rad(raw(5));
     ith = max(-0.5, min(0.5, ith + Kith*(-eth)*dt));
     de  = max(-1, min(1, ith - Kq*q - Kth*eth));
     da  = max(-1, min(1, -Kp*p - Kphi*eph));
-    thr = max(0, min(1, thr + Kv*(s.V0 - raw(1))*dt));
     sendCTRL([de, da, 0, thr, -998, -998], 0, GlobalSocket);
     TR(min(k,nT),:) = [t, de, thr, raw(1), hdot_f];
-    if t > TRIM_MIN && abs(raw(1) - s.V0) < 1.5 && abs(hdot_f - hdot0) < 1 ...
-            && abs(q) < deg2rad(3)
+    thr_estavel = true;
+    if strcmp(VR_trim_modo, 'classico')
+      ult4 = TR(TR(:,1) > t - 4 & ~isnan(TR(:,1)), 3);
+      thr_estavel = numel(ult4) > 10 && (max(ult4) - min(ult4)) < 0.03;
+    end
+    hdot_ok = abs(hdot_f - hdot0) < 1;
+    if strcmp(VR_trim_modo, 'thr_fixo'), hdot_ok = true; end      % gamma livre
+    if t > TRIM_MIN && abs(raw(1) - s.V0) < 1.5 && hdot_ok ...
+            && abs(q) < deg2rad(3) && thr_estavel
       n_conv = n_conv + 1;
       if n_conv >= round(2/DT), conv = true; break; end
     else
@@ -176,6 +268,14 @@ while ii <= numel(VR_lista)
   thr0 = mean(ult(:,3), 'omitnan');
   Vfim = mean(ult(:,4), 'omitnan');
   trim_ok = conv;
+  % estado do motor no fim do trim (proxy do sopro): empuxo [N] e torque
+  thrust0 = NaN; trq0 = NaN;
+  try
+    qa = getDREFs({'sim/flightmodel/engine/POINT_thrust'}, GlobalSocket); if iscell(qa), qa = qa{1}; end; thrust0 = double(qa(1));
+    qa = getDREFs({'sim/flightmodel/engine/ENGN_TRQ'}, GlobalSocket);     if iscell(qa), qa = qa{1}; end; trq0 = double(qa(1));
+  catch
+  end
+  fprintf('motor no fim do trim: empuxo %.2f N, TRQ %.3f\n', thrust0, trq0);
   fprintf('trim (%.0f s): de0=%+.3f thr0=%.2f V=%.1f (alvo %.1f) hdot=%+.1f (alvo %+.1f) %s\n', ...
       toc(t0), de0, thr0, Vfim, s.V0, mean(ult(:,5),'omitnan'), hdot0, ...
       ternario(trim_ok, 'CONVERGIU', 'NAO CONVERGIU'));
@@ -195,7 +295,7 @@ while ii <= numel(VR_lista)
     if ~exist('xp_reload_acf', 'file')
       error('VR_replay_xp: motor morto e xp_reload_acf indisponivel — recarregue manualmente e rode de novo.');
     end
-    xp_reload_acf;  pause(3);
+    reload_robusto(3);  pause(3);
     try, closeUDP(GlobalSocket); catch, end
     GlobalSocket = openUDP('127.0.0.1', 49009, 0, 500);
     continue;   % refaz este segmento (ii nao foi incrementado)
@@ -216,9 +316,9 @@ while ii <= numel(VR_lista)
     du_elev = interp1(s.t, s.u(:,2), t, 'previous', s.u(end,2)) - s.u_trim(2);
     du_thr  = interp1(s.t, s.u(:,3), t, 'previous', s.u(end,3)) - s.u_trim(3);
     du_rudd = interp1(s.t, s.u(:,4), t, 'previous', s.u(end,4)) - s.u_trim(4);
-    de_c  = max(-1, min(1, de0 + sinais.elev * VR_ganho.elev * du_elev));
-    da_c  = max(-1, min(1,       sinais.ail  * VR_ganho.ail  * du_ail));
-    dr_c  = max(-1, min(1,       sinais.rudd * VR_ganho.rudd * du_rudd));
+    de_c  = max(-1, min(1, de0 + sinais.elev * VR_ganho.elev * esc.elev * du_elev));
+    da_c  = max(-1, min(1,       sinais.ail  * VR_ganho.ail  * esc.ail  * du_ail));
+    dr_c  = max(-1, min(1,       sinais.rudd * VR_ganho.rudd * esc.rudd * du_rudd));
     thr_c = max(0,  min(1, thr0 + du_thr));
     sendCTRL([de_c, da_c, dr_c, thr_c, -998, -998], 0, GlobalSocket);
     raw = ler(drefs, GlobalSocket);
@@ -237,16 +337,18 @@ while ii <= numel(VR_lista)
   R(ir).psi = rad2deg(unwrap(deg2rad(D(:,8))));
   R(ir).h = D(:,9);
   R(ir).de0 = de0;     R(ir).thr0 = thr0;     R(ir).trim_ok = trim_ok;
+  R(ir).thrust0 = thrust0; R(ir).trq0 = trq0;
   fprintf('replay: %d amostras (%.1f Hz efetivo), V fim %.1f m/s\n', ...
       size(D,1), size(D,1)/REPLAY_T, D(end,2));
   if D(end,2) < 5
     fprintf(2, 'AVISO: VT final < 5 m/s — possivel crash durante o replay.\n');
   end
+  save(fn, 'R', 'VR_lista', 'sinais', 'VR_ganho', 'esc', 'VR_curso_real', 'lims', 'MSL0', 'TRIM_T');
+  fprintf('(salvo incremental: %d/%d segmentos em %s)\n', numel(R), numel(VR_lista), fn);
   ii = ii + 1;
 end
 
-fn = fullfile(voosDir, ['VR_replay_' datestr(now, 'yyyymmdd_HHMMSS') '.mat']);
-save(fn, 'R', 'VR_lista', 'sinais', 'VR_ganho', 'MSL0', 'TRIM_T');
+save(fn, 'R', 'VR_lista', 'sinais', 'VR_ganho', 'esc', 'VR_curso_real', 'lims', 'MSL0', 'TRIM_T');
 fprintf('\nCampanha salva: %s (%d segmentos)\n', fn, numel(R));
 clear VR_lista
 
@@ -283,4 +385,35 @@ end
 
 function s = ternario(c, a, b)
     if c, s = a; else, s = b; end
+end
+
+function reload_robusto(n_max)
+    % xp_reload_acf com ate' n_max tentativas. Modo de falha visto em
+    % 2026-09-08 (3o segmento de um bloco): o dialogo Open Aircraft abre, os
+    % cliques nao pegam, o dialogo fica aberto e o XPC para de responder
+    % ("No response received"). ESC via Robot fecha o dialogo; tenta de novo.
+    global GlobalSocket
+    import XPlaneConnect.*
+    for tent = 1:n_max
+        try
+            xp_reload_acf;
+            return;
+        catch ME
+            fprintf(2, 'reload falhou (tentativa %d/%d): %s\n', tent, n_max, strtok(ME.message, newline));
+            if tent == n_max, rethrow(ME); end
+            try
+                % ativa PELO PID: a janela do Plane Maker tambem se chama
+                % 'X-System' (2026-09-08) — ver xp_activate.m
+                if xp_activate()
+                    rb = java.awt.Robot();
+                    rb.keyPress(java.awt.event.KeyEvent.VK_ESCAPE); pause(0.1);
+                    rb.keyRelease(java.awt.event.KeyEvent.VK_ESCAPE);
+                end
+            catch
+            end
+            pause(5);
+            try, closeUDP(GlobalSocket); catch, end
+            GlobalSocket = openUDP('127.0.0.1', 49009, 0, 500);
+        end
+    end
 end

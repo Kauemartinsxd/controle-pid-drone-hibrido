@@ -112,24 +112,38 @@ for iv = 1:2
     end
   end
 
-  %% Sinais de convencao por eixo (correlacao du x taxa, lags 0..0.6 s)
-  % X-Plane: +elev -> +q, +ail -> +p, +rudd -> +r
+  %% Sinais de convencao por eixo — criterio da INCLINACAO INICIAL da taxa
+  % X-Plane: +elev -> +q, +ail -> +p, +rudd -> +r. Em cada doublet o
+  % efeito DIRETO da superficie fixa o sinal de d(taxa)/dt nos primeiros
+  % ~0,15 s do 1o lobo (antes de a dinamica do modo reverter a taxa).
+  % (2026-09-08) O criterio anterior — correlacao du x taxa com lag livre
+  % 0..0,6 s — escolhia o LAG ERRADO no leme: com dutch roll pouco
+  % amortecido e o 2o lobo do doublet invertendo r no pico, a |corr|
+  % maxima caia em lag ~0,3-0,4 s com sinal trocado -> rudd -1 quando o
+  % fisico e' +1 em 8/8 segmentos reais (X-Plane e modelo NL saiam como
+  % IMAGEM ESPELHADA do voo, lida como "atraso de 0,3 s"). Aileron e
+  % profundor (1a ordem / bem amortecidos) nao eram afetados.
   pares = {'ail','p',1; 'elev','q',2; 'rudd','r',4};
   for kk = 1:size(pares,1)
     idx = find(strcmp({SEG.voo}, logs{iv,2}) & strcmp({SEG.eixo}, pares{kk,1}));
     if isempty(idx), continue; end
-    cbest = 0;
-    for L = 0:round(0.6*FS)
-      c = 0;
-      for j = idx
-        du = SEG(j).u(:,pares{kk,3}) - SEG(j).u_trim(pares{kk,3});
-        ra = SEG(j).(pares{kk,2});
-        c  = c + sum(du(1:end-L) .* ra(1+L:end));
-      end
-      if abs(c) > abs(cbest), cbest = c; end
+    votos = []; pesos = [];
+    for j = idx
+      du = SEG(j).u(:,pares{kk,3}) - SEG(j).u_trim(pares{kk,3});
+      ra = SEG(j).(pares{kk,2});
+      k0 = find(abs(du) > 0.25, 1);                 % onset do 1o lobo
+      if isempty(k0), continue; end
+      m  = find(SEG(j).t >= SEG(j).t(k0) & SEG(j).t <= SEG(j).t(k0) + 0.15);
+      dr = ra(m(end)) - ra(k0);                     % variacao da taxa no lobo
+      votos(end+1) = sign(du(k0)) * sign(dr); %#ok<SAGROW>
+      pesos(end+1) = abs(dr);                 %#ok<SAGROW>
     end
-    sgn.(logs{iv,2}).(pares{kk,1}) = sign(cbest);
-    fprintf('  sinal %s/%s: %+d (corr pico %.1f)\n', logs{iv,2}, pares{kk,1}, sign(cbest), cbest);
+    if isempty(votos), continue; end
+    sv = sign(sum(votos));
+    if sv == 0, sv = votos(pesos == max(pesos)); sv = sv(1); end   % desempate
+    sgn.(logs{iv,2}).(pares{kk,1}) = sv;
+    fprintf('  sinal %s/%s: %+d (votos %+d em %d segmentos)\n', logs{iv,2}, pares{kk,1}, ...
+        sv, sum(votos), numel(votos));
   end
 end
 
