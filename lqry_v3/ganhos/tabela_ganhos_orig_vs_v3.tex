@@ -1,0 +1,30 @@
+\begin{table}[htbp]
+\centering
+\caption{Ganhos efetivos do LQRy: projeto original e re-sintese proposta (mesma estrutura de controle).}
+\label{tab:ganhos_lqry_orig_v3}
+\begin{tabular}{llrrr}
+\hline
+Malha & Unidade & Original & Proposto & Razao \\
+\hline
+$\theta \rightarrow \delta_e$ & deg/deg & -8.41 & -1.63 & 5.2 \\
+$q \rightarrow \delta_e$ & deg/(deg/s) & -0.248 & -0.268 & 0.9 \\
+$\alpha \rightarrow \delta_e$ & deg/deg & 0.135 & 1.03 & 0.1 \\
+$\int\theta \rightarrow \delta_e$ & deg/(deg$\cdot$s) & -10.9 & -1.04 & 10.5 \\
+$H \rightarrow \theta_{ref}$ & deg/m & -28.6 & -3.42 & 8.4 \\
+$\theta \rightarrow \theta_{ref}$ & rad/rad & -6.18 & -0.935 & 6.6 \\
+$\alpha \rightarrow \theta_{ref}$ & rad/rad & 5.55 & -0.0515 & 107.6 \\
+$\int H \rightarrow \theta_{ref}$ & deg/(m$\cdot$s) & -11.6 & -0.447 & 25.9 \\
+$V_T \rightarrow \delta_t$ & \%/(m/s) & -78.8 & -5.4 & 14.6 \\
+$\int V_T \rightarrow \delta_t$ & \%/m & -50 & -0.737 & 67.8 \\
+$\phi \rightarrow \delta_a$ & rad/rad & 0.124 & 0.578 & 0.2 \\
+$p \rightarrow \delta_a$ & rad/(rad/s) & 0.00522 & 0.0769 & 0.1 \\
+$r \rightarrow \delta_r$ & rad/(rad/s) & -0.0405 & -0.122 & 0.3 \\
+$\beta \rightarrow \delta_r$ & rad/rad & -0.0176 & 0.168 & 0.1 \\
+$\int\phi \rightarrow \delta_a$ & rad/(rad$\cdot$s) & 0.108 & 0.387 & 0.3 \\
+$\psi \rightarrow \phi_{ref}$ & rad/rad & -5.05 & -0.975 & 5.2 \\
+$\beta \rightarrow \phi_{ref}$ & rad/rad & -4.71 & 0.548 & 8.6 \\
+$\int\psi \rightarrow \phi_{ref}$ & rad/(rad$\cdot$s) & -5.45 & -0.138 & 39.4 \\
+\hline
+\end{tabular}
+\\[2pt]\footnotesize Condicao de voo: 15 m/s, 600 m (planta 5 de 9 do escalonamento).
+\end{table}

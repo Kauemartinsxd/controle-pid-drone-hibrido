@@ -1,0 +1,45 @@
+METRICAS DOS CASOS DO ARTIGO (Tabela 11) — ganhos ORIGINAIS x v3, SIL do Mirko, Cond. 5 (15 m/s), refs 5, atuador ideal
+1o degrau de cada doublet; OS relativo a amplitude; t_r 10-90 %; t_s faixa 2 %; e_ss = media dos ultimos 2 s da janela - ref
+(alc = fracao do degrau atingida ao fim da janela; tr = NaN quando 90 % nao e atingido dentro da janela)
+Caso   Modos                              Variavel  |    OS_o    tr_o    ts_o    ess_o  alc_o |   OS_v3   tr_v3   ts_v3   ess_v3 alc_v3
+1      Velocity Hold + phi Hold + theta Hold Airspeed  |    0.00    3.23    5.89   -0.007   100% |    0.00     NaN     NaN   -1.758    45%
+1      Velocity Hold + phi Hold + theta Hold theta     |    3.15    1.30    3.80   -0.001   100% |    0.54    3.16    6.46   +0.021   100%
+1      Velocity Hold + phi Hold + theta Hold phi       |    3.91    1.61    4.56   -0.000   100% |    0.00    2.42    4.42   -0.000   100%
+                                          extremos  | de -0.7..+3.5 deg, thr 0.17..0.64, theta 2.8..13.2, phi -5.4..5.2 | de +0.7..+3.1, thr 0.22..0.46, theta 3.0..13.1, phi -5.0..5.0
+2      Velocity Hold + phi Hold + H Hold  Airspeed  |    0.00    3.11    5.83   -0.007   100% |    0.00     NaN     NaN   -1.415    59%
+2      Velocity Hold + phi Hold + H Hold  Altitude  |    0.88    3.48    5.71   -0.006   100% |    0.00    9.83     NaN   -0.120    98%
+2      Velocity Hold + phi Hold + H Hold  phi       |    3.95    1.60    4.56   -0.000   100% |    0.00    2.41    4.44   +0.000   100%
+                                          extremos  | de -2.5..+4.9 deg, thr 0.00..0.64, theta -6.4..15.6, phi -5.4..5.2 | de +0.3..+3.4, thr 0.24..0.41, theta 2.4..11.7, phi -5.0..5.0
+3      Velocity Hold + psi Hold + theta Hold Airspeed  |    0.00    3.23    5.89   -0.007   100% |    0.00     NaN     NaN   -1.758    45%
+3      Velocity Hold + psi Hold + theta Hold theta     |    3.15    1.30    3.80   -0.001   100% |    0.54    3.16    6.46   +0.021   100%
+3      Velocity Hold + psi Hold + theta Hold psi       |   31.18    1.10   13.89   +0.013    99% |    0.62    9.45   15.69   +0.019   101%
+                                          extremos  | de -0.7..+3.5 deg, thr 0.17..0.64, theta 2.8..13.2, phi -18.0..11.4 | de +0.7..+3.1, thr 0.22..0.46, theta 3.0..13.1, phi -1.7..0.9
+4      Velocity Hold + psi Hold + H Hold  Airspeed  |    0.00    3.11    5.83   -0.007   100% |    0.00     NaN     NaN   -1.415    59%
+4      Velocity Hold + psi Hold + H Hold  Altitude  |    0.88    3.48    5.71   -0.006   100% |    0.00    9.83     NaN   -0.120    98%
+4      Velocity Hold + psi Hold + H Hold  psi       |   30.95    1.10   13.83   +0.012    99% |    0.92    9.40   15.41   +0.036   101%
+                                          extremos  | de -2.5..+4.9 deg, thr 0.00..0.64, theta -6.4..15.6, phi -17.9..11.0 | de +0.3..+3.4, thr 0.24..0.41, theta 2.4..11.7, phi -1.8..0.9
+5      Throttle fixo + phi Hold + theta Hold theta     |    0.00    1.67    8.22   -0.002   100% |    0.00    3.67    9.22   -0.004   100%
+5      Throttle fixo + phi Hold + theta Hold phi       |    3.87    1.62    4.56   -0.000   100% |    0.00    2.42    4.42   -0.000   100%
+                                          extremos  | de -0.1..+5.2 deg, thr 0.34..0.34, theta 3.0..13.0, phi -5.4..5.2 | de -0.1..+5.2, thr 0.34..0.34, theta 3.0..13.0, phi -5.0..5.0
+6      Throttle fixo + phi Hold + H Hold  phi       |    3.89    1.62    4.55   -0.000   100% |    0.00    2.42    4.42   -0.000   100%
+                                          extremos  | de +1.1..+2.6 deg, thr 0.34..0.34, theta 6.1..8.2, phi -5.4..5.2 | de +2.2..+2.3, thr 0.34..0.34, theta 7.9..8.2, phi -5.0..5.0
+7      Throttle fixo + psi Hold + theta Hold theta     |    0.00    1.67    8.22   -0.002   100% |    0.00    3.67    9.22   -0.004   100%
+7      Throttle fixo + psi Hold + theta Hold psi       |   31.36    1.11   12.48   +0.013    99% |    0.92    9.34   15.39   +0.036   101%
+                                          extremos  | de -0.1..+5.2 deg, thr 0.34..0.34, theta 3.0..13.0, phi -18.0..11.4 | de -0.1..+5.2, thr 0.34..0.34, theta 3.0..13.0, phi -1.8..0.9
+8      Throttle fixo + psi Hold + H Hold  psi       |   31.10    1.11   12.45   +0.013    99% |    0.91    9.35   15.41   +0.035   101%
+                                          extremos  | de +1.1..+2.6 deg, thr 0.34..0.34, theta 6.1..8.5, phi -18.0..11.1 | de +2.2..+2.3, thr 0.34..0.34, theta 7.9..8.1, phi -1.8..0.9
+
+FIG. 38 / TAB. 12 REFEITAS COM OS GANHOS v3 (Caso 4 x inercia):
+Inercia              Variavel     OS[%]    tr[s]   ts2%[s]       ess
+Nominal              Airspeed      0.00      NaN       NaN    -1.415
+Nominal              Altitude      0.00     9.83       NaN    -0.120
+Nominal              psi           0.92     9.40     15.41    +0.036
++10% cod. (x1.90)    Airspeed      0.00      NaN       NaN    -1.415
++10% cod. (x1.90)    Altitude      0.00     9.83       NaN    -0.120
++10% cod. (x1.90)    psi           0.90     9.39     15.44    +0.034
+-10% (x0.90)         Airspeed      0.00      NaN       NaN    -1.415
+-10% (x0.90)         Altitude      0.00     9.83       NaN    -0.120
+-10% (x0.90)         psi           0.93     9.40     15.41    +0.036
++10% real (x1.10)    Airspeed      0.00      NaN       NaN    -1.415
++10% real (x1.10)    Altitude      0.00     9.83       NaN    -0.120
++10% real (x1.10)    psi           0.92     9.40     15.42    +0.036

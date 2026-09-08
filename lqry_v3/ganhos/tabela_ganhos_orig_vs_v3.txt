@@ -1,0 +1,154 @@
+TABELA DE GANHOS — LQRy do Mirko: projeto ORIGINAL x re-sintese v3   (03-Sep-2026 09:37:17)
+Estrutura do controlador IDENTICA nos dois conjuntos; mudam apenas os valores.
+
+== 1) GANHOS BRUTOS (unidades dos Ganho_hold_*.mat) ==
+
+-- Planta 2 (V12_H600: 12 m/s @ 600 m) --
+theta Hold  Gstate [dVT dalpha q dtheta de]  ORIG [-0.004609 6.477 -15.6 -483.2 -6.795]
+                                              V3  [-0.2555 51.84 -17.68 -93.35 -0.784]
+theta Hold  Gint                             ORIG -625
+                                              V3  -59.68
+Alt Hold    Gstate [dVT dalpha q dtheta dH]  ORIG [-0.07178 4.474 -0.2121 -5.064 -0.5086]
+                                              V3  [-0.07144 0.005546 -0.134 -0.768 -0.08362]
+Alt Hold    Gint                             ORIG -0.2025
+                                              V3  -0.007937
+Vel Hold    Gstate [dVT dalpha q dtheta]     ORIG [-78.81 -0.9055 0.05888 1.306]
+                                              V3  [-31.11 -659.9 104.3 68.53]
+Vel Hold    Gint                             ORIG -50
+                                              V3  -0.08866
+phi Hold    Gstate [beta p r phi] (2x4)      ORIG [0.006926 0.01013 0.03505 0.1595;-0.01085 -0.02236 -0.08167 -0.3542]
+                                              V3  [0.3143 0.08681 0.01501 0.5693;0.154 -0.0006275 -0.1445 -0.129]
+phi Hold    Gint [int_phi int_beta] (2x2)    ORIG [0.172 0.008453;-0.3595 0.02023]
+                                              V3  [0.3599 0.1248;-0.1679 0.1759]
+psi Hold    Gstate [beta p r phi psi]        ORIG [-5.387 -0.1123 -0.7948 -1.272 -6.037]
+                                              V3  [0.2141 -0.1622 -0.385 -0.483 -0.869]
+psi Hold    Gint                             ORIG -7.773
+                                              V3  -0.1313
+
+-- Planta 5 (V15_H600: 15 m/s @ 600 m) --
+theta Hold  Gstate [dVT dalpha q dtheta de]  ORIG [-0.002993 7.709 -14.22 -481.6 -8.282]
+                                              V3  [-0.03407 58.85 -15.38 -93.37 -0.8992]
+theta Hold  Gint                             ORIG -625
+                                              V3  -59.68
+Alt Hold    Gstate [dVT dalpha q dtheta dH]  ORIG [-0.03893 5.545 -0.1993 -6.183 -0.499]
+                                              V3  [-0.03592 -0.05154 -0.1728 -0.9345 -0.05965]
+Alt Hold    Gint                             ORIG -0.2025
+                                              V3  -0.007805
+Vel Hold    Gstate [dVT dalpha q dtheta]     ORIG [-78.81 -0.8982 0.05655 1.186]
+                                              V3  [-5.399 -39.9 14.11 28.21]
+Vel Hold    Gint                             ORIG -50
+                                              V3  -0.7371
+phi Hold    Gstate [beta p r phi] (2x4)      ORIG [0.009703 0.005222 0.01794 0.1237;-0.01762 -0.01141 -0.04046 -0.2715]
+                                              V3  [0.2034 0.07688 0.00469 0.5777;0.1684 0.0008557 -0.1222 -0.1037]
+phi Hold    Gint [int_phi int_beta] (2x2)    ORIG [0.1084 0.005506;-0.2342 0.01274]
+                                              V3  [0.3873 0.1041;-0.1374 0.181]
+psi Hold    Gstate [beta p r phi psi]        ORIG [-4.708 -0.0602 -0.2442 -1.222 -5.052]
+                                              V3  [0.548 -0.1669 -0.3766 -0.5678 -0.9751]
+psi Hold    Gint                             ORIG -5.45
+                                              V3  -0.1382
+
+-- Planta 8 (V18_H600: 18 m/s @ 600 m) --
+theta Hold  Gstate [dVT dalpha q dtheta de]  ORIG [-0.002095 8.915 -13.26 -480.5 -9.739]
+                                              V3  [0.1544 65.22 -13.77 -92.95 -1.018]
+theta Hold  Gint                             ORIG -625
+                                              V3  -59.68
+Alt Hold    Gstate [dVT dalpha q dtheta dH]  ORIG [-0.02323 6.595 -0.1904 -7.257 -0.4939]
+                                              V3  [-0.02064 -0.09632 -0.1997 -1.065 -0.05196]
+Alt Hold    Gint                             ORIG -0.2025
+                                              V3  -0.007763
+Vel Hold    Gstate [dVT dalpha q dtheta]     ORIG [-78.81 -0.8987 0.05475 1.088]
+                                              V3  [-4.774 -21.82 11.98 29.42]
+Vel Hold    Gint                             ORIG -50
+                                              V3  -0.7296
+phi Hold    Gstate [beta p r phi] (2x4)      ORIG [0.008652 0.003032 0.01033 0.102;-0.01617 -0.006547 -0.02282 -0.221]
+                                              V3  [0.1328 0.07367 -0.0001349 0.587;0.1652 0.001361 -0.1064 -0.09236]
+phi Hold    Gint [int_phi int_beta] (2x2)    ORIG [0.07509 0.003832;-0.163 0.008829]
+                                              V3  [0.4064 0.09107;-0.1178 0.1826]
+psi Hold    Gstate [beta p r phi psi]        ORIG [-8.452 -0.06466 0.001029 -2.092 -8.76]
+                                              V3  [0.935 -0.1713 -0.4144 -0.603 -1.068]
+psi Hold    Gint                             ORIG -8.462
+                                              V3  -0.142
+
+== 2) GANHOS EFETIVOS (por grau, por metro, por m/s) — a leitura fisica ==
+Ganho efetivo                      unidade      ORIGINAL         v3  orig/v3
+
+-- 12 m/s (planta 2) --
+theta -> profundor                 deg/deg        -8.434     -1.629      5.2
+q -> profundor                     deg/(deg/s)    -0.2722    -0.3086      0.9
+alpha -> profundor                 deg/deg         0.113     0.9048      0.1
+int(theta) -> profundor            deg/(deg s)     -10.91     -1.042     10.5
+H -> theta_ref                     deg/m          -29.14     -4.791      6.1
+theta -> theta_ref                 rad/rad        -5.064     -0.768      6.6
+alpha -> theta_ref                 rad/rad         4.474   0.005546    806.7
+int(H) -> theta_ref                deg/(m s)       -11.6    -0.4547     25.5
+VT -> manete                       %/(m/s)        -78.81     -31.11      2.5
+int(VT) -> manete                  %/m               -50   -0.08866    563.9
+phi -> aileron                     rad/rad        0.1595     0.5693      0.3
+p -> aileron                       rad/(rad/s)    0.01013    0.08681      0.1
+r -> leme                          rad/(rad/s)   -0.08167    -0.1445      0.6
+beta -> leme                       rad/rad      -0.01085      0.154      0.1
+int(phi) -> aileron                rad/(rad s)      0.172     0.3599      0.5
+psi -> phi_ref                     rad/rad        -6.037     -0.869      6.9
+beta -> phi_ref                    rad/rad        -5.387     0.2141     25.2
+int(psi) -> phi_ref                rad/(rad s)     -7.773    -0.1313     59.2
+
+-- 15 m/s (planta 5) --
+theta -> profundor                 deg/deg        -8.406      -1.63      5.2
+q -> profundor                     deg/(deg/s)    -0.2482    -0.2684      0.9
+alpha -> profundor                 deg/deg        0.1345      1.027      0.1
+int(theta) -> profundor            deg/(deg s)     -10.91     -1.042     10.5
+H -> theta_ref                     deg/m          -28.59     -3.418      8.4
+theta -> theta_ref                 rad/rad        -6.183    -0.9345      6.6
+alpha -> theta_ref                 rad/rad         5.545   -0.05154    107.6
+int(H) -> theta_ref                deg/(m s)       -11.6    -0.4472     25.9
+VT -> manete                       %/(m/s)        -78.81     -5.399     14.6
+int(VT) -> manete                  %/m               -50    -0.7371     67.8
+phi -> aileron                     rad/rad        0.1237     0.5777      0.2
+p -> aileron                       rad/(rad/s)   0.005222    0.07688      0.1
+r -> leme                          rad/(rad/s)   -0.04046    -0.1222      0.3
+beta -> leme                       rad/rad      -0.01762     0.1684      0.1
+int(phi) -> aileron                rad/(rad s)     0.1084     0.3873      0.3
+psi -> phi_ref                     rad/rad        -5.052    -0.9751      5.2
+beta -> phi_ref                    rad/rad        -4.708      0.548      8.6
+int(psi) -> phi_ref                rad/(rad s)      -5.45    -0.1382     39.4
+
+-- 18 m/s (planta 8) --
+theta -> profundor                 deg/deg        -8.387     -1.622      5.2
+q -> profundor                     deg/(deg/s)    -0.2314    -0.2403      1.0
+alpha -> profundor                 deg/deg        0.1556      1.138      0.1
+int(theta) -> profundor            deg/(deg s)     -10.91     -1.042     10.5
+H -> theta_ref                     deg/m           -28.3     -2.977      9.5
+theta -> theta_ref                 rad/rad        -7.257     -1.065      6.8
+alpha -> theta_ref                 rad/rad         6.595   -0.09632     68.5
+int(H) -> theta_ref                deg/(m s)       -11.6    -0.4448     26.1
+VT -> manete                       %/(m/s)        -78.81     -4.774     16.5
+int(VT) -> manete                  %/m               -50    -0.7296     68.5
+phi -> aileron                     rad/rad         0.102      0.587      0.2
+p -> aileron                       rad/(rad/s)   0.003032    0.07367      0.0
+r -> leme                          rad/(rad/s)   -0.02282    -0.1064      0.2
+beta -> leme                       rad/rad      -0.01617     0.1652      0.1
+int(phi) -> aileron                rad/(rad s)    0.07509     0.4064      0.2
+psi -> phi_ref                     rad/rad         -8.76     -1.068      8.2
+beta -> phi_ref                    rad/rad        -8.452      0.935      9.0
+int(psi) -> phi_ref                rad/(rad s)     -8.462     -0.142     59.6
+
+== 3) ERRO QUE SATURA O ATUADOR (curso real do DH: superficies +-15 deg, manete [0,1]) ==
+Condicao                                           ORIGINAL           v3
+
+-- 12 m/s --
+erro de theta p/ 15 deg de profundor [deg]             1.78         9.21
+erro de H p/ 10 deg de theta_ref [m]                   0.34         2.09
+erro de VT p/ 100 % de manete [m/s]                    1.27         3.21
+erro de psi p/ 30 deg de phi_ref [deg]                 4.97        34.52
+
+-- 15 m/s --
+erro de theta p/ 15 deg de profundor [deg]             1.78         9.20
+erro de H p/ 10 deg de theta_ref [m]                   0.35         2.93
+erro de VT p/ 100 % de manete [m/s]                    1.27        18.52
+erro de psi p/ 30 deg de phi_ref [deg]                 5.94        30.77
+
+-- 18 m/s --
+erro de theta p/ 15 deg de profundor [deg]             1.79         9.25
+erro de H p/ 10 deg de theta_ref [m]                   0.35         3.36
+erro de VT p/ 100 % de manete [m/s]                    1.27        20.95
+erro de psi p/ 30 deg de phi_ref [deg]                 3.42        28.08
