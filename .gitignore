@@ -32,3 +32,6 @@ relatorio_PID/
 
 # Backups automaticos de modelo
 *.slx.bak
+
+# Retorno do Mirko 2026-09-10 (lqry_v3/LQRy_Guiagem): resultados antigos dele (36 MB de .mat/.png) ficam so no disco
+lqry_v3/LQRy_Guiagem/resultados/

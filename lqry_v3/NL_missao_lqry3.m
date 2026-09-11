@@ -69,6 +69,7 @@ assert(startsWith(which('sfunction_DH'), mirko), 'NL_missao_lqry3: sfunction_DH 
 
 %% 2) Ganhos e trims
 if strcmp(NL3_ganhos, 'v3'), gd = fullfile(here, 'ganhos'); else, gd = raizN; end
+if exist('NL3_ganhos_dir','var') && ~isempty(NL3_ganhos_dir), gd = NL3_ganhos_dir; end   % pasta arbitraria de Ganho_hold_*.mat
 load(fullfile(gd, 'Ganho_hold_theta.mat')); load(fullfile(gd, 'Ganho_hold_H.mat')); load(fullfile(gd, 'Ganho_hold_VT.mat'));
 load(fullfile(gd, 'Ganho_hold_phi.mat'));   load(fullfile(gd, 'Ganho_hold_psi.mat'));
 load(fullfile(raizN, 'Dados_Trim.mat'));

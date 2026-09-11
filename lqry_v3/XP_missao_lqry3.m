@@ -77,6 +77,7 @@ end
 
 %% 3) Ganhos (v3 drop-in) e trims
 if strcmp(XP3_ganhos, 'v3'), gd = fullfile(here, 'ganhos'); else, gd = raizN; end
+if exist('XP3_ganhos_dir','var') && ~isempty(XP3_ganhos_dir), gd = XP3_ganhos_dir; end   % pasta arbitraria de Ganho_hold_*.mat (ex.: lqry_v3/LQRy_Guiagem/ganhos_mirko, psi novo do Mirko 2026-09-10)
 load(fullfile(gd, 'Ganho_hold_theta.mat')); load(fullfile(gd, 'Ganho_hold_H.mat')); load(fullfile(gd, 'Ganho_hold_VT.mat'));
 load(fullfile(gd, 'Ganho_hold_phi.mat'));   load(fullfile(gd, 'Ganho_hold_psi.mat'));
 load(fullfile(raizN, 'Dados_Trim.mat'));
@@ -250,6 +251,7 @@ if XP3_autoNL
         wpF(:,1:2) = [voo.WPs_user(:,1)*cpsi2 + voo.WPs_user(:,2)*spsi2, voo.WPs_user(:,2)*cpsi2 - voo.WPs_user(:,1)*spsi2];
         NL3_WPs = wpF; NL3_R_accept = voo.R_accept; NL3_TimeXP = voo.cfg.TimeXP; NL3_VT = XP3_VT;
         NL3_phi_psi = XP3_phi_psi; NL3_ganhos = XP3_ganhos; NL3_tag = 'autoNL_LQRY3'; NL3_plot = false;
+        if exist('XP3_ganhos_dir','var') && ~isempty(XP3_ganhos_dir), NL3_ganhos_dir = XP3_ganhos_dir; end
         vooXP = voo; vooFileXP = vooFile;
         fprintf('\n===== Repetindo a missao no modelo NL (LQRy %s, sem X-Plane)... =====\n', XP3_ganhos);
         run(fullfile(here, 'NL_missao_lqry3.m'));
