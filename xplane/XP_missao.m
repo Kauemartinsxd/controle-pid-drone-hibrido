@@ -32,6 +32,11 @@
 %   XP_use_Ctheta_XP    true = usa o C_theta re-sintonizado da Fase 0
 %   XP_theta_test_t/_final  degrau de theta_ref p/ validacao (inerte)
 %   XP_tag       [char] sufixo do nome do .mat salvo
+%   XP_Ts_io     [s]    janela de I/O com o X-Plane (read_xp/send_xp).
+%                       Default 0.01 = 100 Hz — DECISAO DA EQUIPE (2026-09-16):
+%                       o PID passa a voar a 100 Hz como o LQRy. 0.05 = 20 Hz
+%                       (o valor historico, gravado no .slx) so' para contraste.
+%   XP_autoNL    true/false  repete a missao no NL ao fim (default true)
 %
 % Fim de missao (2026-08-31): a simulacao ENCERRA sozinha 5 s apos o
 % aviao entrar no circulo do ULTIMO WP (blocos Cond_fim_missao -> latch
@@ -60,6 +65,8 @@ if ~exist('XP_use_Ctheta_XP','var') || isempty(XP_use_Ctheta_XP), XP_use_Ctheta_
 if ~exist('XP_theta_test_t','var')     || isempty(XP_theta_test_t),     XP_theta_test_t = 1e9; end
 if ~exist('XP_theta_test_final','var') || isempty(XP_theta_test_final), XP_theta_test_final = 0; end
 if ~exist('XP_tag','var'),       XP_tag = ''; end
+if ~exist('XP_Ts_io','var')  || isempty(XP_Ts_io),  XP_Ts_io = 0.01; end   % 100 Hz (equipe, 2026-09-16)
+if ~exist('XP_autoNL','var') || isempty(XP_autoNL), XP_autoNL = true; end
 if isempty(XP_WPs_frame) && isempty(XP_WPs_NE)
     % default = circuito OVAL "stadium" de 6 WPs: retas de 160 m + pontas
     % semicirculares de raio 100 (folgado vs raio natural ~83 m a 12 m/s),
@@ -77,7 +84,8 @@ if isempty(XP_WPs_frame) && isempty(XP_WPs_NE)
 end
 setpref('XP_DH','missao', struct('msl0',XP_msl0,'VT0',XP_VT0,'R',XP_R_accept, ...
     'WPf',XP_WPs_frame,'WPne',XP_WPs_NE,'T',XP_TimeXP,'useCXP',XP_use_Ctheta_XP, ...
-    'tht',XP_theta_test_t,'thf',XP_theta_test_final,'tag',XP_tag));
+    'tht',XP_theta_test_t,'thf',XP_theta_test_final,'tag',XP_tag, ...
+    'Ts_io',XP_Ts_io,'autoNL',XP_autoNL));
 
 %% 1) Workspace completo (ganhos da dissertacao, socket, refs)
 run(fullfile(fileparts(mfilename('fullpath')), 'XP_inicializacao.m'));
@@ -196,15 +204,17 @@ fprintf('XP_missao: %d WPs (%d apos interpolacao), perimetro %.0f m, TimeXP %.0f
 
 %% 5) Compila o modelo GUIA e ARMA o teleporte-no-engate
 mdl = 'modelo_XP_DH_GUIA';
+if bdIsLoaded(mdl), bdclose(mdl); end       % copia limpa: as edicoes abaixo sao em memoria
 load_system(mdl);
+xp_set_ts_io(mdl, cfgm.Ts_io);              % janela de I/O (100 Hz por default; .slx intacto)
 set_param(mdl, 'SimulationCommand', 'update');
 
 global XP_IC
 XP_IC = struct('target_msl', XP_msl0, 'h0_agl', XP_msl0-ground_msl, ...
                'VT0', XP_VT0, 'psi0', NaN, 'thr0', XP_thr0, ...
                'de0', XP_de0, 'pitch0', XP_pitch0);
-fprintf('XP_missao: teleporte ARMADO (MSL %.0f m, %.1f m/s, proa atual). Engatando...\n', ...
-    XP_msl0, XP_VT0);
+fprintf('XP_missao: teleporte ARMADO (MSL %.0f m, %.1f m/s, proa atual, laco %.0f Hz). Engatando...\n', ...
+    XP_msl0, XP_VT0, 1/cfgm.Ts_io);
 
 %% 6) Voa a missao
 out = sim(mdl);
@@ -231,7 +241,8 @@ voo.cfg = struct('XP_msl0',XP_msl0, 'XP_VT0',XP_VT0, 'TimeXP',TimeXP, ...
     'Kq',Kq, 'Kp',Kp, 'Kr',Kr, 'K_heading',K_heading, ...
     'theta_ref_clamp',theta_ref_clamp, 'tau_ref',tau_ref, ...
     'Xe8',Xe(8), 'use_Ctheta_XP',cfgm.useCXP, ...
-    'theta_test',[cfgm.tht cfgm.thf], 'act',act, 'eng',eng);
+    'theta_test',[cfgm.tht cfgm.thf], 'act',act, 'eng',eng, 'Ts_io',cfgm.Ts_io);
+voo.Ts_io = cfgm.Ts_io;
 tag = cfgm.tag; if ~isempty(tag), tag = ['_' tag]; end
 vooFile = fullfile(voosDir, ['XP_missao_' datestr(now,'yyyymmdd_HHMMSS') tag '.mat']);
 save(vooFile, 'voo');
@@ -262,6 +273,7 @@ plot_XP_missao(voo, vooFile);
 %% 9) MESMA missao no modelo NL da Ana (comparacao automatica SILxXP)
 % Os WPs (em NE do engate) voltam ao referencial da PROA DE ENGATE —
 % que e' o proprio NE do SIL (engate na origem com psi=0).
+if ~cfgm.autoNL, bdclose(mdl); return; end   % XP_autoNL=false: so o X-Plane
 try
     cpsi2 = cosd(voo.psi_engate); spsi2 = sind(voo.psi_engate);
     wpF = voo.WPs_user;

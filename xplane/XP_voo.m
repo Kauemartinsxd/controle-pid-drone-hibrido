@@ -60,6 +60,9 @@ if ~exist('XP_h_step_t2','var')   || isempty(XP_h_step_t2),   XP_h_step_t2 = 1e9
 if ~exist('XP_h_step_t3','var')   || isempty(XP_h_step_t3),   XP_h_step_t3 = 1e9;   end
 if ~exist('XP_psi_step_t2','var') || isempty(XP_psi_step_t2), XP_psi_step_t2 = 1e9; end
 if ~exist('XP_psi_step_t3','var') || isempty(XP_psi_step_t3), XP_psi_step_t3 = 1e9; end
+% janela de I/O com o X-Plane: 0.01 = 100 Hz (decisao da equipe, 2026-09-16); 0.05 = 20 Hz historico
+if ~exist('XP_Ts_io','var') || isempty(XP_Ts_io), XP_Ts_io = 0.01; end
+setpref('XP_DH','ts_io', XP_Ts_io);
 setpref('XP_DH','cfg',[XP_msl0 XP_VT0 XP_TimeXP XP_VT_ref XP_Xe8_deg XP_clamp_hi_deg ...
     XP_h_step_final XP_h_step_t XP_psi_step_deg XP_psi_step_t ...
     XP_VT_step_delta XP_VT_step_t ...
@@ -164,7 +167,10 @@ if ~isnan(XP_VT_ref), VT_ref = XP_VT_ref; end   % override p/ mapa de trim
 
 %% 4) Compila o modelo e ARMA o teleporte-no-engate
 mdl = 'modelo_XP_DH_CL';
+if bdIsLoaded(mdl), bdclose(mdl); end
 load_system(mdl);
+XP_Ts_io = getpref('XP_DH','ts_io', 0.01); rmpref('XP_DH','ts_io');
+xp_set_ts_io(mdl, XP_Ts_io);                % laco a 100 Hz por default (em memoria)
 set_param(mdl, 'SimulationCommand', 'update');
 
 global XP_IC

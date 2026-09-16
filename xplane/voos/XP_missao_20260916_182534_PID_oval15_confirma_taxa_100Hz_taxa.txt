@@ -1,0 +1,11 @@
+Voo: C:\Users\kaue\Documents\dissertacao\dissertacao\controle-pid-drone-hibrido\xplane\voos\XP_missao_20260916_182534_PID_oval15_confirma_taxa_100Hz.mat
+Engate a t_xp 42.8 s apos o load do .acf
+Ts_io pedido: 0.010 s (100 Hz) | grade de log 0.005 s
+Amostras no log: 22554 em 112.8 s de sim
+Leituras com tempo NOVO do X-Plane: 11277 de 22554 (50.0 %; esperado ~50 % pela grade)
+Taxa efetiva de leitura: 100.0 Hz (leituras novas / duracao XP)
+Intervalo entre leituras novas (tempo XP): mediana 9.0 ms | p90 14.9 ms | p99 24.5 ms | max 27.5 ms
+Sincronia: sim 112.8 s | X-Plane 112.8 s | razao XP/sim 0.9999
+X-Plane fps: antes 505 | depois 449 (frame 1.98 / 2.23 ms)
+Frames de fisica por leitura (aprox.): 4.5
+RTT getDREFs antes do voo: mediana 2.40 ms | p95 3.02 ms | max 14.81 ms
