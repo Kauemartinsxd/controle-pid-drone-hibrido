@@ -78,7 +78,7 @@ fprintf('\n%s\n', L{:});
 fid = fopen(fullfile(xpV, 'LQRYmirko_taxa_20Hz_vs_100Hz_20260916.txt'), 'w'); fprintf(fid, '%s\n', L{:}); fclose(fid);
 
 %% figura sobreposta
-fig = figure('Color', 'w', 'Position', [100 100 900 900]);
+fig = figure('Color', 'w', 'Position', [100 100 900 900]); try, fig.Theme = 'light'; catch, end
 tl = tiledlayout(5, 1, 'TileSpacing', 'compact', 'Padding', 'compact');
 cor = {[0 0.45 0.74], [0.85 0.33 0.1]};
 ax1 = nexttile; hold on; for k = 1:2, plot(M(k).voo.t, M(k).voo.Y(1,:), 'Color', cor{k}); end; ylabel('V_T [m/s]'); yline(15, 'k:'); grid on; legend(nome, 'Location', 'best');
@@ -88,5 +88,5 @@ ax4 = nexttile; hold on; for k = 1:2, plot(M(k).voo.t, M(k).voo.Y(14,:)*R2D, 'Co
 ax5 = nexttile; hold on; for k = 1:2, plot(M(k).voo.t, M(k).voo.U(:,1), 'Color', cor{k}); end; ylabel('manete cmd'); yline(0, 'k:'); yline(1, 'k:'); grid on; xlabel('t [s]');
 linkaxes([ax1 ax2 ax3 ax4 ax5], 'x');
 title(tl, 'LQRy do Mirko (\psi Hold novo) no gemeo v2 — oval GUI 15 m/s: laco X-Plane a 100 Hz vs 20 Hz (2026-09-16)');
-exportgraphics(fig, fullfile(xpV, 'LQRYmirko_taxa_20Hz_vs_100Hz_20260916.png'), 'Resolution', 120);
+exportgraphics(fig, fullfile(xpV, 'LQRYmirko_taxa_20Hz_vs_100Hz_20260916.png'), 'Resolution', 150);
 fprintf('figura salva em %s\n', fullfile(xpV, 'LQRYmirko_taxa_20Hz_vs_100Hz_20260916.png'));

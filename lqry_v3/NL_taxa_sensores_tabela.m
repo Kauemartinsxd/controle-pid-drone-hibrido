@@ -62,7 +62,7 @@ fprintf('\n%s\n', L{:});
 stamp = datestr(now, 'yyyymmdd_HHMMSS');
 fid = fopen(fullfile(xpV, ['NL_taxa_sensores_LQRYmirko_' stamp '.txt']), 'w'); fprintf(fid, '%s\n', L{:}); fclose(fid);
 
-fig = figure('Color', 'w', 'Position', [100 100 950 950]);
+fig = figure('Color', 'w', 'Position', [100 100 950 950]); try, fig.Theme = 'light'; catch, end
 tl = tiledlayout(5, 1, 'TileSpacing', 'compact', 'Padding', 'compact');
 cores = lines(n); ax = gobjects(1,5);
 ax(1) = nexttile; hold on; for k = 1:n, plot(res(k).voo.t, res(k).voo.Y(1,:), 'Color', cores(k,:)); end; ylabel('V_T [m/s]'); yline(15,'k:'); grid on; legend({res.rotulo}, 'Location', 'eastoutside');
@@ -72,5 +72,5 @@ ax(4) = nexttile; hold on; for k = 1:n, plot(res(k).voo.t, res(k).voo.Y(14,:)*R2
 ax(5) = nexttile; hold on; for k = 1:n, plot(res(k).voo.t, res(k).voo.U(:,1), 'Color', cores(k,:)); end; ylabel('manete cmd'); yline(0,'k:'); yline(1,'k:'); grid on; ylim([-1 2]); xlabel('t [s]');
 linkaxes(ax, 'x'); xlim(ax(1), [0 90]);
 title(tl, 'LQRy do Mirko (\psi Hold novo), planta NL: taxa de I/O do controlador (motor \tau 0,3 s)');
-exportgraphics(fig, fullfile(xpV, ['NL_taxa_sensores_LQRYmirko_' stamp '.png']), 'Resolution', 120);
+exportgraphics(fig, fullfile(xpV, ['NL_taxa_sensores_LQRYmirko_' stamp '.png']), 'Resolution', 150);
 fprintf('salvo: %s\n', fullfile(xpV, ['NL_taxa_sensores_LQRYmirko_' stamp '.{txt,png}']));
