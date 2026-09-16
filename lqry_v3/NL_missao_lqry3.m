@@ -65,7 +65,7 @@ pp = strsplit(path, pathsep);
 ruins = pp(contains(pp, 'controle-pid-drone-hibrido') & ~contains(pp, 'lqry_v3') & ~contains(pp, [filesep 'xplane']));
 for k = 1:numel(ruins), rmpath(ruins{k}); end
 addpath(xpDir); addpath(here); addpath(mirko);      % mirko_run na frente: sfunction_DH(t,x,u,flag,Xe,coef_Sato,coef_Ana,Variacao_Iner)
-assert(startsWith(which('sfunction_DH'), mirko), 'NL_missao_lqry3: sfunction_DH errada no path: %s', which('sfunction_DH'));
+assert(contains(which('sfunction_DH'), [filesep 'mirko_run' filesep]), 'NL_missao_lqry3: sfunction_DH errada no path: %s', which('sfunction_DH'));
 
 %% 2) Ganhos e trims
 if strcmp(NL3_ganhos, 'v3'), gd = fullfile(here, 'ganhos'); else, gd = raizN; end
@@ -129,6 +129,12 @@ load_system(fullfile(here, [mdl '.slx']));
 NL3_info = lqry_v3_prepara_modelo(mdl, struct('phi_max_deg', NL3_phimax_deg, 'antiwindup', NL3_antiwindup, ...
     'ref_prop', NL3_ref_prop, 'theta_e_ff', NL3_ref_prop, 'ic_bumpless', ~NL3_ref_prop, 'theta0', double(Plantas(i).Xe(8)), ...
     'fim_auto', 1, 'vt_pulse_off', 1, 'i', i));
+% opt-in (2026-09-16): emula a taxa de I/O do laco X-Plane (ZOH nas medidas e
+% nos comandos, dentro de Planta). [] ou 0 = controlador ve a planta continua.
+if exist('NL3_Ts_io','var') && ~isempty(NL3_Ts_io) && NL3_Ts_io > 0
+    if ~exist('NL3_n_delay','var') || isempty(NL3_n_delay), NL3_n_delay = 0; end
+    NL3_info.zoh = nl_insere_zoh(mdl, NL3_Ts_io, NL3_n_delay);
+end
 
 %% 6) Simula
 t0 = tic;

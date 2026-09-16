@@ -1,0 +1,11 @@
+Voo: C:\Users\kaue\Documents\dissertacao\dissertacao\controle-pid-drone-hibrido\xplane\voos\XP_missao_20260916_154658_LQRYmirko_psiNovo_oval_confirma_taxa.mat
+Ts_io pedido: 0.010 s (100 Hz) | solver ode4 Ts = 0.010 s
+Amostras na grade do Simulink: 9152 em 91.5 s de sim
+Leituras com tempo NOVO do X-Plane: 9152 de 9152 (100.0 %)
+Taxa efetiva de leitura: 100.1 Hz (leituras novas / duracao XP)
+Intervalo entre leituras novas (tempo XP): mediana 13.1 ms | p90 16.3 ms | p99 17.8 ms | max 54.2 ms
+Repeticoes (mesma leitura devolvida): 0 (0.0 %)
+Sincronia: sim 91.5 s | X-Plane 91.4 s | razao XP/sim 0.9993 | parede 96.1 s (razao parede/sim 1.050)
+X-Plane fps: antes 545 | depois 411 (frame 1.84 / 2.43 ms)
+Frames de fisica por leitura (aprox.): 7.1
+RTT getDREFs antes do voo: mediana 2.23 ms | p95 2.87 ms | max 13.35 ms

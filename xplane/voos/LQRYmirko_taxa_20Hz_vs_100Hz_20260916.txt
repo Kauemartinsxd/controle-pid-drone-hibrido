@@ -1,0 +1,26 @@
+metrica                            |       100 Hz |        20 Hz
+----------------------------------------------------------------
+(metricas de voo calculadas ate t = 75 s; taxa no voo inteiro)
+Ts_io [s]                          |         0.01 |         0.05
+duracao [s] (fim automatico)       |         75.0 |         75.0
+h [m] min..max                     | 599.7..600.3 | 599.6..600.5
+h RMS em torno de 600 [m]          |         0.10 |         0.17
+VT [m/s] min..max                  |   13.5..16.6 |   13.0..16.7
+VT RMS em torno de 15 [m/s]        |         0.57 |         0.92
+periodo do ciclo de VT [s]         |          3.0 |          3.2
+phi max [deg]                      |         20.2 |         23.6
+theta [deg] min..max               |    2.3..11.7 |   -1.0..15.4
+alpha max [deg] (estol 18,5)       |         11.2 |         13.4
+de cmd [deg] min..max              |   -0.7..+6.5 |   -3.9..+8.6
+|da| max cmd [deg]                 |          2.2 |          2.1
+|dr| max cmd [deg]                 |          4.6 |          4.5
+manete cmd min..max                |  -0.30..3.17 |  -1.32..3.00
+manete cmd fora de [0,1] [%]       |           53 |           66
+superficie cmd > 15 deg [%]        |            0 |            0
+dist min aos WPs [m]               | [6.9 35.3 31.7 24.5 28.2] | [5.1 33.1 31.6 26.6 31.7]
+----------------------------------------------------------------
+taxa efetiva de leitura [Hz]       |        100.0 |         20.0
+dt entre leituras: mediana [ms]    |         13.0 |         47.5
+dt entre leituras: p99 [ms]        |         17.7 |         64.7
+dt entre leituras: max [ms]        |         77.4 |         66.4
+leituras repetidas [%]             |          0.0 |          0.0

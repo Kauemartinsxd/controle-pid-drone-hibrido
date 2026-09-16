@@ -1,0 +1,12 @@
+Voo: C:\Users\kaue\Documents\dissertacao\dissertacao\controle-pid-drone-hibrido\xplane\voos\XP_missao_20260916_155734_LQRYmirko_psiNovo_oval_confirma_taxa_reload_20Hz.mat
+Engate a t_xp 27.7 s apos o load do .acf (motor ligado desde o load); estol/departure, se houver, acima
+Ts_io pedido: 0.050 s (20 Hz) | solver ode4 Ts = 0.010 s
+Amostras na grade do Simulink: 1735 em 86.7 s de sim
+Leituras com tempo NOVO do X-Plane: 1735 de 1735 (100.0 %)
+Taxa efetiva de leitura: 20.0 Hz (leituras novas / duracao XP)
+Intervalo entre leituras novas (tempo XP): mediana 47.5 ms | p90 62.5 ms | p99 64.7 ms | max 66.4 ms
+Repeticoes (mesma leitura devolvida): 0 (0.0 %)
+Sincronia: sim 86.7 s | X-Plane 86.7 s | razao XP/sim 1.0001 | parede 90.9 s (razao parede/sim 1.048)
+X-Plane fps: antes 386 | depois 426 (frame 2.59 / 2.35 ms)
+Frames de fisica por leitura (aprox.): 18.3
+RTT getDREFs antes do voo: mediana 2.65 ms | p95 3.62 ms | max 14.87 ms
